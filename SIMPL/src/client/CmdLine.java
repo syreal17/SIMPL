@@ -1,3 +1,7 @@
+/**
+ * Handles command line user input to include starting up the Client object.
+ */
+
 package client;
 
 public class CmdLine {
