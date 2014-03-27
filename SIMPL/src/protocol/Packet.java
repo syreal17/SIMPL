@@ -1,8 +1,10 @@
 package protocol;
 
 import java.io.Serializable;
+import java.net.Socket;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.EnumSet;
 
 public abstract class Packet implements Serializable {
 	
@@ -16,6 +18,8 @@ public abstract class Packet implements Serializable {
 	}
 	
 	private byte[] encrypted_data;
+	private EnumSet<Flag> flags;		//will be zeroed out if encrypted
+	private Socket socket;				//shouldn't be a problem to send this in clear
 	
 	abstract public Packet sign(PrivateKey privk);
 	abstract public boolean verify(PublicKey pubk);
