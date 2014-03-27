@@ -36,4 +36,24 @@ public class Server {
 		//TODO: implement
 		return common.Constants.GENERIC_FAILURE;
 	}
+	
+	/**
+	 * Load all the users that the server remembers
+	 * @param filepath points to the CSV file that contains all user records
+	 * @return success or not
+	 */
+	private int load_users(String filepath){
+		//TODO: implement
+		return common.Constants.GENERIC_FAILURE;
+	}
+	
+	/**
+	 * Save all the in-memory users to disk to be able to load next start-up
+	 * @param filepath points to the location on disk to save all user records
+	 * @return
+	 */
+	private int save_users(String filepath){
+		//TODO: implement
+		return common.Constants.GENERIC_FAILURE;
+	}
 }
