@@ -42,19 +42,19 @@ public class Client {
 	 * @param port the port number that the server is listening for SIMPL on
 	 * @return success or failure
 	 */
-	public int do_login(String serverName, int port){
+	public void do_login(String serverName, int port){
 		//TODO: implement
-		return common.Constants.GENERIC_FAILURE;
+		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
 	/**
 	 * Ask SIMPL Server for Login'd SIMPL Clients. Instantiates the clients ArrayList
 	 * @return success or failure
 	 */
-	public int do_discover(){
+	public void do_discover(){
 		//TODO: implement
 		//TODO: build this.clients from this message
-		return common.Constants.GENERIC_FAILURE;
+		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
 	/**
@@ -63,27 +63,27 @@ public class Client {
 	 * @param message message to send chat buddy
 	 * @return success or failure
 	 */
-	public int do_chat(String message){
+	public void do_chat(String message){
 		//TODO: implement
-		return common.Constants.GENERIC_FAILURE;
+		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
 	/**
 	 * Leave the chat conversation with Buddy
 	 * @return
 	 */
-	public int do_leave(){
+	public void do_leave(){
 		//TODO: implement
-		return common.Constants.GENERIC_FAILURE;
+		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
 	/**
 	 * Logout to Server
 	 * @return
 	 */
-	public int do_logout(){
+	public void do_logout(){
 		//TODO: implement
-		return common.Constants.GENERIC_FAILURE;
+		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
 	/**

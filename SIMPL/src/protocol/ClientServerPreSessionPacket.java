@@ -3,6 +3,11 @@ package protocol;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
+/**
+ * This class might be useless since Login is the only descendent
+ * @author syreal
+ *
+ */
 public abstract class ClientServerPreSessionPacket extends Packet {
 
 	@Override

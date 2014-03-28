@@ -12,6 +12,8 @@ import java.net.InetAddress;
  */
 public class CmdLine {
 	
+	public static final String INVALID_CHALLENGE_SIG = "Invalid Server signature on challenge!";
+	
 	private static final String INVALID_SERVERNAME = "Not a valid server name!";
 	private static final String INVALID_PORTNUM = "Not a valid port number!";
 	private static final String WHO_PRELUDE = "Available usernames to chat with are:";
@@ -28,6 +30,10 @@ public class CmdLine {
 	
 	private static Client client;	//the abstraction that this CmdLine interacts with. Should only be created once.
 	
+	/**
+	 * Reports on whether client has been initialized
+	 * @return
+	 */
 	private static boolean isClientValid(){
 		if( CmdLine.client != null ){
 			return true;
@@ -43,9 +49,9 @@ public class CmdLine {
 	 * @param port the port number that the server is listening for SIMPL on
 	 * @return success or failure
 	 */
-	private static int client_connect(String serverName, int port){
+	private static void client_connect(String serverName, int port){
 		//TODO: implement
-		return common.Constants.GENERIC_FAILURE;
+		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
 	/**
@@ -84,7 +90,7 @@ public class CmdLine {
 		//TODO: implement
 		//TODO: parse out first word of user input string, 
 		//		if a command, do command, if not, try to send as message
-		return;
+		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
 	public static void main(String[] Args){
@@ -109,14 +115,19 @@ public class CmdLine {
 		CmdLine.client = new Client();
 		
 		//try connecting
-		//ltj: these lines are very C-like. Java style is more exception oriented
-		if( CmdLine.client.do_login(serverName, portNum) == common.Constants.GENERIC_FAILURE ){
+		try{
+			CmdLine.client.do_login(serverName, portNum);
+		} catch (Exception e){
+			e.printStackTrace();
 			System.out.println(CmdLine.LOGIN_FAIL);
 			System.exit(common.Constants.GENERIC_FAILURE);
 		}
 		
 		//try discover
-		if( CmdLine.client.do_discover() == common.Constants.GENERIC_FAILURE ){
+		try{
+			CmdLine.client.do_discover();
+		} catch (Exception e){
+			e.printStackTrace();
 			System.out.println(CmdLine.DISCOVER_FAIL);
 			System.exit(common.Constants.GENERIC_FAILURE);
 		}

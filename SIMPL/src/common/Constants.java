@@ -8,4 +8,7 @@ public class Constants {
 	//NETWORKING
 	public final static int MIN_PORT = 1;
 	public final static int MAX_PORT = 65535;
+	
+	//EXCEPTIONS
+	public final static String USO_EXCPT_MSG = "We have not implemented that yet!";
 }

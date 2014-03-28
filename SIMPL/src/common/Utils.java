@@ -1,6 +1,7 @@
 package common;
 
-import java.net.InetAddress;
+import java.io.*;
+import java.net.*;
 
 public class Utils {
 	
@@ -35,4 +36,30 @@ public class Utils {
 			return false;
 		}
 	}
+	
+	/**
+	 * Convert a generic object to a byte array
+	 * @param obj object to serialize to a byte array
+	 * @return array of bytes representing object
+	 * @throws IOException
+	 */
+	public static byte[] serialize(Object obj) throws IOException {
+        ByteArrayOutputStream b = new ByteArrayOutputStream();
+        ObjectOutputStream o = new ObjectOutputStream(b);
+        o.writeObject(obj);
+        return b.toByteArray();
+    }
+	
+	/**
+	 * Convert a byte array to an Object
+	 * @param bytes to convert
+	 * @return Object
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
+	public static Object deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
+        ByteArrayInputStream b = new ByteArrayInputStream(bytes);
+        ObjectInputStream o = new ObjectInputStream(b);
+        return o.readObject();
+    }
 }
