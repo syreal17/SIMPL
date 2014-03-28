@@ -24,7 +24,8 @@ public class CmdLine {
 											"/leave\t\t\t: Leave the current chat\n" +
 											"/quit\t\t\t: Logout from SIMPL Server and close Client\n" +
 											"/help\t\t\t: Print this dialog\n";
-	private static final String USAGE_MSG = "Usage: java client.CmdLine <server name> <port>";
+	private static final String USAGE_MSG = "Usage: java client.CmdLine <server name> <port> " +
+											"<path to server public key>";
 	private static final int ARG_SERVERNAME_POS = 0;
 	private static final int ARG_PORTNUM_POS = 1;
 	

@@ -14,15 +14,12 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	private long R_2;				//the smaller, crackable number
 	
 	private ChallengePayload challengePayload;
-	
-	//ltj: These are just used class-side for ease of reading. When packet is readied,
-	//the bytes are stuffed into Packet.crypto_data
-	private byte[] authPayload;		//{username,W_1,N}_Ks
+	private AuthenticationPayload authPayload;					//{username,W_1,N}_Ks
 	
 	public LoginPacket(){
 		this.challengePayload = new ChallengePayload((Long) null, (byte[]) null);
 		this.R_2 = (Long) null;
-		this.authPayload = (byte[]) null;
+		this.authPayload = new AuthenticationPayload((String) null, (byte[]) null, (Long) null);
 	}
 	
 	/**
@@ -62,7 +59,6 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	
 	/**
 	 * Set flags for the initial Login message that the Client sends
-	 * @return success
 	 */
 	public void setClientLoginRequestFlags(){
 		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Syncronization);
@@ -70,7 +66,6 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	
 	/**
 	 * Set flags for the Server's challenge request to the Client
-	 * @return success
 	 */
 	public void setServerLoginChallengeFlags(){
 		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Syncronization, Packet.Flag.Acknowledgement);
@@ -78,10 +73,23 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	
 	/**
 	 * Set flags for the Client's challenge response to the Server
-	 * @return success
 	 */
 	public void setClientLoginChallengeResponseFlags(){
 		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Acknowledgement);
+	}
+	
+	/**
+	 * Set flags for Server to accept Client login
+	 */
+	public void setServerLoginOkFlags(){
+		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Ok);
+	}
+	
+	/**
+	 * Set flags for Server to deny Client login
+	 */
+	public void setServerLoginDenyFlags(){
+		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Deny);
 	}
 	
 	/**
@@ -131,7 +139,12 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * @param pubk public key of the Server
 	 * ASSUMPTIONS: LoginPacket has ChallengeResponse, but no R_2.
 	 */
-	public void readyClientLoginChallengeResponse(PublicKey pubk){
+	public void readyClientLoginChallengeResponse(PublicKey pubk, String username, byte[] pwHash, long N){
+		//verify that ChallengePayload exists
+		if( this.challengePayload == null ){
+			throw new UnsupportedOperationException("Challenge Payload must exist before preparing Client response");
+		}
+		
 		//verify the ChallengePayload
 		if( !this.challengePayload.verify(pubk) ){
 			System.out.println(client.CmdLine.INVALID_CHALLENGE_SIG);
@@ -141,7 +154,48 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		//find R_2, given a ChallengePayload
 		this.findR_2();
 		
-		//TODO: ready the packet with R_2 and AuthenticationPayload
+		//remember R_2, so we can zero out fields later, and refill out R_2
+		long R_2 = this.R_2;
+		
+		//build authPayload so it can be encrypted
+		this.authPayload = new AuthenticationPayload(username, pwHash, N);
+		
+		//encrypt it
+		byte[] encrypted_data = this.authPayload.encrypt(pubk);
+		
+		//reset the packet (we don't want to send object with all filled out fields)
+		this.clearAllFields();
+		
+		//set flags
+		this.setClientLoginChallengeResponseFlags();
+		
+		//stuff encrypted data into crypto data packet field
+		this.crypto_data = Arrays.copyOf(encrypted_data, encrypted_data.length);
+		
+		//set R_2 to what the Client found it to be
+		this.R_2 = R_2;
+	}
+	
+	/**
+	 * Readies the LoginPacket to be a Server Login OK response to Client
+	 */
+	public void readyServerLoginOk(){
+		//reset the packet
+		this.clearAllFields();
+		
+		//prepare it as a Client Login request
+		this.setServerLoginOkFlags();
+	}
+	
+	/**
+	 * Readies the LoginPacket to be a Server Login Deny response to Client
+	 */
+	public void readyServerLoginDeny(){
+		//reset the packet
+		this.clearAllFields();
+		
+		//prepare it as a Client Login request
+		this.setServerLoginDenyFlags();
 	}
 	
 	/**
@@ -152,9 +206,14 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	@Override
 	public void clearAllFields(){
 		super.clearAllFields();
+		
 		this.challengePayload.R_1 = (Long) null;
-		this.R_2 = (Long) null;
 		this.challengePayload.challengeHash = (byte[]) null;
-		this.authPayload = (byte[]) null;
+		
+		this.R_2 = (Long) null;
+		
+		this.authPayload.username = (String) null;
+		this.authPayload.pwHash = (byte[]) null;
+		this.authPayload.N = (Long) null;
 	}
 }
