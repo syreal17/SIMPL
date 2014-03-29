@@ -2,24 +2,38 @@ package protocol;
 
 import java.security.*;
 import java.util.*;
+//This is the package that I made... I don't know how to import it!
+//I also don't know if it should exist at all
+import crypto;
 
 
 public class LoginPacket extends ClientServerPreSessionPacket {
 	public static final int R_1_size = 64; //bits
-	public static final int R_2_size = 20;
+	public static final int R_2_size = 16; //bits (too short! but makes it easy)
 	
 	//ltj: these almost certainly won't be longs by the end of the project
 	//maybe BigInt of 64 bits and 20 bits or something
 	//R_1 is in ChallengePayload object
-	private long R_2;				//the smaller, crackable number
+	private short R_1; //the big tricksy number		
+	private long R_2;  //the smaller, crackable number	
 	
 	private ChallengePayload challengePayload;
 	private AuthenticationPayload authPayload;					//{username,W_1,N}_Ks
+
+	//Server side, this is the challenge we generate and send
+	//Client side, this is where we store the challenge prior to solving it
+	byte[] challenge;
 	
+	//our hashing machine
+	private Hash hash;
+	private SecureRandom RNG;
+
 	public LoginPacket(){
 		this.challengePayload = new ChallengePayload((Long) null, (byte[]) null);
 		this.R_2 = (Long) null;
 		this.authPayload = new AuthenticationPayload((String) null, (byte[]) null, (Long) null);
+		this.hash = new Hash();
+		RNG = new SecureRandom();
 	}
 	
 	/**
@@ -28,9 +42,10 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * @return success or failure
 	 */
 	public void generateRs(){
-		//TODO: implement
-		//TODO: PRNG for R_1. R_1_size bits?
-		//TODO: PRNG for R_2. R_2_size bits?
+		//generate PRN R1 using R_1_size bits
+		R1 = RNG.next(R_1_size);
+		//generate PRN R2 using R_2_size bits
+		R2 = RNG.next(R_2_size);
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
@@ -41,7 +56,7 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * @return success or failure
 	 */
 	public void generateChallengeHash(){
-		//TODO: implement
+		challenge = hash.makeChallenge(R1, R2);
 		//TODO: think about specifying the MessageDigest type string in common package somewhere
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
@@ -52,8 +67,9 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * @return success or failure
 	 */
 	public void findR_2(){
-		//TODO: implement
-		//TODO: brute-force h(R_1 + R_2)
+		//use the hash class to solve the challenge 
+		//by feeding it the challenge and R1
+		R2 = hash.solveChallenge(challenge, R1);
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
