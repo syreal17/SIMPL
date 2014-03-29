@@ -14,8 +14,8 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	//ltj: these almost certainly won't be longs by the end of the project
 	//maybe BigInt of 64 bits and 20 bits or something
 	//R_1 is in ChallengePayload object
-	private short R_1; //the big tricksy number		
-	private long R_2;  //the smaller, crackable number	
+	private long R_1; //the big tricksy number		
+	private short R_2;  //the smaller, crackable number	
 	
 	private ChallengePayload challengePayload;
 	private AuthenticationPayload authPayload;					//{username,W_1,N}_Ks
