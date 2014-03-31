@@ -4,7 +4,7 @@ import java.security.*;
 import java.util.*;
 //This is the package that I made... I don't know how to import it!
 //I also don't know if it should exist at all
-import crypto;
+import crypto.Hash;
 
 
 public class LoginPacket extends ClientServerPreSessionPacket {
@@ -28,9 +28,9 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	private Hash hash;
 	private SecureRandom RNG;
 
-	public LoginPacket(){
+	public LoginPacket() throws NoSuchAlgorithmException{
 		this.challengePayload = new ChallengePayload((Long) null, (byte[]) null);
-		this.R_2 = (Long) null;
+		this.R_2 = (Short) null;
 		this.authPayload = new AuthenticationPayload((String) null, (byte[]) null, (Long) null);
 		this.hash = new Hash();
 		RNG = new SecureRandom();
@@ -43,9 +43,10 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 */
 	public void generateRs(){
 		//generate PRN R1 using R_1_size bits
-		R1 = RNG.next(R_1_size);
+		R_1 = RNG.next(R_1_size);	//ltj: find the API that provides this behind the scenes
 		//generate PRN R2 using R_2_size bits
-		R2 = RNG.next(R_2_size);
+		R_2 = RNG.next(R_2_size); //ltj: this is somewhat problematic. Converting from int to short might
+									//lose precision
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
@@ -56,7 +57,7 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * @return success or failure
 	 */
 	public void generateChallengeHash(){
-		challenge = hash.makeChallenge(R1, R2);
+		challenge = hash.makeChallenge(R_1, R_2);
 		//TODO: think about specifying the MessageDigest type string in common package somewhere
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
@@ -69,7 +70,7 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	public void findR_2(){
 		//use the hash class to solve the challenge 
 		//by feeding it the challenge and R1
-		R2 = hash.solveChallenge(challenge, R1);
+		R_2 = hash.solveChallenge(challenge, R_1);
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
@@ -171,7 +172,7 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		this.findR_2();
 		
 		//remember R_2, so we can zero out fields later, and refill out R_2
-		long R_2 = this.R_2;
+		short R_2 = this.R_2;
 		
 		//build authPayload so it can be encrypted
 		this.authPayload = new AuthenticationPayload(username, pwHash, N);
@@ -226,7 +227,7 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		this.challengePayload.R_1 = (Long) null;
 		this.challengePayload.challengeHash = (byte[]) null;
 		
-		this.R_2 = (Long) null;
+		this.R_2 = (Short) null;
 		
 		this.authPayload.username = (String) null;
 		this.authPayload.pwHash = (byte[]) null;
