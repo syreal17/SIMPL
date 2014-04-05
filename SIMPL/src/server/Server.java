@@ -8,6 +8,8 @@ import java.util.*;
 
 import javax.crypto.SecretKey;
 
+import common.Keymake;
+
 import protocol.*;
 
 /*
@@ -42,15 +44,17 @@ public class Server {
 	//Would need a separate thread to call the function. The main thread is spinning on listener loop
 	private boolean running;
 	
-	public Server(int port, String userDBPath, PrivateKey serverPrivK){
+	public Server(int port, String userDBPath, String privKPath){
 		try {
 			this.listenerSocket = new ServerSocket(port);
 			this.userDB = new HashMap<String, byte[]>();
 			this.load_users(userDBPath);
-			this.serverPrivK = serverPrivK;
 			this.clientHandler = new ClientHandler();
 			this.threads = new ArrayList<Thread>();
 			this.running = true;
+			
+			//call to either load the PrivateKey at privKPath or create it there
+			this.get_private_key(privKPath);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -203,10 +207,9 @@ public class Server {
 						this.serverPrivK = kf.generatePrivate(privateKeySpec);
 					}
 				} else if( privateKeyFile.canWrite() ){
-					//TODO: implement
-					//if we can't read (presumably because it doesn't exist, but we can write, create a key and write
-					//it
-					
+					//if we can't read (presumably because it doesn't exist, but we can write,
+					//create a key and write it.
+					Keymake.writePrivateKey(filepath);
 				} else {
 					this.serverPrivK = null;
 					throw new IOException(common.Constants.FILE_UNREADABLE_UNWRITABLE_MSG);

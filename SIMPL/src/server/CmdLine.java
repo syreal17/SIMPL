@@ -15,13 +15,6 @@ public class CmdLine {
 	
 	public static Server server;
 	
-	private static PrivateKey getPrivateKeyFromFile(String filename){
-		if( common.Constants.CRYPTO_OFF ){
-			return null;
-		} else { 
-			throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
-		}
-	}
 	
 	public static void main(String[] Args){
 
@@ -39,14 +32,15 @@ public class CmdLine {
 			System.exit(common.Constants.GENERIC_FAILURE);
 		}
 		
-		//TODO: check validity of path
+		//TODO: check validity of path somewhere
 		String userDBFilename = Args[CmdLine.ARG_USERDB_POS];
 		
-		//parse the private key
-		PrivateKey serverPrivK = CmdLine.getPrivateKeyFromFile(Args[CmdLine.ARG_SERVERPRIVK_POS]);
+		/*//parse the private key
+		PrivateKey serverPrivK = CmdLine.getPrivateKeyFromFile(Args[CmdLine.ARG_SERVERPRIVK_POS]);*/
+		String serverPrivKPath = Args[CmdLine.ARG_SERVERPRIVK_POS];
 		
 		//create Server instance and start it
-		CmdLine.server = new Server(portNum, userDBFilename, serverPrivK);
+		CmdLine.server = new Server(portNum, userDBFilename, serverPrivKPath);
 		CmdLine.server.start_listener_loop();
 	}
 }
