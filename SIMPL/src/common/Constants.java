@@ -15,4 +15,10 @@ public class Constants {
 	//CONSTANTS OF FAITH
 	public final static int MAX_EXPECT_PACKET_SIZE = 65536;
 	public final static int NONCE_SIZE_BYTES = 16;
+	
+	//CRYPTO
+	public final static String HASH_ALGORITHM = "SHA-256";
+	public final static String SIGNATURE_ALGORITHM = "SHA512withRSA";
+	public final static String ASYMMETRIC_CRYPTO_MODE = "RSA";
+	public final static String SYMMETRIC_CRYPTO_MODE = "AES/CBC/PKCS5Padding";
 }

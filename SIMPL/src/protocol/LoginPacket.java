@@ -1,13 +1,15 @@
 package protocol;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.security.*;
 import java.util.*;
 
-//This is the package that I made... I don't know how to import it!
-//I also don't know if it should exist at all
-import crypto.Hash;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
+import common.Constants;
 
 public class LoginPacket extends ClientServerPreSessionPacket {
 	public static final int R_1_size = 8; //bytes
@@ -24,17 +26,18 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	//Client side, this is where we store the challenge prior to solving it
 	byte[] challenge;
 	
-	//our hashing machine
-	private Hash hash;
+	// Cryptographically secure PRNG
 	private SecureRandom RNG;
+	//Hashing object
+	MessageDigest md;
 
 	public LoginPacket() throws NoSuchAlgorithmException{
 		this.challengePayload = new ChallengePayload( null, null);
 		this.R_1 = new byte[R_1_size];
 		this.R_2 = new byte[R_2_size];
 		this.authPayload = new AuthenticationPayload((String) null, null, null);
-		this.hash = new Hash();
 		RNG = new SecureRandom();
+		this.md = MessageDigest.getInstance(Constants.HASH_ALGORITHM);
 	}
 	
 	/**
@@ -58,7 +61,14 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * @return success or failure
 	 */
 	public void generateChallengeHash(){
-		challenge = hash.makeChallenge(R_1, R_2);
+		byte[] puzzle = new byte[11];
+		//concatenate the byte arrays
+		System.arraycopy(R_1,0,puzzle,0,R_1.length);
+		System.arraycopy(R_2,0,puzzle,R_1.length,R_2.length);
+		//update message digest with byte array
+		md.update(puzzle);
+		//make the hash and return it
+        challenge = md.digest();
 		//TODO: think about specifying the MessageDigest type string in common package somewhere
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
@@ -71,8 +81,22 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	public void findR_2(){
 		//use the hash class to solve the challenge 
 		//by feeding it the challenge and R1
-		R_2 = hash.solveChallenge(challenge, R_1);
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		byte[] attempt = new byte[11];
+		//loop through all possible values of R2
+		for (int R2 = 0; R2 < (1 << 24); R2++){
+			//get the byte array form of the numbers
+			byte[] B2 = ByteBuffer.allocate(3).putInt(R2).array();
+			//concatenate the byte arrays
+			System.arraycopy(R_1,0,attempt,0,R_1.length);
+			System.arraycopy(B2,0,attempt,R_1.length,B2.length);
+			//update message digest with byte array
+			md.update(attempt);
+			//make the hash, check if it matches the puzzle
+	        if (Arrays.equals(md.digest(), challenge))
+	        {
+	        	R_2 = B2;
+	        }
+		}
 	}
 	
 	/**
@@ -126,8 +150,11 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * Readies the Login packet to be a Server Login challenge packet
 	 * @param privk private key of the Server
 	 * @throws IOException 
+	 * @throws SignatureException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
 	 */
-	public byte[] readyServerLoginChallenge(PrivateKey privk) throws IOException{
+	public byte[] readyServerLoginChallenge(PrivateKey privk) throws IOException, InvalidKeyException, NoSuchAlgorithmException, SignatureException{
 		//generate the R's
 		this.generateRs();
 		
@@ -158,15 +185,26 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * @param pubk public key of the Server
 	 * ASSUMPTIONS: LoginPacket has ChallengeResponse, but no R_2.
 	 * @throws IOException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws SignatureException 
+	 * @throws InvalidKeyException 
+	 * @throws BadPaddingException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
 	 */
-	public void readyClientLoginChallengeResponse(PublicKey pubk, String username, byte[] pwHash, byte[] N) throws IOException{
+	public void readyClientLoginChallengeResponse(PublicKey pubk, String username, byte[] pwHash, byte[] N) throws IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
 		//verify that ChallengePayload exists
-		if( this.challengePayload == null ){
-			throw new UnsupportedOperationException("Challenge Payload must exist before preparing Client response");
+		try {
+			if( this.challengePayload == null ){
+				throw new UnsupportedOperationException("Challenge Payload must exist before preparing Client response");
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 		//verify the ChallengePayload
-		if( !this.challengePayload.verify(pubk) ){
+		if( !this.challengePayload.verify(pubk, this.crypto_data) ){
 			System.out.println(client.CmdLine.INVALID_CHALLENGE_SIG);
 			return;
 		}
