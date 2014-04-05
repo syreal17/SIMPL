@@ -190,9 +190,15 @@ public class Server {
 		if( common.Constants.CRYPTO_OFF ){
 			return true;
 		} else {
-			//TODO: add check of this.userDB
-			//TODO: if username not in DB, add it to DB with the supplied hash
-			throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+			if( this.userDB.containsKey(username) ){
+				//if the userDB already has the username, we want to check to make sure hashes match
+				byte[] storedHash = this.userDB.get(username);
+				return Arrays.equals(suppliedPwHash, storedHash);
+			} else {
+				//if username doesn't exist, add it to the DB
+				this.userDB.put(username, suppliedPwHash);
+				return true;
+			}
 		}
 	}
 	
