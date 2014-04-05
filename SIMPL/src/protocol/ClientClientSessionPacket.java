@@ -13,10 +13,10 @@ public class ClientClientSessionPacket extends Packet {
 	}
 
 	@Override
-	public boolean verify(PublicKey pubk) {
+	public byte[] verify(PublicKey pubk) {
 		// TODO Auto-generated method stub
 		System.out.println("ClientClientSessionPacket verify");
-		return false;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
