@@ -21,6 +21,8 @@ import protocol.*;
  * _NETWORKING_
  * A simple TCP server and client:
  * 		http://docs.oracle.com/javase/tutorial/networking/sockets/clientServer.html
+ * Getting a byte array from Socket
+ * 		http://stackoverflow.com/questions/10475898/receive-byte-using-bytearrayinputstream-from-a-socket
  */
 
 /**
@@ -46,12 +48,16 @@ public class Client {
 	private byte[] N; //the nonce that we've used and sent to the Server
 	public PublicKey serverPubK;
 	
+	private SecureRandom RNG;
+	
 	//Constructor currently sets nothing up. Defers to other class methods
 	public Client(PublicKey serverPubK){
 		//set the size for N
 		this.N = new byte[common.Constants.NONCE_SIZE_BYTES];
 		//remember the Server public key
 		this.serverPubK = serverPubK;
+		//create a RNG instance
+		//TODO: is it not a factory method?
 	}
 	
 	/**
@@ -62,62 +68,70 @@ public class Client {
 	 * @throws IOException 
 	 * @throws UnknownHostException 
 	 */
-	public String do_login(String serverName, int port) throws NoSuchAlgorithmException, 
-																UnknownHostException, IOException,
-																ClassNotFoundException{
-		//TODO: maybe return more helpful error codes, instead of punting to Exceptions
-		
-		//An object variable to use throughout
-		Object o;
-		
-		//create TCP connection
-		this.simplSocket = new Socket(serverName, port);
-		this.simplStream = this.simplSocket.getInputStream();
-		
-		//__Build the initial packet
-		LoginPacket loginRequest = new LoginPacket();
-		loginRequest.readyClientLoginRequest();
-		//send it
-		loginRequest.go(this.simplSocket);
-		
-		//__Get challenge packet
-		//having faith that Java will correctly give me the entire packet at once
-		byte[] recv = new byte[common.Constants.MAX_EXPECT_PACKET_SIZE];
-		//we will wait till server sends something
-		int count = this.simplStream.read(recv);
-		//that something should be a Packet
-		byte[] packetBytes = new byte[count];
-		//manual copy, truncating the unused part of the recv buffer
-		for(int i = 0; i < count; i++){
-			packetBytes[i] = recv[i];
+	public String do_login(String serverName, int port) 
+			throws NoSuchAlgorithmException, UnknownHostException, IOException,	ClassNotFoundException{
+		try{
+			//TODO: maybe return more helpful error codes, instead of punting to Exceptions
+			
+			//An object variable to use throughout
+			Object o;
+			
+			//create TCP connection
+			this.simplSocket = new Socket(serverName, port);
+			this.simplStream = this.simplSocket.getInputStream();
+			
+			//__Build the initial packet
+			LoginPacket loginRequest = new LoginPacket();
+			loginRequest.readyClientLoginRequest();
+			//send it
+			loginRequest.go(this.simplSocket);
+			
+			//__Get challenge packet
+			//TODO: check flags
+			//having faith that Java will correctly give me the entire packet at once
+			byte[] recv = new byte[common.Constants.MAX_EXPECT_PACKET_SIZE];
+			//we will wait till server sends something
+			int count = this.simplStream.read(recv);
+			//that something should be a Packet
+			byte[] packetBytes = new byte[count];
+			//manual copy, truncating the unused part of the recv buffer
+			for(int i = 0; i < count; i++){
+				packetBytes[i] = recv[i];
+			}
+			//turn into an object first
+			o = common.Utils.deserialize(packetBytes);
+			//then cast to a Packet
+			Packet serverChallenge = (Packet) o;
+			//TODO: decide whether or not to use the verify embedded in readyClientChallengeResponse or the below
+			//verify the server signature, returns byte array of the ChallengePayload if successful
+			byte[] challengePayloadBytes = serverChallenge.verify(this.serverPubK); 	//this is the ClientServerPreSessionPacket call.
+			//invalid signature is a null byte[]
+			if( challengePayloadBytes == null ){
+				return Client.LOGIN_VERIFY_FAIL;
+			}
+			//deserialize the ChallengePayload into an object
+			o = common.Utils.deserialize(challengePayloadBytes);
+			//cast it to a ChallengePayload
+			ChallengePayload cp = (ChallengePayload) o;
+			
+			//__Start constructing the response packet.
+			LoginPacket challengeResponse = new LoginPacket();
+			//stuff the ChallengePayload into challengeResponse so calculations can be done on it
+			challengeResponse.challengePayload = cp;
+			//TODO: actually get user input here
+			String username = "syreal";
+			String password = "password";
+			//Hashing the password
+			MessageDigest md = MessageDigest.getInstance(common.Constants.HASH_ALGORITHM);
+			md.update(password.getBytes());
+			byte[] pwHash = md.digest();
+			challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, username, pwHash, challengePayloadBytes);
+			
+			return Client.LOGIN_CATCHEMALL;
+		} catch (Exception e){
+			e.printStackTrace();
+			return Client.LOGIN_CATCHEMALL;
 		}
-		//turn into an object first
-		o = common.Utils.deserialize(packetBytes);
-		//then cast to a Packet
-		Packet serverChallenge = (Packet) o;
-		//TODO: decide whether or not to use the verify embedded in readyClientChallengeResponse or the below
-		//verify the server signature, returns byte array of the ChallengePayload if successful
-		byte[] challengePayloadBytes = serverChallenge.verify(this.serverPubK); 	//this is the ClientServerPreSessionPacket call.
-		//invalid signature is a null byte[]
-		if( challengePayloadBytes == null ){
-			return Client.LOGIN_VERIFY_FAIL;
-		}
-		//deserialize the ChallengePayload into an object
-		o = common.Utils.deserialize(challengePayloadBytes);
-		//cast it to a ChallengePayload
-		ChallengePayload cp = (ChallengePayload) o;
-		
-		//__Start constructing the response packet. THis is going to be weird since LoginPacket has the findR_2 func
-		//TODO: think about taking find_R_2 func and maybe putting it in challengeResponse.
-		LoginPacket challengeResponse = new LoginPacket();
-		//stuff the ChallengePayload into challengeResponse so calculations can be done on it
-		challengeResponse.challengePayload = cp;
-		//TODO: make appropriate public, private methods in LoginPacket. Almost used findR_2 out-of-band
-
-
-		
-		//catch all return
-		return Client.LOGIN_CATCHEMALL;
 	}
 	
 	/**

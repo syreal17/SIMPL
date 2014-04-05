@@ -32,10 +32,10 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	MessageDigest md;
 
 	public LoginPacket() throws NoSuchAlgorithmException{
-		this.challengePayload = new ChallengePayload( null, null);
+		this.challengePayload = new ChallengePayload( null, null );
 		this.R_1 = new byte[R_1_size];
 		this.R_2 = new byte[R_2_size];
-		this.authPayload = new AuthenticationPayload((String) null, null, null);
+		this.authPayload = new AuthenticationPayload( null, null, null );
 		RNG = new SecureRandom();
 		this.md = MessageDigest.getInstance(Constants.HASH_ALGORITHM);
 	}
@@ -78,15 +78,13 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 			md.update(puzzle);
 			//make the hash and return it
 	        challenge = md.digest();
-			//TODO: think about specifying the MessageDigest type string in common package somewhere
-			throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 		}
 	}
 	
 	/**
 	 * Brute force R_2 to answer the challenge. Should be called Client-side
-	 * @author syreal
-	 * @return success or failure
+	 * @author Jaffe
+	 * @return 
 	 */
 	public void findR_2(){
 		if (Constants.CRYPTO_OFF)
@@ -211,20 +209,16 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 */
 	public void readyClientLoginChallengeResponse(PublicKey pubk, String username, byte[] pwHash, byte[] N) throws IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
 		//verify that ChallengePayload exists
-		try {
-			if( this.challengePayload == null ){
-				throw new UnsupportedOperationException("Challenge Payload must exist before preparing Client response");
-			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if( this.challengePayload == null ){
+			throw new UnsupportedOperationException("Challenge Payload must exist before preparing Client response");
 		}
 		
+		/* Punting this to Client.java do_login. Easier to uncrypto and construct ChallengePayload there
 		//verify the ChallengePayload
 		if( !this.challengePayload.verify(pubk, this.crypto_data) ){
 			System.out.println(client.CmdLine.INVALID_CHALLENGE_SIG);
 			return;
-		}
+		}*/
 		
 		//find R_2, given a ChallengePayload
 		this.findR_2();
@@ -283,11 +277,11 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		super.clearAllFields();
 		
 		this.challengePayload.R_1 = null;
-		this.challengePayload.challengeHash = (byte[]) null;
+		this.challengePayload.challengeHash = null;
 		
-		this.R_2 = (byte[]) null;
+		this.R_2 = null;
 		
-		this.authPayload.username = (String) null;
+		this.authPayload.username = null;
 		this.authPayload.pwHash = null;
 		this.authPayload.N = null;
 	}

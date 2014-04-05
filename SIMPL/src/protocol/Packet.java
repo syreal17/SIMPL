@@ -41,8 +41,8 @@ public abstract class Packet implements Serializable {
 	 * Setting fields to null manually might be redundant in Java
 	 */
 	public Packet(){
-		this.crypto_data = (byte[]) null;
-		this.flags = (EnumSet<Flag>) null;
+		this.crypto_data = null;
+		this.flags = null;
 	}
 	
 	//would like to make ctor from byte[]...
@@ -80,7 +80,7 @@ public abstract class Packet implements Serializable {
 	 * @return
 	 */
 	public void clearAllFields(){
-		this.crypto_data = (byte[]) null;
-		this.flags = (EnumSet<Flag>) null;
+		this.crypto_data = null;
+		this.flags = null;
 	}
 }
