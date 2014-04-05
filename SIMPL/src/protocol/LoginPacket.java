@@ -31,13 +31,17 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	private MessageDigest md;
 
 	//TODO: null inits necessary?
-	public LoginPacket() throws NoSuchAlgorithmException{
-		this.challengePayload = new ChallengePayload( null, null );
-		this.R_1 = new byte[R_1_size];
-		this.R_2 = new byte[R_2_size];
-		this.authPayload = new AuthenticationPayload( null, null, null );
-		RNG = SecureRandom.getInstance(common.Constants.RNG_ALOGRITHM);
-		this.md = MessageDigest.getInstance(Constants.HASH_ALGORITHM);
+	public LoginPacket() {
+		try{
+			this.challengePayload = new ChallengePayload( null, null );
+			this.R_1 = new byte[R_1_size];
+			this.R_2 = new byte[R_2_size];
+			this.authPayload = new AuthenticationPayload( null, null, null );
+			RNG = SecureRandom.getInstance(common.Constants.RNG_ALOGRITHM);
+			this.md = MessageDigest.getInstance(Constants.HASH_ALGORITHM);
+		} catch (NoSuchAlgorithmException e){
+			e.printStackTrace();
+		}
 	}
 	
 	/**

@@ -1,9 +1,11 @@
 package server;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.*;
 import java.security.*;
 import java.util.*;
+
+import protocol.*;
 
 /*
  * _NETWORKING_
@@ -17,6 +19,8 @@ import java.util.*;
  *
  */
 public class Server {
+	
+	private static final String UNEXPECTED_CLIENT_PACKET_MSG = "Client's drunk! Got unexpected packet.";
 	
 	private ServerSocket listenerSocket;
 	private PrivateKey serverPrivK;
@@ -33,21 +37,104 @@ public class Server {
 		}
 	}
 	
+	//TODO: put beginning in NetListenerThread and rest in ServerThread
 	public void start(){
 		try {
-			//TODO: put in a thread to make it able to server multiple clients at once?
-			Socket clientSocket = this.listenerSocket.accept();
+			Object o;
 			
-			//
+			Socket clientSocket = this.listenerSocket.accept();
+			InputStream clientStream = clientSocket.getInputStream();
+			
+			//not doing FSM server side for beginning of comm; rather, relying on flags
+			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
+			//wait for data from client
+			int count = clientStream.read(recv);
+			//once we have it, truncate down to smallest array
+			byte[] clientPacketBytes = new byte[count];
+			System.arraycopy(recv, 0, clientPacketBytes, 0, count);
+			//make Packet out of bytes
+			//TODO: verify viability (first time methodology used)
+			o = common.Utils.deserialize(clientPacketBytes);
+			Packet clientPacket = (Packet) o;
+			//handle the type of packet
+			if( clientPacket.flags.contains(Packet.Flag.Login) ){
+				this.handle_login(clientPacket, clientSocket, clientStream);
+			} else if( clientPacket.flags.contains(Packet.Flag.Discover) ){
+				this.handle_discover();
+			} else if( clientPacket.flags.contains(Packet.Flag.Negotiate) ){
+				this.handle_chat_negotiation();
+			} else if( clientPacket.flags.contains(Packet.Flag.Logout) ){
+				this.handle_logout();
+			} else {
+				System.out.println(Server.UNEXPECTED_CLIENT_PACKET_MSG);
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
+			return;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return;
 		}
 	}
 	
 	//slide 5
-	public void handle_login(){
-		//TODO: implement
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+	public void handle_login(Packet clientPacket, Socket clientSocket, InputStream clientStream){
+		Object o;
+		
+		byte[] R_2 = new byte[protocol.LoginPacket.R_2_size];
+		//ready the challenge for the client and send
+		LoginPacket serverChallenge = new LoginPacket();
+		//remember R_2 so we can check the challengeResponse
+		R_2 = serverChallenge.readyServerLoginChallenge(this.serverPrivK);
+		serverChallenge.go(clientSocket);
+		
+		try {
+			//receive back the Client's challenge response
+			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
+			int count = clientStream.read(recv);
+			//truncate the buffer
+			byte[] challengeResponseBytes = new byte[count];
+			System.arraycopy(recv, 0, challengeResponseBytes, 0, count);
+			//deserialize and cast to LoginPacket (all the way to LoginPacket so we can get R_2)
+			o = common.Utils.deserialize(challengeResponseBytes);
+			LoginPacket challengeResponse = (LoginPacket) o;
+			//ensure the right R_2 was found before doing crypto work
+			if( !Arrays.equals(R_2, challengeResponse.R_2) ){
+				//if they aren't the same, send deny message
+				LoginPacket denyResponse = new LoginPacket();
+				denyResponse.readyServerLoginDeny();
+				denyResponse.go(clientSocket);
+				return;
+			}
+			//if they're the same get the auth payload, and check that
+			byte[] authenticationPayloadBytes = challengeResponse.crypto_data;
+			//decrypt it first if CRYPTO isn't OFF
+			if( !common.Constants.CRYPTO_OFF ){
+				//TODO: Jaffe AuthenticationPayload decrypt, etc.
+				//TODO: then deserialize
+			}
+			//deserialize to AuthenticationPayload
+			o = common.Utils.deserialize(authenticationPayloadBytes);
+			AuthenticationPayload ap = (AuthenticationPayload) o;
+			//check the user supplied username and password hash
+			if( this.verify_user(ap.username, ap.pwHash) ){
+				LoginPacket okResponse = new LoginPacket();
+				okResponse.readyServerLoginOk();
+				okResponse.go(clientSocket);
+				return;
+			} else {
+				LoginPacket denyResponse = new LoginPacket();
+				denyResponse.readyServerLoginDeny();
+				denyResponse.go(clientSocket);
+				return;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return;
+		}
 	}
 	
 	//slide 6
@@ -94,5 +181,21 @@ public class Server {
 		//TODO: implement
 		//TODO: save this.userDB to disk
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+	}
+	
+	/**
+	 * Check that the user either has the right password, or is a new user, then add key->value to map
+	 * @param username the username to check
+	 * @param suppliedPwHash the pwhash that was supplied by the user
+	 * @return is user verified or not
+	 */
+	private boolean verify_user(String username, byte[] suppliedPwHash){
+		if( common.Constants.CRYPTO_OFF ){
+			return true;
+		} else {
+			//TODO: add check of this.userDB
+			//TODO: if username not in DB, add it to DB with the supplied hash
+			throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		}
 	}
 }
