@@ -57,19 +57,6 @@ public class CmdLine {
 	}
 	
 	/**
-	 * Command Line call to connect to a SIMPL server. Done at start-up.
-	 * The Client should always be connected to Server
-	 * @param serverName the host name or ip string to connect to
-	 * @param port the port number that the server is listening for SIMPL on
-	 * @return success or failure
-	 */
-	/* TODO: remove?
-	private static void client_connect(String serverName, int port){
-		//TODO: implement
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
-	}*/
-	
-	/**
 	 * Fetches data structure from Client and prints in a readable way
 	 */
 	private static void who_command(){
