@@ -76,7 +76,7 @@ public class Client {
 		
 		//__Build the initial packet
 		LoginPacket loginRequest = new LoginPacket();
-		loginRequest.setClientLoginRequestFlags();
+		loginRequest.readyClientLoginRequest();
 		//send it
 		loginRequest.go(this.simplSocket);
 		
@@ -95,6 +95,7 @@ public class Client {
 		o = common.Utils.deserialize(packetBytes);
 		//then cast to a Packet
 		Packet serverChallenge = (Packet) o;
+		//TODO: decide whether or not to use the verify embedded in readyClientChallengeResponse or the below
 		//verify the server signature, returns byte array of the ChallengePayload if successful
 		byte[] challengePayloadBytes = serverChallenge.verify(this.serverPubK); 	//this is the ClientServerPreSessionPacket call.
 		//invalid signature is a null byte[]
@@ -109,9 +110,9 @@ public class Client {
 		//__Start constructing the response packet. THis is going to be weird since LoginPacket has the findR_2 func
 		//TODO: think about taking find_R_2 func and maybe putting it in challengeResponse.
 		LoginPacket challengeResponse = new LoginPacket();
-		//TODO: add cp to challengeResponse
+		//stuff the ChallengePayload into challengeResponse so calculations can be done on it
+		challengeResponse.challengePayload = cp;
 		//TODO: make appropriate public, private methods in LoginPacket. Almost used findR_2 out-of-band
-		challengeResponse.findR_2();
 
 
 		

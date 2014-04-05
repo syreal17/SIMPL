@@ -119,35 +119,35 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	/**
 	 * Set flags for the initial Login message that the Client sends
 	 */
-	public void setClientLoginRequestFlags(){
+	private void setClientLoginRequestFlags(){
 		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Syncronization);
 	}
 	
 	/**
 	 * Set flags for the Server's challenge request to the Client
 	 */
-	public void setServerLoginChallengeFlags(){
+	private void setServerLoginChallengeFlags(){
 		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Syncronization, Packet.Flag.Acknowledgement);
 	}
 	
 	/**
 	 * Set flags for the Client's challenge response to the Server
 	 */
-	public void setClientLoginChallengeResponseFlags(){
+	private void setClientLoginChallengeResponseFlags(){
 		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Acknowledgement);
 	}
 	
 	/**
 	 * Set flags for Server to accept Client login
 	 */
-	public void setServerLoginOkFlags(){
+	private void setServerLoginOkFlags(){
 		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Ok);
 	}
 	
 	/**
 	 * Set flags for Server to deny Client login
 	 */
-	public void setServerLoginDenyFlags(){
+	private void setServerLoginDenyFlags(){
 		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Deny);
 	}
 	
