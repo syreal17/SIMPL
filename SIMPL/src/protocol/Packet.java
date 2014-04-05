@@ -33,8 +33,8 @@ public abstract class Packet implements Serializable {
 		Ok, Deny											//Login Response
 	}
 	
-	protected byte[] crypto_data;
-	protected EnumSet<Flag> flags;			//will be zeroed out if encrypted
+	public byte[] crypto_data;
+	public EnumSet<Flag> flags;			//will be zeroed out if encrypted
 	//private Socket socket;				//shouldn't be a problem to send this in clear
 	
 	/**

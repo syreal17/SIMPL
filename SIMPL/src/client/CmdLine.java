@@ -4,7 +4,6 @@
 
 package client;
 
-import java.net.*;
 import java.security.*;
 
 /**
@@ -51,8 +50,12 @@ public class CmdLine {
 	 * @return PublicKey object
 	 */
 	private static PublicKey getPublicKeyFromFile(String filename){
-		//TODO: implement
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		if( common.Constants.CRYPTO_OFF ){
+			return null;
+		} else {
+			//TODO: implement
+			throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		}
 	}
 	
 	/**
@@ -62,10 +65,11 @@ public class CmdLine {
 	 * @param port the port number that the server is listening for SIMPL on
 	 * @return success or failure
 	 */
+	/* TODO: remove?
 	private static void client_connect(String serverName, int port){
 		//TODO: implement
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
-	}
+	}*/
 	
 	/**
 	 * Fetches data structure from Client and prints in a readable way

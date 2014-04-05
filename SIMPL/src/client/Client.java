@@ -9,8 +9,6 @@ import java.net.*;
 import java.security.*;
 import java.util.*;
 
-import common.*;
-
 import protocol.*;
 
 /*Resources:
@@ -39,7 +37,9 @@ import protocol.*;
 public class Client {
 	
 	private static String LOGIN_SUCCESS_MSG = "Dat worked!";
-	private static String LOGIN_VERIFY_FAIL = "We aren't talking to server! Punting!";
+	private static String LOGIN_FAILURE_MSG = "Server doesn't like you.";
+	private static String LOGIN_UNDEFINED_MSG = "Server's drunk. You should go home. It should too.";
+	private static String LOGIN_VERIFY_FAIL = "The \"server\" is evil! Punting!";
 	private static String LOGIN_CATCHEMALL = "If you are seeing this, I am wrong: Gotta catch-em-all!";
 	
 	private Socket simplSocket; //socket used for communication to server
@@ -48,16 +48,12 @@ public class Client {
 	private byte[] N; //the nonce that we've used and sent to the Server
 	public PublicKey serverPubK;
 	
-	private SecureRandom RNG;
-	
 	//Constructor currently sets nothing up. Defers to other class methods
 	public Client(PublicKey serverPubK){
 		//set the size for N
 		this.N = new byte[common.Constants.NONCE_SIZE_BYTES];
 		//remember the Server public key
 		this.serverPubK = serverPubK;
-		//create a RNG instance
-		//TODO: is it not a factory method?
 	}
 	
 	/**
@@ -68,8 +64,7 @@ public class Client {
 	 * @throws IOException 
 	 * @throws UnknownHostException 
 	 */
-	public String do_login(String serverName, int port) 
-			throws NoSuchAlgorithmException, UnknownHostException, IOException,	ClassNotFoundException{
+	public String do_login(String serverName, int port){
 		try{
 			//TODO: maybe return more helpful error codes, instead of punting to Exceptions
 			
@@ -87,31 +82,28 @@ public class Client {
 			loginRequest.go(this.simplSocket);
 			
 			//__Get challenge packet
-			//TODO: check flags
+			//TODO: check flags?
 			//having faith that Java will correctly give me the entire packet at once
 			byte[] recv = new byte[common.Constants.MAX_EXPECT_PACKET_SIZE];
 			//we will wait till server sends something
 			int count = this.simplStream.read(recv);
 			//that something should be a Packet
-			byte[] packetBytes = new byte[count];
-			//manual copy, truncating the unused part of the recv buffer
-			for(int i = 0; i < count; i++){
-				packetBytes[i] = recv[i];
-			}
-			//turn into an object first
-			o = common.Utils.deserialize(packetBytes);
-			//then cast to a Packet
+			byte[] serverChallengeBytes = new byte[count];
+			//truncating the unused part of the recv buffer
+			System.arraycopy(recv, 0, serverChallengeBytes, 0, count);
+			//TODO: verify
+			o = common.Utils.deserialize(serverChallengeBytes);
+			//TODO: verify
 			Packet serverChallenge = (Packet) o;
-			//TODO: decide whether or not to use the verify embedded in readyClientChallengeResponse or the below
-			//verify the server signature, returns byte array of the ChallengePayload if successful
+			//verify the server signature, returns byte array of the ChallengePayload if successful, sans sig
 			byte[] challengePayloadBytes = serverChallenge.verify(this.serverPubK); 	//this is the ClientServerPreSessionPacket call.
 			//invalid signature is a null byte[]
 			if( challengePayloadBytes == null ){
 				return Client.LOGIN_VERIFY_FAIL;
 			}
-			//deserialize the ChallengePayload into an object
+			//TODO: verify
 			o = common.Utils.deserialize(challengePayloadBytes);
-			//cast it to a ChallengePayload
+			//TODO: verify
 			ChallengePayload cp = (ChallengePayload) o;
 			
 			//__Start constructing the response packet.
@@ -125,9 +117,34 @@ public class Client {
 			MessageDigest md = MessageDigest.getInstance(common.Constants.HASH_ALGORITHM);
 			md.update(password.getBytes());
 			byte[] pwHash = md.digest();
-			challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, username, pwHash, challengePayloadBytes);
+			//generating the nonce
+			SecureRandom.getInstance(common.Constants.RNG_ALOGRITHM).nextBytes(this.N);
+			//ready the Response for transmission
+			challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, username, pwHash, this.N);
+			challengeResponse.go(this.simplSocket);
 			
-			return Client.LOGIN_CATCHEMALL;
+			//__Get the server response: ok or deny
+			//reset the recv buffer. Byte cast actually necessary ;P
+			Arrays.fill(recv, (byte)0);
+			count = this.simplStream.read(recv);
+			byte[] serverResponseBytes = new byte[count];
+			//manual copy, truncating the unused part of the recv buffer
+			for(int i = 0; i < count; i++){
+				serverResponseBytes[i] = recv[i];
+			}
+			o = common.Utils.deserialize(serverResponseBytes);
+			Packet serverResponse = (Packet) o;
+			
+			//check the flags of the packet to see if we were accepted, or not, or worse
+			if( serverResponse.flags.contains(Packet.Flag.Ok) && 
+					!serverResponse.flags.contains(Packet.Flag.Deny)){
+				return Client.LOGIN_SUCCESS_MSG;
+			} else if( !serverResponse.flags.contains(Packet.Flag.Ok) &&
+					serverResponse.flags.contains(Packet.Flag.Deny)){
+				return Client.LOGIN_FAILURE_MSG;
+			} else {
+				return Client.LOGIN_UNDEFINED_MSG;
+			}
 		} catch (Exception e){
 			e.printStackTrace();
 			return Client.LOGIN_CATCHEMALL;

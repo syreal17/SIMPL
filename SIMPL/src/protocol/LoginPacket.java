@@ -1,17 +1,17 @@
 package protocol;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.*;
 import java.util.*;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
 import common.Constants;
 
 public class LoginPacket extends ClientServerPreSessionPacket {
+	/**
+	 * auto-gen
+	 */
+	private static final long serialVersionUID = -6680306190616418814L;
+	
 	public static final int R_1_size = 8; //bytes
 	public static final int R_2_size = 3; //bytes
 	
@@ -24,19 +24,20 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 
 	//Server side, this is the challenge we generate and send
 	//Client side, this is where we store the challenge prior to solving it
+	//ltj: possibly redundant to this.challengePayload.challengeHash; not an issue to be concerned about, just a note
 	public byte[] challenge;
 	
 	// Cryptographically secure PRNG
 	private SecureRandom RNG;
 	//Hashing object
-	MessageDigest md;
+	private MessageDigest md;
 
 	public LoginPacket() throws NoSuchAlgorithmException{
 		this.challengePayload = new ChallengePayload( null, null );
 		this.R_1 = new byte[R_1_size];
 		this.R_2 = new byte[R_2_size];
 		this.authPayload = new AuthenticationPayload( null, null, null );
-		RNG = new SecureRandom();
+		RNG = SecureRandom.getInstance(common.Constants.RNG_ALOGRITHM);
 		this.md = MessageDigest.getInstance(Constants.HASH_ALGORITHM);
 	}
 	
@@ -47,11 +48,9 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 */
 	public void generateRs(){
 		//generate PRN R1 using R_1_size bits
-		RNG.nextBytes(R_1);	//ltj: find the API that provides this behind the scenes
+		RNG.nextBytes(R_1);
 		//generate PRN R2 using R_2_size bits
-		RNG.nextBytes(R_2); //ltj: this is somewhat problematic. Converting from int to short might
-									//lose precision
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		RNG.nextBytes(R_2);
 	}
 	
 	/**
@@ -164,12 +163,8 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	/**
 	 * Readies the Login packet to be a Server Login challenge packet
 	 * @param privk private key of the Server
-	 * @throws IOException 
-	 * @throws SignatureException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
 	 */
-	public byte[] readyServerLoginChallenge(PrivateKey privk) throws IOException, InvalidKeyException, NoSuchAlgorithmException, SignatureException{
+	public byte[] readyServerLoginChallenge(PrivateKey privk){
 		//generate the R's
 		this.generateRs();
 		
@@ -198,16 +193,9 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	/**
 	 * Readies the Login packet to be a Client response to a Server challenge
 	 * @param pubk public key of the Server
-	 * ASSUMPTIONS: LoginPacket has ChallengeResponse, but no R_2.
-	 * @throws IOException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws SignatureException 
-	 * @throws InvalidKeyException 
-	 * @throws BadPaddingException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
+	 * ASSUMPTIONS: LoginPacket has ChallengeResponse, but no R_2. 
 	 */
-	public void readyClientLoginChallengeResponse(PublicKey pubk, String username, byte[] pwHash, byte[] N) throws IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
+	public void readyClientLoginChallengeResponse(PublicKey pubk, String username, byte[] pwHash, byte[] N){
 		//verify that ChallengePayload exists
 		if( this.challengePayload == null ){
 			throw new UnsupportedOperationException("Challenge Payload must exist before preparing Client response");
@@ -268,8 +256,9 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	}
 	
 	/**
-	 * Clear all fields of LoginPacket object, calls super method also
-	 * (R_1, R_2, challengeHash, authPayload, challengePayload)
+	 * Clear all fields of LoginPacket object, calls super method also. This should be checked at least once per day
+	 * of coding so that unintentional fields aren't being leaked.
+	 * (R_1, challengeHash, R_2, challengePayload, authPayload, challenge, RNG, md)
 	 * @return success
 	 */
 	@Override
@@ -284,5 +273,9 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		this.authPayload.username = null;
 		this.authPayload.pwHash = null;
 		this.authPayload.N = null;
+		
+		this.challenge = null;
+		this.RNG = null;
+		this.md = null;
 	}
 }

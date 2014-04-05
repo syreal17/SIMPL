@@ -18,6 +18,7 @@ public class Constants {
 	
 	//CRYPTO
 	public final static boolean CRYPTO_OFF = true;
+	public final static String RNG_ALOGRITHM = "SHA1PRNG";
 	public final static String HASH_ALGORITHM = "SHA-256";
 	public final static String SIGNATURE_ALGORITHM = "SHA512withRSA";
 	public final static String ASYMMETRIC_CRYPTO_MODE = "RSA";

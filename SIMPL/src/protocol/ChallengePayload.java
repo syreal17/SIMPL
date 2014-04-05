@@ -2,6 +2,7 @@ package protocol;
 
 import java.io.*;
 import java.security.*;
+
 import common.Constants;
 
 /**
@@ -32,53 +33,73 @@ public class ChallengePayload implements Serializable {
 	 * @author JaffeTaffy
 	 * @param privk Private key of the SIMPL Server
 	 * @return the ChallengePayload as a signed byte array (will add length to array)
-	 * @throws IOException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws SignatureException 
 	 */
-	public byte[] sign(PrivateKey privk) throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException{
-		if (Constants.CRYPTO_OFF)
-		{
-			return this.getSerialization();
-		}
-		else
-		{
-			//instantiate signature with chosen algorithm
-			Signature sig = Signature.getInstance(Constants.SIGNATURE_ALGORITHM);
-			//init signature with private key
-			sig.initSign(privk);
-			//update signature with bytes to be signed
-			sig.update(this.getSerialization());
-			//return the signature
-			return sig.sign();
+	public byte[] sign(PrivateKey privk){
+		try{
+			if (Constants.CRYPTO_OFF)
+			{
+				return this.getSerialization();
+			}
+			else
+			{
+				//instantiate signature with chosen algorithm
+				Signature sig = Signature.getInstance(Constants.SIGNATURE_ALGORITHM);
+				//init signature with private key
+				sig.initSign(privk);
+				//update signature with bytes to be signed
+				sig.update(this.getSerialization());
+				//return the signature
+				return sig.sign();
+			}
+		} catch (IOException e){
+			e.printStackTrace();
+			return null;
+		} catch (NoSuchAlgorithmException e){
+			e.printStackTrace();
+			return null;
+		} catch (InvalidKeyException e){
+			e.printStackTrace();
+			return null;
+		} catch (SignatureException e){
+			e.printStackTrace();
+			return null;
 		}
 	}
 	
 	/**
 	 * Verified that the signature on the ChallengePayload checks out with the public key of SIMPL Server
 	 * @param pubk Public key of the SIMPL Server
-	 * @return true if signature is valid SIMPL Server signature, false otherwise
-	 * @throws InvalidKeyException 
-	 * @throws IOException 
-	 * @throws SignatureException 
-	 * @throws NoSuchAlgorithmException 
+	 * @return true if signature is valid SIMPL Server signature, false otherwise 
 	 */
 	public boolean verify(PublicKey pubk, byte[] signature) throws InvalidKeyException, SignatureException, IOException, NoSuchAlgorithmException{
-		if (Constants.CRYPTO_OFF)
-		{
-			return true;
-		}
-		else
-		{
-			//instantiate signature with chosen algorithm
-			Signature sig = Signature.getInstance(Constants.SIGNATURE_ALGORITHM);
-			//init signature with public key
-			sig.initVerify(pubk);
-			//update signature with bytes to be signed
-			sig.update(this.getSerialization());
-			//check to see if the signature is valid
-			return sig.verify(signature);
+		try{
+			if (Constants.CRYPTO_OFF)
+			{
+				return true;
+			}
+			else
+			{
+				//instantiate signature with chosen algorithm
+				Signature sig = Signature.getInstance(Constants.SIGNATURE_ALGORITHM);
+				//init signature with public key
+				sig.initVerify(pubk);
+				//update signature with bytes to be signed
+				sig.update(this.getSerialization());
+				//check to see if the signature is valid
+				return sig.verify(signature);
+			}
+		} catch (IOException e){
+			e.printStackTrace();
+			return (Boolean) null;
+		} catch (NoSuchAlgorithmException e){
+			e.printStackTrace();
+			return (Boolean) null;
+		} catch (InvalidKeyException e){
+			e.printStackTrace();
+			return (Boolean) null;
+		} catch (SignatureException e){
+			e.printStackTrace();
+			return (Boolean) null;
 		}
 	}
 }
