@@ -4,6 +4,12 @@
 
 package client;
 
-public class UserInputThread {
+public class UserInputThread implements Runnable {
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

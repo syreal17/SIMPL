@@ -9,12 +9,15 @@ public class Constants {
 	public final static int MIN_PORT = 1;
 	public final static int MAX_PORT = 65535;
 	
-	//EXCEPTIONS
+	//EXCEPTIONS, ERRORS
 	public final static String USO_EXCPT_MSG = "We have not implemented that yet!";
+	public static final String INVALID_CHALLENGE_SIG = "Invalid Server signature on challenge!";
+	public static final String INVALID_ARG_NUM = "Invalid number of arguments!";
+	public static final String INVALID_SERVERNAME = "Not a valid server name!";
+	public static final String INVALID_PORTNUM = "Not a valid port number!";
 	
 	//CONSTANTS OF FAITH
 	public final static int MAX_EXPECTED_PACKET_SIZE = 65536;
-	public final static int NONCE_SIZE_BYTES = 16;
 	
 	//CRYPTO
 	public final static boolean CRYPTO_OFF = true;
@@ -25,4 +28,5 @@ public class Constants {
 														//positive. I'm not sure how RSA after SHA512 modifies the result!
 	public final static String ASYMMETRIC_CRYPTO_MODE = "RSA";
 	public final static String SYMMETRIC_CRYPTO_MODE = "AES/CBC/PKCS5Padding";
+	public final static int NONCE_SIZE_BYTES = 16;
 }

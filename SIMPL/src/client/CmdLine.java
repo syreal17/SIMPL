@@ -12,10 +12,13 @@ import java.security.*;
  */
 public class CmdLine {
 	
-	public static final String INVALID_CHALLENGE_SIG = "Invalid Server signature on challenge!";
+	private static final String USAGE_MSG = "Usage: java client.CmdLine <server name> <port> " +
+			"<path to server public key>";
+	private static final int ARG_NUM = 3;
+	private static final int ARG_SERVERNAME_POS = 0;
+	private static final int ARG_PORTNUM_POS = 1;
+	private static final int ARG_SERVERPUBK_POS = 2;
 	
-	private static final String INVALID_SERVERNAME = "Not a valid server name!";
-	private static final String INVALID_PORTNUM = "Not a valid port number!";
 	private static final String WHO_PRELUDE = "Available usernames to chat with are:";
 	private static final String LOGIN_FAIL = "SIMPL Client failed to login! Quitting.";
 	private static final String DISCOVER_FAIL = "SIMPL Client failed to discover! Quitting.";
@@ -24,11 +27,6 @@ public class CmdLine {
 											"/leave\t\t\t: Leave the current chat\n" +
 											"/quit\t\t\t: Logout from SIMPL Server and close Client\n" +
 											"/help\t\t\t: Print this dialog\n";
-	private static final String USAGE_MSG = "Usage: java client.CmdLine <server name> <port> " +
-											"<path to server public key>";
-	private static final int ARG_SERVERNAME_POS = 0;
-	private static final int ARG_PORTNUM_POS = 1;
-	private static final int ARG_SERVERPUBK_POS = 2;
 	
 	private static Client client;	//the abstraction that this CmdLine interacts with. Should only be created once.
 	
@@ -112,10 +110,16 @@ public class CmdLine {
 	
 	public static void main(String[] Args){
 		
+		if( Args.length != CmdLine.ARG_NUM ){
+			System.out.println(common.Constants.INVALID_ARG_NUM);
+			System.out.println(CmdLine.USAGE_MSG);
+			System.exit(common.Constants.GENERIC_FAILURE);
+		}
+		
 		//parse server name and do validity check
 		String serverName = Args[CmdLine.ARG_SERVERNAME_POS];
 		if( !common.Utils.isValidIPAddr(serverName) ){
-			System.out.println(CmdLine.INVALID_SERVERNAME);
+			System.out.println(common.Constants.INVALID_SERVERNAME);
 			System.out.println(CmdLine.USAGE_MSG);
 			System.exit(common.Constants.GENERIC_FAILURE);
 		}
@@ -123,7 +127,7 @@ public class CmdLine {
 		//parse port number and do validity check
 		int portNum = Integer.valueOf(Args[CmdLine.ARG_PORTNUM_POS]);
 		if( !common.Utils.isValidPort(Args[CmdLine.ARG_PORTNUM_POS])){
-			System.out.println(CmdLine.INVALID_PORTNUM);
+			System.out.println(common.Constants.INVALID_PORTNUM);
 			System.out.println(CmdLine.USAGE_MSG);
 			System.exit(common.Constants.GENERIC_FAILURE);
 		}
