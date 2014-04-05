@@ -6,6 +6,8 @@ import java.security.*;
 import java.security.spec.*;
 import java.util.*;
 
+import javax.crypto.SecretKey;
+
 import protocol.*;
 
 /*
@@ -43,11 +45,11 @@ public class Server {
 	public Server(int port, String userDBPath, PrivateKey serverPrivK){
 		try {
 			this.listenerSocket = new ServerSocket(port);
+			this.userDB = new HashMap<String, byte[]>();
 			this.load_users(userDBPath);
 			this.serverPrivK = serverPrivK;
 			this.clientHandler = new ClientHandler();
 			this.threads = new ArrayList<Thread>();
-			
 			this.running = true;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -136,9 +138,29 @@ public class Server {
 	}
 	
 	//slide 6
-	public void handle_discover(){
-		//TODO: implement
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+	public void handle_discover(Socket clientSocket,InputStream clientStream, SecretKey sessionKey){
+		try{
+			Object o;
+			
+			//Build the initial packet and send it
+			DiscoverPacket discoverRequest = new DiscoverPacket();
+			System.out.println("Server: handle_discover1");
+			//TODO: check flags? or just rely on FSM?
+			//Get challenge packet
+			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
+			int count = clientStream.read(recv);
+			//truncating the unused part of the recv buffer
+			byte[] serverDiscoverBytes = new byte[count];
+			System.arraycopy(recv, 0, serverDiscoverBytes, 0, count);
+			//prepare the username list
+			discoverRequest.readyServerDiscoverResponse(userDB.keySet(), sessionKey);
+			//send the usernames to the client
+			discoverRequest.go(clientSocket);
+			System.out.println("Server: handle_discover2");
+			
+			} catch (IOException e){
+				e.printStackTrace();
+			}
 	}
 	
 	//slide 7
@@ -210,13 +232,16 @@ public class Server {
 	 * @return success or not
 	 */
 	private void load_users(String filepath){
-		if( common.Constants.CRYPTO_OFF ){
-			return;
-		}
-		//TODO: implement
-		//TODO: create file if one doesn't exist or error, print warning message if this is the case
-		//TODO: load file to this.userDB
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		String entry1 = "goliath";
+		String entry2 = "agamemnon";
+		String entry3 = "charbydis";
+		String entry4 = "enchilada";
+		String entry5 = "kimjongun";
+		userDB.put(entry1, entry1.getBytes());
+		userDB.put(entry2, entry2.getBytes());
+		userDB.put(entry3, entry3.getBytes());
+		userDB.put(entry4, entry4.getBytes());
+		userDB.put(entry5, entry5.getBytes());		
 	}
 	
 	/**

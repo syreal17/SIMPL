@@ -164,7 +164,7 @@ public class Client {
 		DiscoverPacket discoverRequest = new DiscoverPacket();
 		discoverRequest.readyClientDiscoverRequest();
 		discoverRequest.go(this.simplSocket);
-		
+		System.out.println("Client: do_discover1");
 		//TODO: check flags? or just rely on FSM?
 		//Get challenge packet
 		byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
@@ -174,7 +174,7 @@ public class Client {
 		System.arraycopy(recv, 0, serverDiscoverBytes, 0, count);
 		//get array list out of packet
 		clients = discoverRequest.decryptServerDiscoverReponse(serverDiscoverBytes, sessionKey);
-		
+		System.out.println("Client: do_discover2");
 		
 		} catch (IOException e){
 			e.printStackTrace();
