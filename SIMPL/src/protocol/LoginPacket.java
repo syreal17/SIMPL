@@ -61,16 +61,26 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * @return success or failure
 	 */
 	public void generateChallengeHash(){
-		byte[] puzzle = new byte[11];
-		//concatenate the byte arrays
-		System.arraycopy(R_1,0,puzzle,0,R_1.length);
-		System.arraycopy(R_2,0,puzzle,R_1.length,R_2.length);
-		//update message digest with byte array
-		md.update(puzzle);
-		//make the hash and return it
-        challenge = md.digest();
-		//TODO: think about specifying the MessageDigest type string in common package somewhere
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		if (Constants.CRYPTO_OFF)
+		{
+			byte[] concat = new byte[R_1_size + R_2_size];
+			System.arraycopy(R_1,0,concat,0,R_1.length);
+			System.arraycopy(R_2,0,concat,R_1.length,R_2.length);
+			challenge = concat;
+		}
+		else
+		{
+			byte[] puzzle = new byte[R_1_size + R_2_size];
+			//concatenate the byte arrays
+			System.arraycopy(R_1,0,puzzle,0,R_1.length);
+			System.arraycopy(R_2,0,puzzle,R_1.length,R_2.length);
+			//update message digest with byte array
+			md.update(puzzle);
+			//make the hash and return it
+	        challenge = md.digest();
+			//TODO: think about specifying the MessageDigest type string in common package somewhere
+			throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		}
 	}
 	
 	/**
@@ -79,23 +89,30 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * @return success or failure
 	 */
 	public void findR_2(){
-		//use the hash class to solve the challenge 
-		//by feeding it the challenge and R1
-		byte[] attempt = new byte[11];
-		//loop through all possible values of R2
-		for (int R2 = 0; R2 < (1 << 24); R2++){
-			//get the byte array form of the numbers
-			byte[] B2 = ByteBuffer.allocate(3).putInt(R2).array();
-			//concatenate the byte arrays
-			System.arraycopy(R_1,0,attempt,0,R_1.length);
-			System.arraycopy(B2,0,attempt,R_1.length,B2.length);
-			//update message digest with byte array
-			md.update(attempt);
-			//make the hash, check if it matches the puzzle
-	        if (Arrays.equals(md.digest(), challenge))
-	        {
-	        	R_2 = B2;
-	        }
+		if (Constants.CRYPTO_OFF)
+		{
+			R_2 = null;
+		}
+		else
+		{
+			//use the hash class to solve the challenge 
+			//by feeding it the challenge and R1
+			byte[] attempt = new byte[R_1_size + R_2_size];
+			//loop through all possible values of R2
+			for (int R2 = 0; R2 < (1 << 24); R2++){
+				//get the byte array form of the numbers
+				byte[] B2 = ByteBuffer.allocate(3).putInt(R2).array();
+				//concatenate the byte arrays
+				System.arraycopy(R_1,0,attempt,0,R_1.length);
+				System.arraycopy(B2,0,attempt,R_1.length,B2.length);
+				//update message digest with byte array
+				md.update(attempt);
+				//make the hash, check if it matches the puzzle
+		        if (Arrays.equals(md.digest(), challenge))
+		        {
+		        	R_2 = B2;
+		        }
+			}
 		}
 	}
 	
