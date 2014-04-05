@@ -16,15 +16,15 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	public static final int R_2_size = 3; //bytes
 	
 	//R_1 is in ChallengePayload object
-	private byte[] R_1;
-	private byte[] R_2;
+	public byte[] R_1;
+	public byte[] R_2;
 	
-	private ChallengePayload challengePayload;
-	private AuthenticationPayload authPayload;					//{username,W_1,N}_Ks
+	public ChallengePayload challengePayload;
+	public AuthenticationPayload authPayload;					//{username,W_1,N}_Ks
 
 	//Server side, this is the challenge we generate and send
 	//Client side, this is where we store the challenge prior to solving it
-	byte[] challenge;
+	public byte[] challenge;
 	
 	// Cryptographically secure PRNG
 	private SecureRandom RNG;

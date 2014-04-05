@@ -38,7 +38,7 @@ public class Client {
 	
 	private static String LOGIN_SUCCESS_MSG = "Dat worked!";
 	private static String LOGIN_VERIFY_FAIL = "We aren't talking to server! Punting!";
-	private static String LOGIN_CATCHEMALL = "Gotta catch-em-all!";
+	private static String LOGIN_CATCHEMALL = "If you are seeing this, I am wrong: Gotta catch-em-all!";
 	
 	private Socket simplSocket; //socket used for communication to server
 	private InputStream simplStream;
@@ -106,7 +106,12 @@ public class Client {
 		//cast it to a ChallengePayload
 		ChallengePayload cp = (ChallengePayload) o;
 		
-		//__Start constructing the response packet
+		//__Start constructing the response packet. THis is going to be weird since LoginPacket has the findR_2 func
+		//TODO: think about taking find_R_2 func and maybe putting it in challengeResponse.
+		LoginPacket challengeResponse = new LoginPacket();
+		//TODO: add cp to challengeResponse
+		//TODO: make appropriate public, private methods in LoginPacket. Almost used findR_2 out-of-band
+		challengeResponse.findR_2();
 
 
 		
