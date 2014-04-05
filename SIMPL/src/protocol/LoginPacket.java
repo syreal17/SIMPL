@@ -7,9 +7,7 @@ import java.util.*;
 import common.Constants;
 
 public class LoginPacket extends ClientServerPreSessionPacket {
-	/**
-	 * auto-gen
-	 */
+
 	private static final long serialVersionUID = -6680306190616418814L;
 	
 	public static final int R_1_size = 8; //bytes
@@ -32,6 +30,7 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	//Hashing object
 	private MessageDigest md;
 
+	//TODO: null inits necessary?
 	public LoginPacket() throws NoSuchAlgorithmException{
 		this.challengePayload = new ChallengePayload( null, null );
 		this.R_1 = new byte[R_1_size];

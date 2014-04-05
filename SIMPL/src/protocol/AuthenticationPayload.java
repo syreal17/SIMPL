@@ -19,7 +19,7 @@ public class AuthenticationPayload implements Serializable {
 
 	public String username;
 	public byte[] pwHash;			//hash of the user password
-	public byte[] N;				//TODO: PRNG 64 bits? 128 bits?
+	public byte[] N;				//nonce
 	
 	public AuthenticationPayload(String username, byte[] pwHash, byte[] N){
 		this.username = username;
@@ -38,7 +38,7 @@ public class AuthenticationPayload implements Serializable {
 	
 	/**
 	 * Serializes then encrypts result and returns it. Only called by Client
-	 * @author syreal
+	 * @author Jaffe
 	 * @param pubk Public key of Server
 	 * @return the encrypted object in byte array form
 	 */

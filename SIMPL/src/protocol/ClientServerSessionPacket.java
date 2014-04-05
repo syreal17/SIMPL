@@ -5,6 +5,8 @@ import java.security.PublicKey;
 
 public class ClientServerSessionPacket extends Packet {
 
+	private static final long serialVersionUID = 2542476687780929164L;
+
 	@Override
 	public Packet sign(PrivateKey privk) {
 		// TODO Auto-generated method stub

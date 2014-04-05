@@ -39,13 +39,14 @@ public class Client {
 	private static String LOGIN_SUCCESS_MSG = "Dat worked!";
 	private static String LOGIN_FAILURE_MSG = "Server doesn't like you.";
 	private static String LOGIN_UNDEFINED_MSG = "Server's drunk. You should go home. It should too.";
+	@SuppressWarnings("unused")
 	private static String LOGIN_VERIFY_FAIL = "The \"server\" is evil! Punting!";
 	private static String LOGIN_CATCHEMALL = "If you are seeing this, I am wrong: Gotta catch-em-all!";
 	
-	private Socket simplSocket; //socket used for communication to server
+	private Socket simplSocket; 		//socket used for communication to server
 	private InputStream simplStream;
-	private ArrayList<String> clients; //contains result of discover
-	private byte[] N; //the nonce that we've used and sent to the Server
+	private ArrayList<String> clients; 	//contains result of discover
+	private byte[] N; 					//the nonce that we've used and sent to the Server
 	public PublicKey serverPubK;
 	
 	//Constructor currently sets nothing up. Defers to other class methods
@@ -68,7 +69,6 @@ public class Client {
 		try{
 			//TODO: maybe return more helpful error codes, instead of punting to Exceptions
 			
-			//An object variable to use throughout
 			Object o;
 			
 			//create TCP connection
@@ -78,32 +78,44 @@ public class Client {
 			//__Build the initial packet
 			LoginPacket loginRequest = new LoginPacket();
 			loginRequest.readyClientLoginRequest();
-			//send it
+			//send it!
 			loginRequest.go(this.simplSocket);
 			
 			//__Get challenge packet
 			//TODO: check flags?
 			//having faith that Java will correctly give me the entire packet at once
-			byte[] recv = new byte[common.Constants.MAX_EXPECT_PACKET_SIZE];
+			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
 			//we will wait till server sends something
 			int count = this.simplStream.read(recv);
 			//that something should be a Packet
 			byte[] serverChallengeBytes = new byte[count];
 			//truncating the unused part of the recv buffer
 			System.arraycopy(recv, 0, serverChallengeBytes, 0, count);
-			//TODO: verify
+			//TODO: verify viability
 			o = common.Utils.deserialize(serverChallengeBytes);
-			//TODO: verify
+			//TODO: verify viability
 			Packet serverChallenge = (Packet) o;
+			/*I want to avoid using weird ClientServerPreSessionPacket class for now
 			//verify the server signature, returns byte array of the ChallengePayload if successful, sans sig
+			//TODO: is calling "abstract" method even ok here?
 			byte[] challengePayloadBytes = serverChallenge.verify(this.serverPubK); 	//this is the ClientServerPreSessionPacket call.
-			//invalid signature is a null byte[]
+			*/
+			byte[] challengePayloadBytes;
+			if( common.Constants.CRYPTO_OFF ){
+				challengePayloadBytes = serverChallenge.crypto_data;
+			} else {
+				//TODO: grab challengePayloadBytes sans signature bytes
+				//TODO: construct ChallengePayload from deserialization
+				//TODO: pass in signature bytes to ChallengePayload verify
+				throw new UnsupportedOperationException();
+			}
+			/*//invalid signature is a null byte[]
 			if( challengePayloadBytes == null ){
 				return Client.LOGIN_VERIFY_FAIL;
-			}
-			//TODO: verify
+			}*/
+			//TODO: verify viability, correct order once fleshed out
 			o = common.Utils.deserialize(challengePayloadBytes);
-			//TODO: verify
+			//TODO: verify viability, correct order once fleshed out
 			ChallengePayload cp = (ChallengePayload) o;
 			
 			//__Start constructing the response packet.

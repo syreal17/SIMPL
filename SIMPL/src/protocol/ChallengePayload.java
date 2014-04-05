@@ -11,9 +11,7 @@ import common.Constants;
  *
  */
 public class ChallengePayload implements Serializable {
-	/**
-	 * auto-gen for Serializable
-	 */
+
 	private static final long serialVersionUID = -128127638431769002L;
 	
 	public byte[] R_1;
@@ -69,6 +67,7 @@ public class ChallengePayload implements Serializable {
 	/**
 	 * Verified that the signature on the ChallengePayload checks out with the public key of SIMPL Server
 	 * @param pubk Public key of the SIMPL Server
+	 * @param signature the signature bytes for the ChallengePayload
 	 * @return true if signature is valid SIMPL Server signature, false otherwise 
 	 */
 	public boolean verify(PublicKey pubk, byte[] signature) throws InvalidKeyException, SignatureException, IOException, NoSuchAlgorithmException{
@@ -83,7 +82,7 @@ public class ChallengePayload implements Serializable {
 				Signature sig = Signature.getInstance(Constants.SIGNATURE_ALGORITHM);
 				//init signature with public key
 				sig.initVerify(pubk);
-				//update signature with bytes to be signed
+				//update signature with bytes to be verified
 				sig.update(this.getSerialization());
 				//check to see if the signature is valid
 				return sig.verify(signature);
