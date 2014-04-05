@@ -15,6 +15,7 @@ public class Constants {
 	public final static int MAX_PORT = 65535;
 	
 	//EXCEPTIONS, ERRORS
+	public static final String KEY_PAIR_IMBALANCE_MSG = "Only one key in pair exists!";
 	public static final String FILE_TOO_LARGE_MSG = "File is too large";
 	public static final String NOT_A_FILE_MSG = "Path points to non-regular file (directory, device, etc.)";
 	public static final String FILE_UNREADABLE_UNWRITABLE_MSG = "File cannot be read or written!";
@@ -36,6 +37,7 @@ public class Constants {
 	public final static int SIGNATURE_SIZE_BYTES = 64; 	//I think the above algo must produce 512 bit sig, but I'm not 
 														//positive. I'm not sure how RSA after SHA512 modifies the result!
 	public final static String ASYMMETRIC_CRYPTO_MODE = "RSA";
+	public final static int RSA_BITS = 4096;
 	public final static String SYMMETRIC_CRYPTO_MODE = "AES/CBC/PKCS5Padding";
 	public final static int NONCE_SIZE_BYTES = 16;
 	public final static int boobs = 80085;

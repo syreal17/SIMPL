@@ -153,6 +153,7 @@ public class Server {
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
+	//TODO: test
 	/**
 	 * Either load the private key from a file, or create it, either way update the serverPrivK field
 	 * @param filepath filepath to either load or save to
@@ -177,18 +178,28 @@ public class Server {
 						//convert to PrivateKey
 						KeyFactory kf = KeyFactory.getInstance(common.Constants.ASYMMETRIC_CRYPTO_MODE);
 						PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
-						//TODO: continue converting to PrivateKey
+						this.serverPrivK = kf.generatePrivate(privateKeySpec);
 					}
 				} else if( privateKeyFile.canWrite() ){
+					//TODO: implement
+					//if we can't read (presumably because it doesn't exist, but we can write, create a key and write
+					//it
 					
 				} else {
+					this.serverPrivK = null;
 					throw new IOException(common.Constants.FILE_UNREADABLE_UNWRITABLE_MSG);
 				}
 			} else {
+				this.serverPrivK = null;
 				throw new IOException(common.Constants.NOT_A_FILE_MSG);
 			}
 		} catch (NoSuchAlgorithmException e){
 			e.printStackTrace();
+			this.serverPrivK = null;
+			return;
+		} catch (InvalidKeySpecException e){
+			e.printStackTrace();
+			this.serverPrivK = null;
 			return;
 		}
 	}
