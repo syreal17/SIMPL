@@ -28,6 +28,7 @@ public class ClientHandler {
 	public ClientHandlerEntry getUnhandledEntry(){
 		for( ClientHandlerEntry che : this.clientEntries ){
 			if( !che.isHandled() ){
+				che.handled();
 				return che;
 			}
 		}

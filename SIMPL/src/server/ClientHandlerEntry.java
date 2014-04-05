@@ -20,6 +20,10 @@ public class ClientHandlerEntry {
 		return this.handled;
 	}
 	
+	public void handled(){
+		this.handled = true;
+	}
+	
 	public Socket getClientSocket(){
 		return this.clientSocket;
 	}
