@@ -44,7 +44,7 @@ public class Client {
 	private InputStream simplStream;
 	private ArrayList<String> clients; //contains result of discover
 	private byte[] N; //the nonce that we've used and sent to the Server
-	private PublicKey serverPubK;
+	public PublicKey serverPubK;
 	
 	//Constructor currently sets nothing up. Defers to other class methods
 	public Client(PublicKey serverPubK){
