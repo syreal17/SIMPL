@@ -37,14 +37,14 @@ public abstract class ClientServerPreSessionPacket extends Packet {
 	}
 
 	@Override
-	public Packet decrypt(PrivateKey privk) {
+	public byte[] decrypt(PrivateKey privk) {
 		// TODO Auto-generated method stub
 		System.out.println("ClientServerPreSessionPacket decrypt");
 		return null;
 	}
 
 	@Override
-	public Packet encrypt(PublicKey pubk) {
+	public byte[] encrypt(PublicKey pubk) {
 		// TODO Auto-generated method stub
 		System.out.println("ClientServerPreSessionPacket encrypt");
 		return null;

@@ -52,8 +52,8 @@ public abstract class Packet implements Serializable {
 	//is an interesting problem. Might just end up decrypting/encrypting in FSM
 	abstract public Packet sign(PrivateKey privk);
 	abstract public byte[] verify(PublicKey pubk);
-	abstract public Packet decrypt(PrivateKey privk);
-	abstract public Packet encrypt(PublicKey pubk);
+	abstract public byte[] decrypt(PrivateKey privk);
+	abstract public byte[] encrypt(PublicKey pubk);
 	
 	/**
 	 * Send thineself out to the Server or Buddy

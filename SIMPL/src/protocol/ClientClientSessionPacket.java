@@ -22,14 +22,14 @@ public class ClientClientSessionPacket extends Packet {
 	}
 
 	@Override
-	public Packet decrypt(PrivateKey privk) {
+	public byte[] decrypt(PrivateKey privk) {
 		// TODO Auto-generated method stub
 		System.out.println("ClientClientSessionPacket decrypt");
 		return null;
 	}
 
 	@Override
-	public Packet encrypt(PublicKey pubk) {
+	public byte[] encrypt(PublicKey pubk) {
 		// TODO Auto-generated method stub
 		System.out.println("ClientClientSessionPacket encrypt");
 		return null;
