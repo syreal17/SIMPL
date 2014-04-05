@@ -4,8 +4,12 @@
 
 package client;
 
-import java.net.Socket;
-import java.util.ArrayList;
+import java.io.*;
+import java.net.*;
+import java.security.*;
+import java.util.*;
+
+import protocol.LoginPacket;
 
 /*Resources:
  * _SINGLETON DESIGN PATTERN_
@@ -31,6 +35,7 @@ import java.util.ArrayList;
 public class Client {
 	
 	private Socket simplSocket; //socket used for communication to server
+	private InputStream simplStream;
 	private ArrayList<String> clients; //contains result of discover
 	
 	//Constructor currently sets nothing up. Defers to other class methods
@@ -41,10 +46,26 @@ public class Client {
 	 * @param serverName the host name or ip string to connect to
 	 * @param port the port number that the server is listening for SIMPL on
 	 * @return success or failure
+	 * @throws IOException 
+	 * @throws UnknownHostException 
 	 */
-	public void do_login(String serverName, int port){
+	public void do_login(String serverName, int port) throws NoSuchAlgorithmException, 
+																UnknownHostException, IOException{
 		//TODO: implement
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		//throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		
+		//create TCP connection
+		this.simplSocket = new Socket(serverName, port);
+		this.simplStream = this.simplSocket.getInputStream();
+		
+		//Build the initial packet
+		LoginPacket loginRequest = new LoginPacket();
+		loginRequest.setClientLoginRequestFlags();
+		//send it
+		loginRequest.go(this.simplSocket);
+		
+		//Get challenge packet
+		
 	}
 	
 	/**
