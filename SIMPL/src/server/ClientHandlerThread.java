@@ -3,6 +3,8 @@ package server;
 import java.io.*;
 import java.net.*;
 
+import javax.crypto.SecretKey;
+
 import protocol.Packet;
 
 public class ClientHandlerThread implements Runnable {
@@ -10,7 +12,7 @@ public class ClientHandlerThread implements Runnable {
 	private Server server;
 	private Socket clientSocket;
 	private InputStream clientStream;
-	
+	private SecretKey sessionKey;
 	@Override
 	public void run() {
 		try{
@@ -37,7 +39,7 @@ public class ClientHandlerThread implements Runnable {
 			if( clientPacket.flags.contains(Packet.Flag.Login) ){
 				this.server.handle_login(clientPacket, clientSocket, this.clientStream);
 			} else if( clientPacket.flags.contains(Packet.Flag.Discover) ){
-				this.server.handle_discover();
+				this.server.handle_discover(clientSocket, this.clientStream, sessionKey);
 			} else if( clientPacket.flags.contains(Packet.Flag.Negotiate) ){
 				this.server.handle_chat_negotiation();
 			} else if( clientPacket.flags.contains(Packet.Flag.Logout) ){
