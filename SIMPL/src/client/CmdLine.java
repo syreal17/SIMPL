@@ -4,7 +4,8 @@
 
 package client;
 
-import java.net.InetAddress;
+import java.net.*;
+import java.security.*;
 
 /**
  * @author syreal
@@ -28,6 +29,7 @@ public class CmdLine {
 											"<path to server public key>";
 	private static final int ARG_SERVERNAME_POS = 0;
 	private static final int ARG_PORTNUM_POS = 1;
+	private static final int ARG_SERVERPUBK_POS = 2;
 	
 	private static Client client;	//the abstraction that this CmdLine interacts with. Should only be created once.
 	
@@ -41,6 +43,16 @@ public class CmdLine {
 		} else {
 			return false;
 		}
+	}
+	
+	/**
+	 * Get PublicKey object from filename provided by user
+	 * @param filename the path to the Server public key
+	 * @return PublicKey object
+	 */
+	private static PublicKey getPublicKeyFromFile(String filename){
+		//TODO: implement
+		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
 	/**
@@ -112,8 +124,11 @@ public class CmdLine {
 			System.exit(common.Constants.GENERIC_FAILURE);
 		}
 		
+		//parse the path to server public key argument
+		PublicKey serverPubK = CmdLine.getPublicKeyFromFile(Args[CmdLine.ARG_SERVERPUBK_POS]);
+		
 		//create Client instance
-		CmdLine.client = new Client();
+		CmdLine.client = new Client(serverPubK);
 		
 		//try connecting
 		try{

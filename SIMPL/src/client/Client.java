@@ -9,7 +9,9 @@ import java.net.*;
 import java.security.*;
 import java.util.*;
 
-import protocol.LoginPacket;
+import common.*;
+
+import protocol.*;
 
 /*Resources:
  * _SINGLETON DESIGN PATTERN_
@@ -34,15 +36,22 @@ import protocol.LoginPacket;
  */
 public class Client {
 	
+	private static String LOGIN_SUCCESS_MSG = "Dat worked!";
+	private static String LOGIN_VERIFY_FAIL = "We aren't talking to server! Punting!";
+	private static String LOGIN_CATCHEMALL = "Gotta catch-em-all!";
+	
 	private Socket simplSocket; //socket used for communication to server
 	private InputStream simplStream;
 	private ArrayList<String> clients; //contains result of discover
 	private byte[] N; //the nonce that we've used and sent to the Server
+	private PublicKey serverPubK;
 	
 	//Constructor currently sets nothing up. Defers to other class methods
-	public Client(){
+	public Client(PublicKey serverPubK){
 		//set the size for N
 		this.N = new byte[common.Constants.NONCE_SIZE_BYTES];
+		//remember the Server public key
+		this.serverPubK = serverPubK;
 	}
 	
 	/**
@@ -53,29 +62,56 @@ public class Client {
 	 * @throws IOException 
 	 * @throws UnknownHostException 
 	 */
-	public void do_login(String serverName, int port) throws NoSuchAlgorithmException, 
-																UnknownHostException, IOException{
-		//TODO: implement
-		//throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+	public String do_login(String serverName, int port) throws NoSuchAlgorithmException, 
+																UnknownHostException, IOException,
+																ClassNotFoundException{
+		//TODO: maybe return more helpful error codes, instead of punting to Exceptions
+		
+		//An object variable to use throughout
+		Object o;
 		
 		//create TCP connection
 		this.simplSocket = new Socket(serverName, port);
 		this.simplStream = this.simplSocket.getInputStream();
 		
-		//Build the initial packet
+		//__Build the initial packet
 		LoginPacket loginRequest = new LoginPacket();
 		loginRequest.setClientLoginRequestFlags();
 		//send it
 		loginRequest.go(this.simplSocket);
 		
-		//Get challenge packet
+		//__Get challenge packet
 		//having faith that Java will correctly give me the entire packet at once
 		byte[] recv = new byte[common.Constants.MAX_EXPECT_PACKET_SIZE];
 		//we will wait till server sends something
 		int count = this.simplStream.read(recv);
 		//that something should be a Packet
 		byte[] packetBytes = new byte[count];
-		//common.Utils.deserialize(packetBytes);
+		//manual copy, truncating the unused part of the recv buffer
+		for(int i = 0; i < count; i++){
+			packetBytes[i] = recv[i];
+		}
+		//turn into an object first
+		o = common.Utils.deserialize(packetBytes);
+		//then cast to a Packet
+		Packet serverChallenge = (Packet) o;
+		//verify the server signature, returns byte array of the ChallengePayload if successful
+		byte[] challengePayloadBytes = serverChallenge.verify(this.serverPubK); 	//this is the ClientServerPreSessionPacket call.
+		//invalid signature is a null byte[]
+		if( challengePayloadBytes == null ){
+			return Client.LOGIN_VERIFY_FAIL;
+		}
+		//deserialize the ChallengePayload into an object
+		o = common.Utils.deserialize(challengePayloadBytes);
+		//cast it to a ChallengePayload
+		ChallengePayload cp = (ChallengePayload) o;
+		
+		//__Start constructing the response packet
+
+
+		
+		//catch all return
+		return Client.LOGIN_CATCHEMALL;
 	}
 	
 	/**

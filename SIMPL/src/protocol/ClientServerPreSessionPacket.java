@@ -18,10 +18,16 @@ public abstract class ClientServerPreSessionPacket extends Packet {
 	}
 
 	@Override
-	public boolean verify(PublicKey pubk) {
+	/**
+	 * @return the data minus the signature. Useful, cause can then be casted to ChallengePayload.
+	 */
+	public byte[] verify(PublicKey pubk) {
 		// TODO Auto-generated method stub
-		System.out.println("ClientServerPreSessionPacket verify");
-		return false;
+		System.out.println("TODO: ClientServerPreSessionPacket verify");
+		//this is used in Client.do_login
+		// TODO: deserialize the crypto_data
+		// TODO: figure out how to link this to ChallengePayload!
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
