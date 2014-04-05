@@ -3,6 +3,7 @@ package server;
 import java.io.*;
 import java.net.*;
 import java.security.*;
+import java.security.spec.*;
 import java.util.*;
 
 import protocol.*;
@@ -23,6 +24,7 @@ import protocol.*;
  *
  */
 public class Server {
+//TODO:close streams?
 	
 	public static final String UNEXPECTED_CLIENT_PACKET_MSG = "Client's drunk! Got unexpected packet.";
 	
@@ -152,6 +154,46 @@ public class Server {
 	}
 	
 	/**
+	 * Either load the private key from a file, or create it, either way update the serverPrivK field
+	 * @param filepath filepath to either load or save to
+	 * @throws Exception Might be irregular file, too big, or unreadable&unwritable file
+	 */
+	private void get_private_key(String filepath) throws IOException, UnsupportedOperationException {
+		try{
+			File privateKeyFile = new File(filepath);
+			if( privateKeyFile.isFile() ){
+				if( privateKeyFile.canRead() ){
+					long lKeyFileLength = privateKeyFile.length();
+					if( lKeyFileLength > Integer.MAX_VALUE ){
+						throw new UnsupportedOperationException(common.Constants.FILE_TOO_LARGE_MSG);
+					} else {
+						//read key file bytes from file
+						int iKeyFileLength = (int) lKeyFileLength;
+						byte[] privateKeyBytes = new byte[iKeyFileLength];
+						FileInputStream fis = new FileInputStream(privateKeyFile);
+						fis.read(privateKeyBytes);
+						fis.close();
+						
+						//convert to PrivateKey
+						KeyFactory kf = KeyFactory.getInstance(common.Constants.ASYMMETRIC_CRYPTO_MODE);
+						PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
+						//TODO: continue converting to PrivateKey
+					}
+				} else if( privateKeyFile.canWrite() ){
+					
+				} else {
+					throw new IOException(common.Constants.FILE_UNREADABLE_UNWRITABLE_MSG);
+				}
+			} else {
+				throw new IOException(common.Constants.NOT_A_FILE_MSG);
+			}
+		} catch (NoSuchAlgorithmException e){
+			e.printStackTrace();
+			return;
+		}
+	}
+	
+	/**
 	 * Load all the users that the server remembers
 	 * @param filepath points to the CSV file that contains all user records
 	 * @return success or not
@@ -184,7 +226,7 @@ public class Server {
 	 * Check that the user either has the right password, or is a new user, then add key->value to map
 	 * @param username the username to check
 	 * @param suppliedPwHash the pwhash that was supplied by the user
-	 * @return is user verified or not
+	 * @return is user verified or not, if user was added to DB, also true
 	 */
 	private boolean verify_user(String username, byte[] suppliedPwHash){
 		if( common.Constants.CRYPTO_OFF ){

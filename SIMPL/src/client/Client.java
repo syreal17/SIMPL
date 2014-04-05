@@ -35,6 +35,7 @@ import protocol.*;
  *
  */
 public class Client {
+//TODO: close streams?
 	
 	private static String LOGIN_SUCCESS_MSG = "Dat worked!";
 	private static String LOGIN_FAILURE_MSG = "Server doesn't like you.";
