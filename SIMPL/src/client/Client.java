@@ -39,7 +39,6 @@ public class Client {
 	private static String LOGIN_SUCCESS_MSG = "Dat worked!";
 	private static String LOGIN_FAILURE_MSG = "Server doesn't like you.";
 	private static String LOGIN_UNDEFINED_MSG = "Server's drunk. You should go home. It should too.";
-	@SuppressWarnings("unused")
 	private static String LOGIN_VERIFY_FAIL = "The \"server\" is evil! Punting!";
 	private static String LOGIN_CATCHEMALL = "If you are seeing this, I am wrong: Gotta catch-em-all!";
 	
@@ -61,41 +60,32 @@ public class Client {
 	 * Login to the SIMPL Server
 	 * @param serverName the host name or ip string to connect to
 	 * @param port the port number that the server is listening for SIMPL on
-	 * @return success or failure
-	 * @throws IOException 
-	 * @throws UnknownHostException 
+	 * @return message to print on CmdLine 
 	 */
 	public String do_login(String serverName, int port){
 		try{
-			//TODO: maybe return more helpful error codes, instead of punting to Exceptions
-			
 			Object o;
 			
 			//create TCP connection
 			this.simplSocket = new Socket(serverName, port);
 			this.simplStream = this.simplSocket.getInputStream();
 			
-			//__Build the initial packet
+			//Build the initial packet and send it
 			LoginPacket loginRequest = new LoginPacket();
 			loginRequest.readyClientLoginRequest();
-			//send it!
 			loginRequest.go(this.simplSocket);
 			
-			//__Get challenge packet
-			//TODO: check flags?
-			//having faith that Java will correctly give me the entire packet at once
+			//TODO: check flags? or just rely on FSM?
+			//Get challenge packet
 			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
-			//we will wait till server sends something
 			int count = this.simplStream.read(recv);
-			//that something should be a Packet
-			byte[] serverChallengeBytes = new byte[count];
 			//truncating the unused part of the recv buffer
+			byte[] serverChallengeBytes = new byte[count];
 			System.arraycopy(recv, 0, serverChallengeBytes, 0, count);
-			//TODO: verify viability
+			//deserialize and cast to Packet
 			o = common.Utils.deserialize(serverChallengeBytes);
-			//TODO: verify viability
 			Packet serverChallenge = (Packet) o;
-			//get all the challengePayload bytes
+			//get all the challengePayloadBytes
 			byte[] challengePayloadBytes = serverChallenge.crypto_data;
 			ChallengePayload cp;
 			if( common.Constants.CRYPTO_OFF ){
@@ -110,9 +100,8 @@ public class Client {
 				throw new UnsupportedOperationException();
 			}
 			
-			//__Start constructing the response packet.
+			//Start constructing the response packet.
 			LoginPacket challengeResponse = new LoginPacket();
-			//stuff the ChallengePayload into challengeResponse so calculations can be done on it
 			challengeResponse.challengePayload = cp;
 			//TODO: actually get user input here
 			String username = "syreal";
@@ -127,15 +116,13 @@ public class Client {
 			challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, username, pwHash, this.N);
 			challengeResponse.go(this.simplSocket);
 			
-			//__Get the server response: ok or deny
-			//reset the recv buffer. Byte cast actually necessary ;P
+			//Get the server response: ok or deny
 			Arrays.fill(recv, (byte)0);
 			count = this.simplStream.read(recv);
 			byte[] serverResponseBytes = new byte[count];
-			//manual copy, truncating the unused part of the recv buffer
-			for(int i = 0; i < count; i++){
-				serverResponseBytes[i] = recv[i];
-			}
+			//truncating the unused part of the recv buffer
+			System.arraycopy(recv, 0, serverResponseBytes, 0, count);
+			//deserialization and casting to Packet
 			o = common.Utils.deserialize(serverResponseBytes);
 			Packet serverResponse = (Packet) o;
 			
@@ -149,9 +136,15 @@ public class Client {
 			} else {
 				return Client.LOGIN_UNDEFINED_MSG;
 			}
-		} catch (Exception e){
+		} catch (IOException e){
 			e.printStackTrace();
-			return Client.LOGIN_CATCHEMALL;
+			return e.getMessage();
+		} catch (ClassNotFoundException e){
+			e.printStackTrace();
+			return e.getMessage();
+		} catch (NoSuchAlgorithmException e){
+			e.printStackTrace();
+			return e.getMessage();
 		}
 	}
 	

@@ -24,7 +24,7 @@ public class Server {
 	
 	private ServerSocket listenerSocket;
 	private PrivateKey serverPrivK;
-	//the username->pwHash map that the server retains
+	//the username->pwHash map that the server retains TODO: include N(once) too?
 	private Map<String, byte[]> userDB;
 	
 	public Server(int port, String userDBPath, PrivateKey serverPrivK){

@@ -1,6 +1,6 @@
 package server;
 
-public class NetListenerThread implements Runnable {
+public class ServerListenerThread implements Runnable {
 
 	@Override
 	public void run() {

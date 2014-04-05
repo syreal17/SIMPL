@@ -22,7 +22,8 @@ public class Constants {
 	//CRYPTO
 	public final static boolean CRYPTO_OFF = true;
 	public final static String RNG_ALOGRITHM = "SHA1PRNG";
-	public final static String HASH_ALGORITHM = "SHA-256"; //TODO: find out if this is too secure for brute force app
+	public final static String HASH_ALGORITHM = "SHA-256"; 	//TODO: find out if this is too secure for brute force app
+															//TODO: it's perfect for the password hashing algorithm
 	public final static String SIGNATURE_ALGORITHM = "SHA512withRSA";
 	public final static int SIGNATURE_SIZE_BYTES = 64; 	//I think the above algo must produce 512 bit sig, but I'm not 
 														//positive. I'm not sure how RSA after SHA512 modifies the result!

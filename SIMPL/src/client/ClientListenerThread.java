@@ -4,7 +4,7 @@
 
 package client;
 
-public class NetListenerThread implements Runnable {
+public class ClientListenerThread implements Runnable {
 
 	@Override
 	public void run() {
