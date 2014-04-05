@@ -31,4 +31,5 @@ public class Constants {
 	public final static String ASYMMETRIC_CRYPTO_MODE = "RSA";
 	public final static String SYMMETRIC_CRYPTO_MODE = "AES/CBC/PKCS5Padding";
 	public final static int NONCE_SIZE_BYTES = 16;
+	public final static int boobs = 80085;
 }
