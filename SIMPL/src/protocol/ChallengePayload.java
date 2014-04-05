@@ -70,7 +70,7 @@ public class ChallengePayload implements Serializable {
 	 * @param signature the signature bytes for the ChallengePayload
 	 * @return true if signature is valid SIMPL Server signature, false otherwise 
 	 */
-	public boolean verify(PublicKey pubk, byte[] signature) throws InvalidKeyException, SignatureException, IOException, NoSuchAlgorithmException{
+	public boolean verify(PublicKey pubk, byte[] signature) {
 		try{
 			if (Constants.CRYPTO_OFF)
 			{
