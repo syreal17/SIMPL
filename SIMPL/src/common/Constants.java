@@ -11,4 +11,8 @@ public class Constants {
 	
 	//EXCEPTIONS
 	public final static String USO_EXCPT_MSG = "We have not implemented that yet!";
+	
+	//CONSTANTS OF FAITH
+	public final static int MAX_EXPECT_PACKET_SIZE = 65536;
+	public final static int NONCE_SIZE_BYTES = 16;
 }

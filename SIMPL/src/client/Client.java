@@ -37,9 +37,13 @@ public class Client {
 	private Socket simplSocket; //socket used for communication to server
 	private InputStream simplStream;
 	private ArrayList<String> clients; //contains result of discover
+	private byte[] N; //the nonce that we've used and sent to the Server
 	
 	//Constructor currently sets nothing up. Defers to other class methods
-	public Client(){}
+	public Client(){
+		//set the size for N
+		this.N = new byte[common.Constants.NONCE_SIZE_BYTES];
+	}
 	
 	/**
 	 * Login to the SIMPL Server
@@ -65,7 +69,13 @@ public class Client {
 		loginRequest.go(this.simplSocket);
 		
 		//Get challenge packet
-		
+		//having faith that Java will correctly give me the entire packet at once
+		byte[] recv = new byte[common.Constants.MAX_EXPECT_PACKET_SIZE];
+		//we will wait till server sends something
+		int count = this.simplStream.read(recv);
+		//that something should be a Packet
+		byte[] packetBytes = new byte[count];
+		//common.Utils.deserialize(packetBytes);
 	}
 	
 	/**
