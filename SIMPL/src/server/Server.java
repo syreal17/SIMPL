@@ -26,6 +26,8 @@ public class Server {
 	private PrivateKey serverPrivK;
 	//the username->pwHash map that the server retains TODO: include N(once) too?
 	private Map<String, byte[]> userDB;
+	//used for a new thread knowing which socket to use
+	private ClientHandler clientHandler;
 	
 	public Server(int port, String userDBPath, PrivateKey serverPrivK){
 		try {
@@ -44,6 +46,7 @@ public class Server {
 			
 			Socket clientSocket = this.listenerSocket.accept();
 			InputStream clientStream = clientSocket.getInputStream();
+			//TODO: spin off thread here
 			
 			//not doing FSM server side for beginning of comm; rather, relying on flags
 			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
