@@ -95,28 +95,20 @@ public class Client {
 			o = common.Utils.deserialize(serverChallengeBytes);
 			//TODO: verify viability
 			Packet serverChallenge = (Packet) o;
-			/*I want to avoid using weird ClientServerPreSessionPacket class for now
-			//verify the server signature, returns byte array of the ChallengePayload if successful, sans sig
-			//TODO: is calling "abstract" method even ok here?
-			byte[] challengePayloadBytes = serverChallenge.verify(this.serverPubK); 	//this is the ClientServerPreSessionPacket call.
-			*/
-			byte[] challengePayloadBytes;
+			//get all the challengePayload bytes
+			byte[] challengePayloadBytes = serverChallenge.crypto_data;
+			ChallengePayload cp;
 			if( common.Constants.CRYPTO_OFF ){
-				challengePayloadBytes = serverChallenge.crypto_data;
+				//if there is no crypto, then we can deal simply with the challengePayloadBytes
+				o = common.Utils.deserialize(challengePayloadBytes);
+				cp = (ChallengePayload) o;
 			} else {
 				//TODO: grab challengePayloadBytes sans signature bytes
 				//TODO: construct ChallengePayload from deserialization
 				//TODO: pass in signature bytes to ChallengePayload verify
+				//----------------------
 				throw new UnsupportedOperationException();
 			}
-			/*//invalid signature is a null byte[]
-			if( challengePayloadBytes == null ){
-				return Client.LOGIN_VERIFY_FAIL;
-			}*/
-			//TODO: verify viability, correct order once fleshed out
-			o = common.Utils.deserialize(challengePayloadBytes);
-			//TODO: verify viability, correct order once fleshed out
-			ChallengePayload cp = (ChallengePayload) o;
 			
 			//__Start constructing the response packet.
 			LoginPacket challengeResponse = new LoginPacket();

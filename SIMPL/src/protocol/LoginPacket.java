@@ -68,7 +68,8 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 			byte[] concat = new byte[R_1_size + R_2_size];
 			System.arraycopy(R_1,0,concat,0,R_1.length);
 			System.arraycopy(R_2,0,concat,R_1.length,R_2.length);
-			challenge = concat;
+			//challenge = concat; //ltj:seeing if using ChallengePayload is easiest way for me vvv
+			this.challengePayload.challengeHash = concat;
 		}
 		else
 		{
@@ -79,7 +80,8 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 			//update message digest with byte array
 			md.update(puzzle);
 			//make the hash and return it
-	        challenge = md.digest();
+	        //challenge = md.digest(); //ltj:seeing if using ChallengePayload is easiest way for me vvv
+			this.challengePayload.challengeHash = md.digest();
 		}
 	}
 	
@@ -91,7 +93,9 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	public void findR_2(){
 		if (Constants.CRYPTO_OFF)
 		{
-			R_2 = null;
+			//if crypto is off, simply copy out R_1 and R_2
+			System.arraycopy(this.challengePayload.challengeHash, 0, this.R_1, 0, LoginPacket.R_1_size);
+			System.arraycopy(this.challengePayload.challengeHash, LoginPacket.R_1_size, this.R_2, 0, LoginPacket.R_2_size);
 		}
 		else
 		{
@@ -114,41 +118,6 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		        }
 			}
 		}
-	}
-	
-	/**
-	 * Set flags for the initial Login message that the Client sends
-	 */
-	private void setClientLoginRequestFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Syncronization);
-	}
-	
-	/**
-	 * Set flags for the Server's challenge request to the Client
-	 */
-	private void setServerLoginChallengeFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Syncronization, Packet.Flag.Acknowledgement);
-	}
-	
-	/**
-	 * Set flags for the Client's challenge response to the Server
-	 */
-	private void setClientLoginChallengeResponseFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Acknowledgement);
-	}
-	
-	/**
-	 * Set flags for Server to accept Client login
-	 */
-	private void setServerLoginOkFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Ok);
-	}
-	
-	/**
-	 * Set flags for Server to deny Client login
-	 */
-	private void setServerLoginDenyFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Deny);
 	}
 	
 	/**
@@ -280,5 +249,40 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		this.challenge = null;
 		this.RNG = null;
 		this.md = null;
+	}
+	
+	/**
+	 * Set flags for the initial Login message that the Client sends
+	 */
+	private void setClientLoginRequestFlags(){
+		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Syncronization);
+	}
+	
+	/**
+	 * Set flags for the Server's challenge request to the Client
+	 */
+	private void setServerLoginChallengeFlags(){
+		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Syncronization, Packet.Flag.Acknowledgement);
+	}
+	
+	/**
+	 * Set flags for the Client's challenge response to the Server
+	 */
+	private void setClientLoginChallengeResponseFlags(){
+		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Acknowledgement);
+	}
+	
+	/**
+	 * Set flags for Server to accept Client login
+	 */
+	private void setServerLoginOkFlags(){
+		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Ok);
+	}
+	
+	/**
+	 * Set flags for Server to deny Client login
+	 */
+	private void setServerLoginDenyFlags(){
+		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Deny);
 	}
 }

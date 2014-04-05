@@ -37,7 +37,7 @@ public class Server {
 		}
 	}
 	
-	//TODO: put beginning in NetListenerThread and rest in ServerThread
+	//TODO: put beginning in NetListenerThread and the rest in ServerThread
 	public void start(){
 		try {
 			Object o;

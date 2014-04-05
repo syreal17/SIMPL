@@ -57,12 +57,14 @@ public abstract class Packet implements Serializable {
 	
 	/**
 	 * Send thineself out to the Server or Buddy
-	 * @param sendingSocket which socket packet should go through
-	 * @return success or failure
+	 * @param sendingSocket which packet should go through
 	 */
 	public void go(Socket sendingSocket){
-		//TODO: implement
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		try {
+			sendingSocket.getOutputStream().write(this.getSerialization());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**

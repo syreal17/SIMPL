@@ -140,7 +140,7 @@ public class CmdLine {
 		
 		//try connecting
 		try{
-			CmdLine.client.do_login(serverName, portNum);
+			System.out.println(CmdLine.client.do_login(serverName, portNum));
 		} catch (Exception e){
 			e.printStackTrace();
 			System.out.println(CmdLine.LOGIN_FAIL);
