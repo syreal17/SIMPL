@@ -11,7 +11,7 @@ public class CmdLine {
 	public static final int ARG_USERDB_POS = 1;
 	public static final int ARG_SERVERPRIVK_POS = 2;
 	
-	private static Server server;
+	public static Server server;
 	
 	private static PrivateKey getPrivateKeyFromFile(String filename){
 		if( common.Constants.CRYPTO_OFF ){
@@ -45,6 +45,6 @@ public class CmdLine {
 		
 		//create Server instance and start it
 		CmdLine.server = new Server(portNum, userDBFilename, serverPrivK);
-		CmdLine.server.start();
+		CmdLine.server.start_listener_loop();
 	}
 }

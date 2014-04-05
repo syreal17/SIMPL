@@ -11,6 +11,10 @@ import protocol.*;
  * _NETWORKING_
  * A simple TCP server and client:
  * 		http://docs.oracle.com/javase/tutorial/networking/sockets/clientServer.html
+ * 
+ * _THREADING
+ * A good discussion of the two main different syntax and semantics for starting a thread:
+ * 		http://docs.oracle.com/javase/tutorial/essential/concurrency/runthread.html
  */
 
 /**
@@ -20,7 +24,7 @@ import protocol.*;
  */
 public class Server {
 	
-	private static final String UNEXPECTED_CLIENT_PACKET_MSG = "Client's drunk! Got unexpected packet.";
+	public static final String UNEXPECTED_CLIENT_PACKET_MSG = "Client's drunk! Got unexpected packet.";
 	
 	private ServerSocket listenerSocket;
 	private PrivateKey serverPrivK;
@@ -28,53 +32,42 @@ public class Server {
 	private Map<String, byte[]> userDB;
 	//used for a new thread knowing which socket to use
 	private ClientHandler clientHandler;
+	//remember Threads, just because it seems like a good idea
+	private ArrayList<Thread> threads;
+	//should the start_listener_loop continue? I've made a useless mutator to change this to false.
+	//Would need a separate thread to call the function. The main thread is spinning on listener loop
+	private boolean running;
 	
 	public Server(int port, String userDBPath, PrivateKey serverPrivK){
 		try {
 			this.listenerSocket = new ServerSocket(port);
 			this.load_users(userDBPath);
 			this.serverPrivK = serverPrivK;
+			this.clientHandler = new ClientHandler();
+			this.threads = new ArrayList<Thread>();
+			
+			this.running = true;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	//TODO: put beginning in NetListenerThread and the rest in ServerThread
-	public void start(){
+	/**
+	 * Start the loop for the Server to accept multiple Client connections, and spin off threads
+	 */
+	public void start_listener_loop(){
 		try {
-			Object o;
-			
-			Socket clientSocket = this.listenerSocket.accept();
-			InputStream clientStream = clientSocket.getInputStream();
-			//TODO: spin off thread here
-			
-			//not doing FSM server side for beginning of comm; rather, relying on flags
-			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
-			//wait for data from client
-			int count = clientStream.read(recv);
-			//once we have it, truncate down to smallest array
-			byte[] clientPacketBytes = new byte[count];
-			System.arraycopy(recv, 0, clientPacketBytes, 0, count);
-			//make Packet out of bytes
-			//TODO: verify viability (first time methodology used)
-			o = common.Utils.deserialize(clientPacketBytes);
-			Packet clientPacket = (Packet) o;
-			//handle the type of packet
-			if( clientPacket.flags.contains(Packet.Flag.Login) ){
-				this.handle_login(clientPacket, clientSocket, clientStream);
-			} else if( clientPacket.flags.contains(Packet.Flag.Discover) ){
-				this.handle_discover();
-			} else if( clientPacket.flags.contains(Packet.Flag.Negotiate) ){
-				this.handle_chat_negotiation();
-			} else if( clientPacket.flags.contains(Packet.Flag.Logout) ){
-				this.handle_logout();
-			} else {
-				System.out.println(Server.UNEXPECTED_CLIENT_PACKET_MSG);
+			while(this.running){
+				//Listen for new client connections... (blocking)
+				Socket clientSocket = this.listenerSocket.accept();
+				this.clientHandler.addEntry(new ClientHandlerEntry(clientSocket, false) );
+				//create thread
+				Thread thread = (new Thread( new ClientHandlerThread() ));
+				thread.start();
+				//remember it for good measure
+				this.threads.add(thread);
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
-			return;
-		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			return;
 		}
@@ -200,5 +193,17 @@ public class Server {
 			//TODO: if username not in DB, add it to DB with the supplied hash
 			throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 		}
+	}
+	
+	public ClientHandler getClientHandler(){
+		return this.clientHandler;
+	}
+	
+	/**
+	 * This is really, quite non-functional now since the main thread spins in start_listener_loop without
+	 * possibility of this method getting called.
+	 */
+	public void stop(){
+		this.running = false;
 	}
 }
