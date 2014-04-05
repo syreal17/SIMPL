@@ -1,7 +1,9 @@
 package protocol;
 
+import java.io.IOException;
 import java.security.*;
 import java.util.*;
+
 //This is the package that I made... I don't know how to import it!
 //I also don't know if it should exist at all
 import crypto.Hash;
@@ -123,8 +125,9 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	/**
 	 * Readies the Login packet to be a Server Login challenge packet
 	 * @param privk private key of the Server
+	 * @throws IOException 
 	 */
-	public byte[] readyServerLoginChallenge(PrivateKey privk){
+	public byte[] readyServerLoginChallenge(PrivateKey privk) throws IOException{
 		//generate the R's
 		this.generateRs();
 		
@@ -154,8 +157,9 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * Readies the Login packet to be a Client response to a Server challenge
 	 * @param pubk public key of the Server
 	 * ASSUMPTIONS: LoginPacket has ChallengeResponse, but no R_2.
+	 * @throws IOException 
 	 */
-	public void readyClientLoginChallengeResponse(PublicKey pubk, String username, byte[] pwHash, byte[] N){
+	public void readyClientLoginChallengeResponse(PublicKey pubk, String username, byte[] pwHash, byte[] N) throws IOException{
 		//verify that ChallengePayload exists
 		if( this.challengePayload == null ){
 			throw new UnsupportedOperationException("Challenge Payload must exist before preparing Client response");

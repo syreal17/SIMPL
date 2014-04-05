@@ -31,11 +31,12 @@ public class ChallengePayload implements Serializable {
 	 * @author JaffeTaffy
 	 * @param privk Private key of the SIMPL Server
 	 * @return the ChallengePayload as a signed byte array (will add length to array)
+	 * @throws IOException 
 	 */
-	public byte[] sign(PrivateKey privk){
+	public byte[] sign(PrivateKey privk) throws IOException{
 		//TODO: implement
 		//TODO: involves getSerialization()
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		return this.getSerialization();
 	}
 	
 	/**
@@ -45,6 +46,6 @@ public class ChallengePayload implements Serializable {
 	 */
 	public boolean verify(PublicKey pubk){
 		//TODO: implement
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		return true;
 	}
 }

@@ -30,10 +30,10 @@ public class AuthenticationPayload implements Serializable {
 	 * @param pubk Public key of Server
 	 * @return the encrypted object in byte array form
 	 */
-	public byte[] encrypt(PublicKey pubk){
+	public byte[] encrypt(PublicKey pubk) throws IOException{
 		//TODO: implement
 		//getSerialization then crypto
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		return this.getSerialization();
 	}
 	
 	/**
@@ -41,10 +41,10 @@ public class AuthenticationPayload implements Serializable {
 	 * @param privk Private key of the Server
 	 * @param encryptedData encrypted byte array of AuthenticationPayload
 	 * @return the decrypted serialized object
+	 * @throws IOException 
 	 */
 	public void decrypt(PrivateKey privk, byte[] encryptedData){
 		//TODO: implement
 		//Client might actually handle this decryption...
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 }
