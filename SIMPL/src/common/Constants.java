@@ -17,6 +17,7 @@ public class Constants {
 	public final static int NONCE_SIZE_BYTES = 16;
 	
 	//CRYPTO
+	public final static boolean CRYPTO_OFF = true;
 	public final static String HASH_ALGORITHM = "SHA-256";
 	public final static String SIGNATURE_ALGORITHM = "SHA512withRSA";
 	public final static String ASYMMETRIC_CRYPTO_MODE = "RSA";

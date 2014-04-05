@@ -43,12 +43,19 @@ public class AuthenticationPayload implements Serializable {
 	 * @throws IllegalBlockSizeException 
 	 */
 	public byte[] encrypt(PublicKey pubk) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
-		//instantiate signature with chosen algorithm
-		  Cipher cipher = Cipher.getInstance(Constants.ASYMMETRIC_CRYPTO_MODE);
-		//init signature with public key
-		  cipher.init(Cipher.ENCRYPT_MODE, pubk);
-		  //return encrypted bytes
-		  return cipher.doFinal(this.getSerialization());
+		if (Constants.CRYPTO_OFF)
+		{
+			return this.getSerialization();
+		}
+		else
+		{
+			//instantiate signature with chosen algorithm
+			Cipher cipher = Cipher.getInstance(Constants.ASYMMETRIC_CRYPTO_MODE);
+			//init signature with public key
+			cipher.init(Cipher.ENCRYPT_MODE, pubk);
+			//return encrypted bytes
+			return cipher.doFinal(this.getSerialization());
+		}
 	}
 	
 	/**
@@ -64,11 +71,18 @@ public class AuthenticationPayload implements Serializable {
 	 * @throws IOException 
 	 */
 	public void decrypt(PrivateKey privk, byte[] encryptedData) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
-		//instantiate signature with chosen algorithm
-		Cipher cipher = Cipher.getInstance(Constants.ASYMMETRIC_CRYPTO_MODE);
-		//init signature with private key
-		cipher.init(Cipher.DECRYPT_MODE, privk);
-		//write encrypted bytes to encryptedData since it was passed by reference
-		encryptedData = cipher.doFinal(encryptedData);
+		if (Constants.CRYPTO_OFF)
+		{
+			
+		}
+		else
+		{
+			//instantiate signature with chosen algorithm
+			Cipher cipher = Cipher.getInstance(Constants.ASYMMETRIC_CRYPTO_MODE);
+			//init signature with private key
+			cipher.init(Cipher.DECRYPT_MODE, privk);
+			//write encrypted bytes to encryptedData since it was passed by reference
+			encryptedData = cipher.doFinal(encryptedData);
+		}
 	}
 }

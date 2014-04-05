@@ -38,14 +38,21 @@ public class ChallengePayload implements Serializable {
 	 * @throws SignatureException 
 	 */
 	public byte[] sign(PrivateKey privk) throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException{
-		//instantiate signature with chosen algorithm
-		Signature sig = Signature.getInstance(Constants.SIGNATURE_ALGORITHM);
-		//init signature with private key
-		sig.initSign(privk);
-		//update signature with bytes to be signed
-		sig.update(this.getSerialization());
-		//return the signature
-		return sig.sign();
+		if (Constants.CRYPTO_OFF)
+		{
+			return this.getSerialization();
+		}
+		else
+		{
+			//instantiate signature with chosen algorithm
+			Signature sig = Signature.getInstance(Constants.SIGNATURE_ALGORITHM);
+			//init signature with private key
+			sig.initSign(privk);
+			//update signature with bytes to be signed
+			sig.update(this.getSerialization());
+			//return the signature
+			return sig.sign();
+		}
 	}
 	
 	/**
@@ -58,13 +65,20 @@ public class ChallengePayload implements Serializable {
 	 * @throws NoSuchAlgorithmException 
 	 */
 	public boolean verify(PublicKey pubk, byte[] signature) throws InvalidKeyException, SignatureException, IOException, NoSuchAlgorithmException{
-		//instantiate signature with chosen algorithm
-		Signature sig = Signature.getInstance(Constants.SIGNATURE_ALGORITHM);
-		//init signature with public key
-		sig.initVerify(pubk);
-		//update signature with bytes to be signed
-		sig.update(this.getSerialization());
-		//check to see if the signature is valid
-		return sig.verify(signature);
+		if (Constants.CRYPTO_OFF)
+		{
+			return true;
+		}
+		else
+		{
+			//instantiate signature with chosen algorithm
+			Signature sig = Signature.getInstance(Constants.SIGNATURE_ALGORITHM);
+			//init signature with public key
+			sig.initVerify(pubk);
+			//update signature with bytes to be signed
+			sig.update(this.getSerialization());
+			//check to see if the signature is valid
+			return sig.verify(signature);
+		}
 	}
 }
