@@ -9,6 +9,8 @@ import java.net.*;
 import java.security.*;
 import java.util.*;
 
+import javax.crypto.SecretKey;
+
 import protocol.*;
 
 /*Resources:
@@ -48,6 +50,7 @@ public class Client {
 	private ArrayList<String> clients; 	//contains result of discover
 	private byte[] N; 					//the nonce that we've used and sent to the Server
 	public PublicKey serverPubK;
+	public SecretKey sessionKey;
 	
 	//Constructor currently sets nothing up. Defers to other class methods
 	public Client(PublicKey serverPubK){
@@ -154,9 +157,28 @@ public class Client {
 	 * @return success or failure
 	 */
 	public void do_discover(){
-		//TODO: implement
-		//TODO: build this.clients from this message
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		try{
+		Object o;
+		
+		//Build the initial packet and send it
+		DiscoverPacket discoverRequest = new DiscoverPacket();
+		discoverRequest.readyClientDiscoverRequest();
+		discoverRequest.go(this.simplSocket);
+		
+		//TODO: check flags? or just rely on FSM?
+		//Get challenge packet
+		byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
+		int count = this.simplStream.read(recv);
+		//truncating the unused part of the recv buffer
+		byte[] serverDiscoverBytes = new byte[count];
+		System.arraycopy(recv, 0, serverDiscoverBytes, 0, count);
+		//get array list out of packet
+		clients = discoverRequest.decryptServerDiscoverReponse(serverDiscoverBytes, sessionKey);
+		
+		
+		} catch (IOException e){
+			e.printStackTrace();
+		}
 	}
 	
 	/**

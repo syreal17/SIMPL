@@ -4,14 +4,14 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.util.ArrayList;
 import java.util.Set;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
 import common.Constants;
 
@@ -39,7 +39,7 @@ public class DiscoverPayload implements Serializable {
 	 * @param pubk Public key of Server
 	 * @return the encrypted object in byte array form
 	 */
-	public byte[] encrypt(PublicKey pubk){
+	public byte[] encrypt(SecretKey seshKey){
 		try{
 			if (Constants.CRYPTO_OFF)
 			{
@@ -48,9 +48,9 @@ public class DiscoverPayload implements Serializable {
 			else
 			{
 				//instantiate signature with chosen algorithm
-				Cipher cipher = Cipher.getInstance(Constants.ASYMMETRIC_CRYPTO_MODE);
+				Cipher cipher = Cipher.getInstance(Constants.SYMMETRIC_CRYPTO_MODE);
 				//init signature with public key
-				cipher.init(Cipher.ENCRYPT_MODE, pubk);
+				cipher.init(Cipher.ENCRYPT_MODE, seshKey);
 				//return encrypted bytes
 				return cipher.doFinal(this.getSerialization());
 			}
@@ -76,39 +76,54 @@ public class DiscoverPayload implements Serializable {
 	 * Decrypt encryptedData, then fill out fields of AuthenticationPayload object
 	 * @param privk Private key of the Server
 	 * @param encryptedData encrypted byte array of AuthenticationPayload
+	 * @return 
 	 * @return the decrypted serialized object
 	 */
-	public void decrypt(PrivateKey privk, byte[] encryptedData){
+	public ArrayList<String> decrypt(SecretKey seshKey, byte[] encryptedData){
 		try{
 			if (Constants.CRYPTO_OFF)
 			{
-				
+				ArrayList<String> strings = new ArrayList<String>();
+				//populate the array list
+				for( String s : usernames ) strings.add(s);
+				return strings;
 			}
 			else
 			{
 				//instantiate signature with chosen algorithm
-				Cipher cipher = Cipher.getInstance(Constants.ASYMMETRIC_CRYPTO_MODE);
+				Cipher cipher = Cipher.getInstance(Constants.SYMMETRIC_CRYPTO_MODE);
 				//init signature with private key
-				cipher.init(Cipher.DECRYPT_MODE, privk);
+				cipher.init(Cipher.DECRYPT_MODE, seshKey);
 				//write encrypted bytes to encryptedData since it was passed by reference
-				encryptedData = cipher.doFinal(encryptedData);
+				byte[] plaintext = cipher.doFinal(encryptedData);
+				//deserialize the plaintext into an object
+				Object o = common.Utils.deserialize(plaintext);
+				//cast the object as a DiscoverPayload
+				DiscoverPayload list = (DiscoverPayload) o;
+				//create an array list for the client
+				ArrayList<String> strings = new ArrayList<String>();
+				//populate the array list
+				for( String s : list.usernames ) strings.add(s);
+				return strings;
 			}
 		} catch (NoSuchAlgorithmException e){
 			e.printStackTrace();
-			return;
 		} catch (NoSuchPaddingException e){
 			e.printStackTrace();
-			return;
 		} catch (InvalidKeyException e){
 			e.printStackTrace();
-			return;
 		} catch (IllegalBlockSizeException e){
 			e.printStackTrace();
-			return;
 		} catch (BadPaddingException e){
 			e.printStackTrace();
-			return;
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		return (ArrayList<String>) usernames;	
 	}
 
 }

@@ -2,15 +2,19 @@ package protocol;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Set;
+
+import javax.crypto.SecretKey;
 
 import protocol.DiscoverPayload;
 
 
 public class DiscoverPacket extends ClientServerSessionPacket {
 	
-	DiscoverPayload discoveryList;
+	private static final long serialVersionUID = -393407001993431232L;
+	public DiscoverPayload discoveryList;
 	
 	public DiscoverPacket(){
 		this.discoveryList = new DiscoverPayload(null);
@@ -24,7 +28,7 @@ public class DiscoverPacket extends ClientServerSessionPacket {
 		this.setClientDiscoverRequestFlags();
 	}
 
-	public byte[] readyServerDiscoverResponse(Set<String> usernames, PublicKey pubk){
+	public byte[] readyServerDiscoverResponse(Set<String> usernames, SecretKey seshKey){
 		//reset the packet
 		this.clearAllFields();
 		
@@ -35,12 +39,12 @@ public class DiscoverPacket extends ClientServerSessionPacket {
 		this.discoveryList = new DiscoverPayload(usernames);
 		
 		//encrypt the discovery list
-		return this.discoveryList.encrypt(pubk);
+		return this.discoveryList.encrypt(seshKey);
 	}
 	
-	public void decryptServerDiscoverReponse(byte[] usernames, PrivateKey privk){
+	public ArrayList<String> decryptServerDiscoverReponse(byte[] usernames, SecretKey seshKey){
 		//
-		this.discoveryList.decrypt(privk, usernames);
+		return this.discoveryList.decrypt(seshKey, usernames);
 	}
 
 	/**
