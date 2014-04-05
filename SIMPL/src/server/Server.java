@@ -161,6 +161,7 @@ public class Server {
 			return;
 		}
 		//TODO: implement
+		//TODO: create file if one doesn't exist or error, print warning message if this is the case
 		//TODO: load file to this.userDB
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}

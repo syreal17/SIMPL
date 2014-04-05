@@ -5,7 +5,9 @@ import java.security.*;
 public class CmdLine {
 	
 	public static final String USAGE_MSG = "Usage: java server.CmdLine <port> <path to user db> " +
-			"<path to private key>";
+			"<path to private key>\n" +
+			"'path to user db': point to valid '"+common.Constants.USER_DB_NAME+"' otherwise, one will be created\n" +
+			"'path to private key': point to valid '"+common.Constants.SERVER_PRIVK_NAME+"' otherwise, one will be created";
 	public static final int ARG_NUM = 3;
 	public static final int ARG_PORTNUM_POS = 0;
 	public static final int ARG_USERDB_POS = 1;
