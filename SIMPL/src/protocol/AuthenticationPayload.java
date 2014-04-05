@@ -12,9 +12,9 @@ public class AuthenticationPayload implements Serializable {
 
 	public String username;
 	public byte[] pwHash;			//hash of the user password
-	public long N;				//TODO: PRNG 64 bits? 128 bits?
+	public byte[] N;				//TODO: PRNG 64 bits? 128 bits?
 	
-	public AuthenticationPayload(String username, byte[] pwHash, long N){
+	public AuthenticationPayload(String username, byte[] pwHash, byte[] N){
 		this.username = username;
 		this.pwHash = pwHash;
 		this.N = N;

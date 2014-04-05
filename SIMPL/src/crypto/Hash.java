@@ -31,14 +31,11 @@ public class Hash {
 	 * @author JaffeTaffy
 	 * @return challenge in byte array form
 	 */
-	public byte[] makeChallenge(long R1, short R2) {
-		byte[] puzzle = new byte[10];
-		//get the byte array form of the numbers
-		byte[] B1 = ByteBuffer.allocate(8).putLong(R1).array();
-		byte[] B2 = ByteBuffer.allocate(2).putShort(R2).array();
+	public byte[] makeChallenge(byte[] R1, byte[] R2) {
+		byte[] puzzle = new byte[11];
 		//concatenate the byte arrays
-		System.arraycopy(B1,0,puzzle,0,B1.length);
-		System.arraycopy(B2,0,puzzle,B1.length,B2.length);
+		System.arraycopy(R1,0,puzzle,0,R1.length);
+		System.arraycopy(R2,0,puzzle,R1.length,R2.length);
 		//update message digest with byte array
 		md.update(puzzle);
 		//make the hash and return it
@@ -50,27 +47,26 @@ public class Hash {
 	 * @author JaffeTaffy
 	 * @return R2
 	 */
-	public short solveChallenge(byte[] puzzle, long R1) {
+	public byte[] solveChallenge(byte[] puzzle, byte[] R1) {
 		//byte array contains hash attempt
-		byte[] attempt = new byte[10];
+		byte[] attempt = new byte[11];
 		//loop through all possible values of R2
-		for (short R2 = 0; R2 < (1 << 16); R2++){
+		for (int R2 = 0; R2 < (1 << 24); R2++){
 			//get the byte array form of the numbers
-			byte[] B1 = ByteBuffer.allocate(8).putLong(R1).array();
-			byte[] B2 = ByteBuffer.allocate(2).putShort(R2).array();
+			byte[] B2 = ByteBuffer.allocate(3).putInt(R2).array();
 			//concatenate the byte arrays
-			System.arraycopy(B1,0,attempt,0,B1.length);
-			System.arraycopy(B2,0,attempt,B1.length,B2.length);
+			System.arraycopy(R1,0,attempt,0,R1.length);
+			System.arraycopy(B2,0,attempt,R1.length,B2.length);
 			//update message digest with byte array
 			md.update(attempt);
 			//make the hash, check if it matches the puzzle
 	        if (Arrays.equals(md.digest(), puzzle))
 	        {
-	        	return R2;
+	        	return B2;
 	        }
 		}
 		//Failure! Didn't find R2...
-		return 0;
+		return null;
 	}
 
 }

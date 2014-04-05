@@ -14,10 +14,10 @@ public class ChallengePayload implements Serializable {
 	 */
 	private static final long serialVersionUID = -128127638431769002L;
 	
-	public long R_1;
+	public byte[] R_1;
 	public byte[] challengeHash;
 	
-	public ChallengePayload(long R_1, byte[] challengeHash){
+	public ChallengePayload(byte[] R_1, byte[] challengeHash){
 		this.R_1 = R_1;
 		this.challengeHash = challengeHash;
 	}

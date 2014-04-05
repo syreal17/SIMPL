@@ -8,14 +8,12 @@ import crypto.Hash;
 
 
 public class LoginPacket extends ClientServerPreSessionPacket {
-	public static final int R_1_size = 64; //bits
-	public static final int R_2_size = 16; //bits (too short! but makes it easy)
+	public static final int R_1_size = 8; //bytes
+	public static final int R_2_size = 3; //bytes
 	
-	//ltj: these almost certainly won't be longs by the end of the project
-	//maybe BigInt of 64 bits and 20 bits or something
 	//R_1 is in ChallengePayload object
-	private long R_1; //the big tricksy number		
-	private short R_2;  //the smaller, crackable number	
+	private byte[] R_1;
+	private byte[] R_2;
 	
 	private ChallengePayload challengePayload;
 	private AuthenticationPayload authPayload;					//{username,W_1,N}_Ks
@@ -29,9 +27,10 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	private SecureRandom RNG;
 
 	public LoginPacket() throws NoSuchAlgorithmException{
-		this.challengePayload = new ChallengePayload((Long) null, (byte[]) null);
-		this.R_2 = (Short) null;
-		this.authPayload = new AuthenticationPayload((String) null, (byte[]) null, (Long) null);
+		this.challengePayload = new ChallengePayload( null, null);
+		this.R_1 = new byte[R_1_size];
+		this.R_2 = new byte[R_2_size];
+		this.authPayload = new AuthenticationPayload((String) null, null, null);
 		this.hash = new Hash();
 		RNG = new SecureRandom();
 	}
@@ -43,9 +42,9 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 */
 	public void generateRs(){
 		//generate PRN R1 using R_1_size bits
-		R_1 = RNG.next(R_1_size);	//ltj: find the API that provides this behind the scenes
+		RNG.nextBytes(R_1);	//ltj: find the API that provides this behind the scenes
 		//generate PRN R2 using R_2_size bits
-		R_2 = RNG.next(R_2_size); //ltj: this is somewhat problematic. Converting from int to short might
+		RNG.nextBytes(R_2); //ltj: this is somewhat problematic. Converting from int to short might
 									//lose precision
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
@@ -125,12 +124,12 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * Readies the Login packet to be a Server Login challenge packet
 	 * @param privk private key of the Server
 	 */
-	public long readyServerLoginChallenge(PrivateKey privk){
+	public byte[] readyServerLoginChallenge(PrivateKey privk){
 		//generate the R's
 		this.generateRs();
 		
 		//remember R_2 for the future. Fields are cleared later
-		long R_2 = this.R_2;
+		byte[] R_2 = this.R_2;
 		
 		//generate the challenge hash
 		this.generateChallengeHash();
@@ -156,7 +155,7 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * @param pubk public key of the Server
 	 * ASSUMPTIONS: LoginPacket has ChallengeResponse, but no R_2.
 	 */
-	public void readyClientLoginChallengeResponse(PublicKey pubk, String username, byte[] pwHash, long N){
+	public void readyClientLoginChallengeResponse(PublicKey pubk, String username, byte[] pwHash, byte[] N){
 		//verify that ChallengePayload exists
 		if( this.challengePayload == null ){
 			throw new UnsupportedOperationException("Challenge Payload must exist before preparing Client response");
@@ -172,7 +171,7 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		this.findR_2();
 		
 		//remember R_2, so we can zero out fields later, and refill out R_2
-		short R_2 = this.R_2;
+		byte[] R_2 = this.R_2;
 		
 		//build authPayload so it can be encrypted
 		this.authPayload = new AuthenticationPayload(username, pwHash, N);
@@ -224,13 +223,13 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	public void clearAllFields(){
 		super.clearAllFields();
 		
-		this.challengePayload.R_1 = (Long) null;
+		this.challengePayload.R_1 = null;
 		this.challengePayload.challengeHash = (byte[]) null;
 		
-		this.R_2 = (Short) null;
+		this.R_2 = (byte[]) null;
 		
 		this.authPayload.username = (String) null;
-		this.authPayload.pwHash = (byte[]) null;
-		this.authPayload.N = (Long) null;
+		this.authPayload.pwHash = null;
+		this.authPayload.N = null;
 	}
 }
