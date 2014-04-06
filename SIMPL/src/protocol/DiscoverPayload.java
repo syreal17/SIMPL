@@ -12,8 +12,10 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 import common.Constants;
+import common.Utils;
 
 public class DiscoverPayload implements Serializable {
 	
@@ -39,7 +41,7 @@ public class DiscoverPayload implements Serializable {
 	 * @param pubk Public key of Server
 	 * @return the encrypted object in byte array form
 	 */
-	public byte[] encrypt(SecretKey seshKey){
+	public byte[] encrypt(byte[] seshKey){
 		try{
 			if (Constants.CRYPTO_OFF)
 			{
@@ -49,8 +51,10 @@ public class DiscoverPayload implements Serializable {
 			{
 				//instantiate signature with chosen algorithm
 				Cipher cipher = Cipher.getInstance(Constants.SYMMETRIC_CRYPTO_MODE);
+				Utils.printByteArr(seshKey);
+				SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
 				//init signature with public key
-				cipher.init(Cipher.ENCRYPT_MODE, seshKey);
+				cipher.init(Cipher.ENCRYPT_MODE, k);
 				//return encrypted bytes
 				return cipher.doFinal(this.getSerialization());
 			}
@@ -79,7 +83,7 @@ public class DiscoverPayload implements Serializable {
 	 * @return 
 	 * @return the decrypted serialized object
 	 */
-	public ArrayList<String> decrypt(SecretKey seshKey, byte[] encryptedData){
+	public ArrayList<String> decrypt(byte[] seshKey, byte[] encryptedData){
 		try{
 			if (Constants.CRYPTO_OFF)
 			{
@@ -93,8 +97,9 @@ public class DiscoverPayload implements Serializable {
 			{
 				//instantiate signature with chosen algorithm
 				Cipher cipher = Cipher.getInstance(Constants.SYMMETRIC_CRYPTO_MODE);
+				SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
 				//init signature with private key
-				cipher.init(Cipher.DECRYPT_MODE, seshKey);
+				cipher.init(Cipher.DECRYPT_MODE, k);
 				//write encrypted bytes to encryptedData since it was passed by reference
 				byte[] plaintext =  cipher.doFinal(encryptedData);
 				//deserialize the plaintext into an object

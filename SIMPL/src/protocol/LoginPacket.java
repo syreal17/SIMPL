@@ -187,7 +187,7 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * @param pubk public key of the Server
 	 * ASSUMPTIONS: LoginPacket has ChallengeResponse, but no R_2. 
 	 */
-	public void readyClientLoginChallengeResponse(PublicKey pubk, String username, byte[] pwHash, byte[] N){
+	public byte[] readyClientLoginChallengeResponse(PublicKey pubk, String username, byte[] pwHash, byte[] N){
 		//verify that ChallengePayload exists
 		if( this.challengePayload == null ){
 			throw new UnsupportedOperationException("Challenge Payload must exist before preparing Client response");
@@ -207,6 +207,7 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		
 		//build authPayload so it can be encrypted
 		this.authPayload = new AuthenticationPayload(username, pwHash, N);
+		byte[] sessionKey = this.authPayload.keyMake();
 		common.Utils.printByteArr(this.authPayload.getSerialization());
 		System.out.println();
 		//encrypt it
@@ -224,6 +225,9 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		
 		//set R_2 to what the Client found it to be
 		this.R_2 = R_2;
+		
+		//return the sessionKey to the client
+		return sessionKey;
 	}
 	
 	/**

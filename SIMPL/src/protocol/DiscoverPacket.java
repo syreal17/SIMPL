@@ -27,7 +27,7 @@ public class DiscoverPacket extends ClientServerSessionPacket {
 		this.setClientDiscoverRequestFlags();
 	}
 
-	public void readyServerDiscoverResponse(Set<String> usernames, SecretKey seshKey){
+	public void readyServerDiscoverResponse(Set<String> usernames, byte[] seshKey){
 		//reset the packet
 		this.clearAllFields();
 		
@@ -45,7 +45,7 @@ public class DiscoverPacket extends ClientServerSessionPacket {
 		this.crypto_data = Arrays.copyOf(encrypted_data, encrypted_data.length);
 	}
 	
-	public ArrayList<String> decryptServerDiscoverReponse(byte[] usernames, SecretKey seshKey){
+	public ArrayList<String> decryptServerDiscoverReponse(byte[] usernames, byte[] seshKey){
 		//
 		return this.discoveryList.decrypt(seshKey, usernames);
 	}
