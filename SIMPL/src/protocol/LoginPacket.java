@@ -100,7 +100,6 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 			//by feeding it the challenge and R1
 			//loop through all possible values of R2
 			for (byte i = Byte.MIN_VALUE; i <= Byte.MAX_VALUE; i++){
-				System.out.println(i);
 				for (byte j = Byte.MIN_VALUE; j <= Byte.MAX_VALUE; j++){
 					for (byte k = Byte.MIN_VALUE; k <= Byte.MAX_VALUE; k++){
 						//get the byte array form of the numbers
@@ -112,7 +111,7 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 						md.reset();
 						md.update(R_1);
 						md.update(B2);
-						System.out.println(i);
+						//System.out.println(i);
 						//make the hash, check if it matches the puzzle
 				        if (Arrays.equals(md.digest(), this.challengePayload.challengeHash))
 				        {
