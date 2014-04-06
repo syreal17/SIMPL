@@ -67,6 +67,8 @@ public abstract class Packet implements Serializable {
 		}
 	}
 	
+	//public boolean checkForFlags(EnumSet<>)
+	
 	/**
 	 * Simple wrapper to call the common serialization function
 	 * @return byte array representation of object

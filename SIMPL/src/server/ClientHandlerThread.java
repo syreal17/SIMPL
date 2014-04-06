@@ -58,7 +58,8 @@ public class ClientHandlerThread extends Thread {
 	}
 	
 	private void checkForNegotiations(){
-		
+		//TODO: check my wanted variable
+		//
 	}
 	
 	//ltj: One way of more robustly doing this is setting an ArrayList<EnumSet<Flag>> Expected so the Server can report
@@ -95,16 +96,21 @@ public class ClientHandlerThread extends Thread {
 	}
 	
 	private void handlePacket(Packet clientPacket){
-		if( clientPacket.flags.contains(Packet.Flag.Login) ){
+		if( clientPacket.flags.contains(Packet.Flag.Login) )
+		{
 			this.clientUsername = this.start_handle_login();
-		} else if( clientPacket.flags.contains(Packet.Flag.Discover) ){
+		} else if( clientPacket.flags.contains(Packet.Flag.Discover) )
+		{
 			this.start_handle_discover();
-		} else if( clientPacket.flags.contains(Packet.Flag.Negotiate) ){//vvv TODO: readd clientIP and clientUsername
+		} else if( clientPacket.flags.contains(Packet.Flag.Negotiate) )//vvv TODO: readd clientIP and clientUsername
+		{
 			this.start_handle_negotiation();
-		} else if( clientPacket.flags.contains(Packet.Flag.Logout) ){
+		} else if( clientPacket.flags.contains(Packet.Flag.Logout) )
+		{
 			this.start_handle_logout();
 			//break;
-		} else {
+		} else
+		{
 			System.err.println(Server.UNEXPECTED_CLIENT_PACKET_MSG);
 		}
 	}
@@ -112,9 +118,6 @@ public class ClientHandlerThread extends Thread {
 	//slide 5
 	/**
 	 * Handle login server-side
-	 * @param clientPacket the packet which initiated the login
-	 * @param clientSocket the associated socket
-	 * @param clientStream the stream connect to clientSocket
 	 * @return the username of the user who just logged in
 	 */
 	public String start_handle_login(){
