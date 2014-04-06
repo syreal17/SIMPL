@@ -3,7 +3,7 @@ import java.util.Arrays;
 
 public class Test {
 	public static void main(String[] Args){
-		Byte[] iByteArr = { 0x00, 0x00, 0x00 };
+		Byte[] iByteArr = { Byte.MIN_VALUE, Byte.MIN_VALUE, Byte.MIN_VALUE };
 		Byte[] maxByteArr = { Byte.MAX_VALUE, Byte.MAX_VALUE, Byte.MAX_VALUE };
 		
 		while(!Arrays.equals(iByteArr, maxByteArr)){

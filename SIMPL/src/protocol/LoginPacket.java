@@ -54,8 +54,6 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		RNG.nextBytes(R_1);
 		//generate PRN R2 using R_2_size bits
 		RNG.nextBytes(R_2);
-		for (int i = 0; i < 3; i++)
-			R_2[i] = -128;
 	}
 	
 	/**
