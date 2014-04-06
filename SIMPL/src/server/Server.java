@@ -39,7 +39,7 @@ public class Server {
 	//used for a new thread knowing which socket to use
 	private ClientHandler clientHandler;
 	//remember Threads, just because it seems like a good idea
-	private ArrayList<Thread> threads;
+	private ArrayList<ClientHandlerThread> threads;
 	//should the start_listener_loop continue? I've made a useless mutator to change this to false.
 	//Would need a separate thread to call the function. The main thread is spinning on listener loop
 	private boolean running;
@@ -53,7 +53,7 @@ public class Server {
 			this.load_users();
 			
 			this.clientHandler = new ClientHandler();
-			this.threads = new ArrayList<Thread>();
+			this.threads = new ArrayList<ClientHandlerThread>();
 			this.running = true;
 			
 			//call to either load the PrivateKey at privKPath or create it there
@@ -73,10 +73,10 @@ public class Server {
 				Socket clientSocket = this.listenerSocket.accept();
 				this.clientHandler.addEntry(new ClientHandlerEntry(clientSocket, false) );
 				//create thread
-				Thread thread = (new Thread( new ClientHandlerThread() ));
-				thread.start();
-				//remember it for good measure
-				this.threads.add(thread);
+				ClientHandlerThread cht = new ClientHandlerThread();
+				cht.start();
+				//remember thread
+				this.threads.add(cht);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -202,12 +202,10 @@ public class Server {
 						PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
 						this.serverPrivK = kf.generatePrivate(privateKeySpec);
 					}
-				} else if( privateKeyFile.canWrite() ){
+				} else if( privateKeyFile.canWrite() || privateKeyFile.createNewFile() ){
 					//if we can't read but we can write it; create a key and write it.
 					Keymake.writePrivateKey(privateKeyFile);
-				} else if( privateKeyFile.createNewFile() ){
-					//if file doesn't exist but is writable
-					Keymake.writePrivateKey(privateKeyFile);
+					this.serverPrivK = Keymake.getPrivateKey();
 				} else {
 					//else it's a bad path to use
 					this.serverPrivK = null;

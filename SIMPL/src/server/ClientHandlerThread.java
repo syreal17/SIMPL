@@ -7,13 +7,14 @@ import javax.crypto.SecretKey;
 
 import protocol.Packet;
 
-public class ClientHandlerThread implements Runnable {
+public class ClientHandlerThread extends Thread {
 
 	private Server server;
 	private Socket clientSocket;
 	private InputStream clientStream;
 	private String clientUsername;
 	private SecretKey sessionKey;
+	
 	@Override
 	public void run() {
 		try{
