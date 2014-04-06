@@ -62,4 +62,19 @@ public class Utils {
         ObjectInputStream o = new ObjectInputStream(b);
         return o.readObject();
     }
+	
+	/**
+	 * This is because Java sucks a salty
+	 * @param byteArr
+	 */
+	public static void incrementByteArray(Byte[] byteArr){
+		for( int i = 0; i < byteArr.length; i++){
+			if( byteArr[i] < Byte.MAX_VALUE ){
+				Byte oldByte = byteArr[i];
+				Byte newByte = (byte) (oldByte+1);
+				byteArr[i] = newByte;
+				return;
+			}
+		}
+	}
 }

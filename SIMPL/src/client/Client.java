@@ -187,12 +187,18 @@ public class Client {
 	}
 	
 	public void do_negotiate_A(){
+		//TODO: generate DH key pair here
+		//ref: http://docs.oracle.com/javase/7/docs/technotes/guides/security/crypto/CryptoSpec.html#KeyPairGenerator
+		
 		//get user input, who does client want to talk to
 		
 		//send first packet to server
 	}
 	
 	public void do_negotiate_B(){
+		//TODO: generate DH key pair here
+		//ref: http://docs.oracle.com/javase/7/docs/technotes/guides/security/crypto/CryptoSpec.html#KeyPairGenerator
+		
 		//if we want to talk to A, send packet
 	}
 	
