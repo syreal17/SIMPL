@@ -19,6 +19,7 @@ public class Constants {
 	public static final String FILE_TOO_LARGE_MSG = "File is too large";
 	public static final String NOT_A_FILE_MSG = "Path points to non-regular file (directory, device, etc.)";
 	public static final String FILE_UNREADABLE_UNWRITABLE_MSG = "File cannot be read or written!";
+	public static final String FILE_UNWRITABLE_MSG = "File cannot be written!";
 	public final static String USO_EXCPT_MSG = "We have not implemented that yet!";
 	public static final String INVALID_CHALLENGE_SIG = "Invalid Server signature on challenge!";
 	public static final String INVALID_ARG_NUM = "Invalid number of arguments!";

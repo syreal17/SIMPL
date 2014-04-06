@@ -6,9 +6,9 @@ import java.security.*;
 import java.security.spec.*;
 import java.util.*;
 
-import javax.crypto.SecretKey;
+import javax.crypto.*;
 
-import common.Keymake;
+import common.*;
 
 import protocol.*;
 
@@ -24,7 +24,6 @@ import protocol.*;
 
 /**
  * ltj: I've mostly just included functions names here. There's plenty of missing pieces I think
- * @author JaffeTaffy
  *
  */
 public class Server {
@@ -36,6 +35,7 @@ public class Server {
 	private PrivateKey serverPrivK;
 	//the username->pwHash map that the server retains TODO: include N(once) too?
 	private Map<String, byte[]> userDB;
+	private String userDBPath;
 	//used for a new thread knowing which socket to use
 	private ClientHandler clientHandler;
 	//remember Threads, just because it seems like a good idea
@@ -47,8 +47,11 @@ public class Server {
 	public Server(int port, String userDBPath, String privKPath){
 		try {
 			this.listenerSocket = new ServerSocket(port);
+			
 			this.userDB = new HashMap<String, byte[]>();
-			this.load_users(userDBPath);
+			this.userDBPath = userDBPath;
+			this.load_users(this.userDBPath);
+			
 			this.clientHandler = new ClientHandler();
 			this.threads = new ArrayList<Thread>();
 			this.running = true;
@@ -250,15 +253,24 @@ public class Server {
 	/**
 	 * Save all the in-memory users to disk to be able to load next start-up
 	 * @param filepath points to the location on disk to save all user records
-	 * @return
 	 */
-	private void save_users(String filepath){
-		if( common.Constants.CRYPTO_OFF ){
+	private void save_users() throws SimplException {
+		try{
+			File userDBFile = new File(this.userDBPath);
+			if( userDBFile.canWrite() ){
+				ArrayList<UserDBEntry> serializableDB = new ArrayList<UserDBEntry>();
+				byte[] dbBytes = common.Utils.serialize(serializableDB);
+				FileOutputStream fos = new FileOutputStream(userDBFile);
+				fos.write(dbBytes);
+				fos.close();
+			} else {
+				throw new SimplException(common.Constants.FILE_UNWRITABLE_MSG);
+			}
+		} catch (IOException e){
+			System.err.println(e.getMessage());
+			e.printStackTrace();
 			return;
 		}
-		//TODO: implement
-		//TODO: save this.userDB to disk
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
 	/**
@@ -292,6 +304,14 @@ public class Server {
 	 * possibility of this method getting called.
 	 */
 	public void stop(){
-		this.running = false;
+		try{
+			//TODO: good idea to save users here, but may want to do it somewhere that actually gets called
+			this.save_users();
+			this.running = false;
+		} catch (SimplException e){
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		}
 	}
 }
