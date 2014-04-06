@@ -23,7 +23,7 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	//Server side, this is the challenge we generate and send
 	//Client side, this is where we store the challenge prior to solving it
 	//ltj: possibly redundant to this.challengePayload.challengeHash; not an issue to be concerned about, just a note
-	public byte[] challenge;
+	public byte[] signature;
 	
 	// Cryptographically secure PRNG
 	private SecureRandom RNG;
@@ -38,7 +38,7 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 			this.R_2 = new byte[R_2_size];
 			this.authPayload = new AuthenticationPayload( null, null, null );
 			RNG = SecureRandom.getInstance(common.Constants.RNG_ALOGRITHM);
-			this.md = MessageDigest.getInstance(Constants.HASH_ALGORITHM);
+			this.md = MessageDigest.getInstance(Constants.CHALLENGE_HASH_ALGORITHM);
 		} catch (NoSuchAlgorithmException e){
 			e.printStackTrace();
 		}
@@ -54,6 +54,8 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		RNG.nextBytes(R_1);
 		//generate PRN R2 using R_2_size bits
 		RNG.nextBytes(R_2);
+		for (int i = 0; i < 3; i++)
+			R_2[i] = -128;
 	}
 	
 	/**
@@ -73,13 +75,10 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		}
 		else
 		{
-			byte[] puzzle = new byte[R_1_size + R_2_size];
-			//concatenate the byte arrays
-			System.arraycopy(R_1,0,puzzle,0,R_1.length);
-			System.arraycopy(R_2,0,puzzle,R_1.length,R_2.length);
-			//update message digest with byte array
-			md.update(puzzle);
-			//make the hash and return it
+			//update message digest with R_1 and R_2
+			md.reset();
+			md.update(R_1);
+			md.update(R_2);
 	        //challenge = md.digest(); //ltj:seeing if using ChallengePayload is easiest way for me vvv
 			this.challengePayload.challengeHash = md.digest();
 		}
@@ -101,21 +100,28 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		{
 			//use the hash class to solve the challenge 
 			//by feeding it the challenge and R1
-			byte[] attempt = new byte[R_1_size + R_2_size];
 			//loop through all possible values of R2
-			for (int R2 = 0; R2 < (1 << 24); R2++){
-				//get the byte array form of the numbers
-				byte[] B2 = ByteBuffer.allocate(3).putInt(R2).array();
-				//concatenate the byte arrays
-				System.arraycopy(R_1,0,attempt,0,R_1.length);
-				System.arraycopy(B2,0,attempt,R_1.length,B2.length);
-				//update message digest with byte array
-				md.update(attempt);
-				//make the hash, check if it matches the puzzle
-		        if (Arrays.equals(md.digest(), challenge))
-		        {
-		        	R_2 = B2;
-		        }
+			for (int i = -128; i < 128; i++){
+				for (int j = -128; j < 128; j++){
+					for (int k = -128; k < 128; k++){
+						//get the byte array form of the numbers
+						byte[] B2 = new byte[3];
+						B2[0] = (byte)i;
+						B2[1] = (byte)j;
+						B2[2] = (byte)k;
+						//update message digest with byte array
+						md.reset();
+						md.update(R_1);
+						md.update(B2);
+						//make the hash, check if it matches the puzzle
+				        if (Arrays.equals(md.digest(), this.challengePayload.challengeHash))
+				        {
+				        	R_2 = B2;
+				    		for (int l = 0; l < 3; l++)
+				    			System.out.println(R_2[l]);
+				        }
+					}
+				}
 			}
 		}
 	}
@@ -146,17 +152,23 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		//generate the challenge hash
 		this.generateChallengeHash();
 		
-		//calculate main payload: sign the ChallengePayload
-		byte[] signed_data = this.challengePayload.sign(privk);
-		
 		//reset the packet (we don't want to send object with all filled out fields, just the ChallengePayload
-		this.clearAllFields();
+		this.challengePayload.R_1 = null;
+		
+		this.R_2 = null;
+		
+		this.authPayload.username = null;
+		this.authPayload.pwHash = null;
+		this.authPayload.N = null;
+		
+		this.RNG = null;
+		this.md = null;
 		
 		//set the flags appropriately
 		this.setServerLoginChallengeFlags();
 		
-		//copy the signed data into a packet field
-		this.crypto_data = Arrays.copyOf(signed_data, signed_data.length);
+		//calculate the signature
+		this.signature = this.challengePayload.sign(privk);
 		
 		//return the value for R_2 that the server should remember
 		return R_2;
@@ -179,7 +191,6 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 			System.out.println(client.CmdLine.INVALID_CHALLENGE_SIG);
 			return;
 		}*/
-		
 		//find R_2, given a ChallengePayload
 		this.findR_2();
 		
@@ -246,7 +257,6 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		this.authPayload.pwHash = null;
 		this.authPayload.N = null;
 		
-		this.challenge = null;
 		this.RNG = null;
 		this.md = null;
 	}

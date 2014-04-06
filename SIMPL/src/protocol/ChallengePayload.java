@@ -25,6 +25,7 @@ public class ChallengePayload implements Serializable {
 	public byte[] getSerialization() throws IOException{
 		return common.Utils.serialize(this);
 	}
+
 	
 	/**
 	 * Sign the challenge payload with the Server private key. Used by Server only
