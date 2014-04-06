@@ -1,7 +1,5 @@
 package protocol;
 
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
