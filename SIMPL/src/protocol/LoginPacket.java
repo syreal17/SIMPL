@@ -208,11 +208,11 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		//build authPayload so it can be encrypted
 		this.authPayload = new AuthenticationPayload(username, pwHash, N);
 		byte[] sessionKey = this.authPayload.keyMake();
-		common.Utils.printByteArr(this.authPayload.getSerialization());
+		//common.Utils.printByteArr(this.authPayload.getSerialization());
 		System.out.println();
 		//encrypt it
 		byte[] encrypted_data = this.authPayload.encrypt(pubk);
-		common.Utils.printByteArr(encrypted_data);
+		//common.Utils.printByteArr(encrypted_data);
 		System.out.println();
 		//reset the packet (we don't want to send object with all filled out fields)
 		this.clearAllFields();
@@ -279,34 +279,54 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * Set flags for the initial Login message that the Client sends
 	 */
 	private void setClientLoginRequestFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Syncronization);
+		this.flags = this.getClientLoginRequestFlags();
+	}
+	
+	public EnumSet<Flag> getClientLoginRequestFlags(){
+		return EnumSet.of(Packet.Flag.Login, Packet.Flag.Syncronization);
 	}
 	
 	/**
 	 * Set flags for the Server's challenge request to the Client
 	 */
 	private void setServerLoginChallengeFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Syncronization, Packet.Flag.Acknowledgement);
+		this.flags = this.getServerLoginChallengeFlags();
+	}
+	
+	public EnumSet<Flag> getServerLoginChallengeFlags(){
+		return EnumSet.of(Packet.Flag.Login, Packet.Flag.Syncronization, Packet.Flag.Acknowledgement);
 	}
 	
 	/**
 	 * Set flags for the Client's challenge response to the Server
 	 */
 	private void setClientLoginChallengeResponseFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Acknowledgement);
+		this.flags = this.getClientLoginChallengeResponseFlags();
+	}
+	
+	public EnumSet<Flag> getClientLoginChallengeResponseFlags(){
+		return EnumSet.of(Packet.Flag.Login, Packet.Flag.Acknowledgement);
 	}
 	
 	/**
 	 * Set flags for Server to accept Client login
 	 */
 	private void setServerLoginOkFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Ok);
+		this.flags = this.getServerLoginOkFlags();
+	}
+	
+	public EnumSet<Flag> getServerLoginOkFlags(){
+		return EnumSet.of(Packet.Flag.Login, Packet.Flag.Ok);
 	}
 	
 	/**
 	 * Set flags for Server to deny Client login
 	 */
 	private void setServerLoginDenyFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Login, Packet.Flag.Deny);
+		this.flags = this.getServerLoginDenyFlags();
+	}
+	
+	public EnumSet<Flag> getServerLoginDenyFlags(){
+		return EnumSet.of(Packet.Flag.Login, Packet.Flag.Deny);
 	}
 }

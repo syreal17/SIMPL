@@ -53,6 +53,9 @@ public class ClientHandlerThread extends Thread {
 		
 	}
 	
+	//ltj: One way of more robustly doing this is setting an ArrayList<EnumSet<Flag>> Expected so the Server can report
+	//		unexpected packets from the Client. That would be fairly hefty, so we will just be assuming that the Client
+	//		sends the packets in the right order.
 	private void enterClientHandleLoop(){
 		Object o;
 		while( true ){
@@ -72,9 +75,8 @@ public class ClientHandlerThread extends Thread {
 					this.clientUsername = this.server.start_handle_login(clientPacket, clientSocket, this.clientStream);
 				} else if( clientPacket.flags.contains(Packet.Flag.Discover) ){
 					this.server.start_handle_discover(clientSocket, clientPacket, sessionKey);
-				} else if( clientPacket.flags.contains(Packet.Flag.Negotiate) ){
-					this.server.start_handle_negotiation(clientSocket, clientPacket, sessionKey, 
-							clientIP, clientUsername);
+				} else if( clientPacket.flags.contains(Packet.Flag.Negotiate) ){//vvv TODO: readd clientIP and clientUsername
+					this.server.start_handle_negotiation(clientSocket, clientPacket, sessionKey);
 				} else if( clientPacket.flags.contains(Packet.Flag.Logout) ){
 					this.server.start_handle_logout();
 					break;

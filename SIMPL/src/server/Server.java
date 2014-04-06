@@ -125,11 +125,11 @@ public class Server {
 			if( !common.Constants.CRYPTO_OFF ){
 				//TODO: Jaffe AuthenticationPayload decrypt, etc.
 				//TODO: then deserialize
-				common.Utils.printByteArr(authenticationPayloadBytes);
+				//common.Utils.printByteArr(authenticationPayloadBytes);
 				System.out.println();
 				authenticationPayloadBytes = challengeResponse.authPayload.decrypt(serverPrivK, authenticationPayloadBytes);	
 			}
-			common.Utils.printByteArr(authenticationPayloadBytes);
+			//common.Utils.printByteArr(authenticationPayloadBytes);
 			System.out.println();
 			//deserialize to AuthenticationPayload
 			o = common.Utils.deserialize(authenticationPayloadBytes);
