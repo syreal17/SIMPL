@@ -279,10 +279,10 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * Set flags for the initial Login message that the Client sends
 	 */
 	private void setClientLoginRequestFlags(){
-		this.flags = this.getClientLoginRequestFlags();
+		this.flags = LoginPacket.getClientLoginRequestFlags();
 	}
 	
-	public EnumSet<Flag> getClientLoginRequestFlags(){
+	public static EnumSet<Flag> getClientLoginRequestFlags(){
 		return EnumSet.of(Packet.Flag.Login, Packet.Flag.Syncronization);
 	}
 	
@@ -290,10 +290,10 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * Set flags for the Server's challenge request to the Client
 	 */
 	private void setServerLoginChallengeFlags(){
-		this.flags = this.getServerLoginChallengeFlags();
+		this.flags = LoginPacket.getServerLoginChallengeFlags();
 	}
 	
-	public EnumSet<Flag> getServerLoginChallengeFlags(){
+	public static EnumSet<Flag> getServerLoginChallengeFlags(){
 		return EnumSet.of(Packet.Flag.Login, Packet.Flag.Syncronization, Packet.Flag.Acknowledgement);
 	}
 	
@@ -301,10 +301,10 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * Set flags for the Client's challenge response to the Server
 	 */
 	private void setClientLoginChallengeResponseFlags(){
-		this.flags = this.getClientLoginChallengeResponseFlags();
+		this.flags = LoginPacket.getClientLoginChallengeResponseFlags();
 	}
 	
-	public EnumSet<Flag> getClientLoginChallengeResponseFlags(){
+	public static EnumSet<Flag> getClientLoginChallengeResponseFlags(){
 		return EnumSet.of(Packet.Flag.Login, Packet.Flag.Acknowledgement);
 	}
 	
@@ -312,10 +312,10 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * Set flags for Server to accept Client login
 	 */
 	private void setServerLoginOkFlags(){
-		this.flags = this.getServerLoginOkFlags();
+		this.flags = LoginPacket.getServerLoginOkFlags();
 	}
 	
-	public EnumSet<Flag> getServerLoginOkFlags(){
+	public static EnumSet<Flag> getServerLoginOkFlags(){
 		return EnumSet.of(Packet.Flag.Login, Packet.Flag.Ok);
 	}
 	
@@ -323,10 +323,10 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	 * Set flags for Server to deny Client login
 	 */
 	private void setServerLoginDenyFlags(){
-		this.flags = this.getServerLoginDenyFlags();
+		this.flags = LoginPacket.getServerLoginDenyFlags();
 	}
 	
-	public EnumSet<Flag> getServerLoginDenyFlags(){
+	public static EnumSet<Flag> getServerLoginDenyFlags(){
 		return EnumSet.of(Packet.Flag.Login, Packet.Flag.Deny);
 	}
 }
