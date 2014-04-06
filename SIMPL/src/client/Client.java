@@ -44,6 +44,7 @@ public class Client {
 	private static String LOGIN_CATCHEMALL = "If you are seeing this, I am wrong: Gotta catch-em-all!";
 	
 	private Socket simplSocket; 		//socket used for communication to server
+	public Socket buddySocket;
 	private InputStream simplStream;
 	private ArrayList<String> clients; 	//contains result of discover
 	private byte[] N; 					//the nonce that we've used and sent to the Server

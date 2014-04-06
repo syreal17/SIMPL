@@ -36,6 +36,11 @@ public class CmdLine {
 											"/quit\t\t\t: Logout from SIMPL Server and close Client\n" +
 											"/help\t\t\t: Print this dialog\n";
 	
+	public static final String COMMAND_TOKEN_WHO = "who";
+	public static final String COMMAND_TOKEN_CHAT= "chat";
+	public static final String COMMAND_TOKEN_LEAVE = "leave";
+	public static final String COMMAND_TOKEN_QUIT = "quit";
+	public static final String COMMAND_TOKEN_HELP = "help";
 	private static Client client;	//the abstraction that this CmdLine interacts with. Should only be created once.
 	
 	/**
@@ -98,7 +103,7 @@ public class CmdLine {
 	/**
 	 * Fetches data structure from Client and prints in a readable way
 	 */
-	private static void who_command(){
+	public static void who_command(){
 		
 		if( CmdLine.isClientValid() ){
 			if( CmdLine.client.isClientsValid() ){
@@ -116,9 +121,33 @@ public class CmdLine {
 	}
 	
 	/**
+	 * Starts a chat with another SIMPL client
+	 */
+	public static void chat_command(){
+		System.out.println("Need to parse following tokens...");
+		return;
+	}
+	
+	/**
+	 * Leaves the current SIMPL chat, doesn't log the client out
+	 */
+	public static void leave_command(){
+		System.out.println("Leaving chat with buddy...");
+		return;
+	}
+	
+	/**
+	 * Quits SIMPL, logs the client out
+	 */
+	public static void quit_command(){
+		System.out.println("Quitting SIMPL, goodbye!");
+		return;
+	}
+	
+	/**
 	 * Prints SIMPL Client recognized commands to the terminal
 	 */
-	private static void help_command(){
+	public static void help_command(){
 		System.out.println(CmdLine.HELP_MSG);
 		return;
 	}
@@ -131,7 +160,8 @@ public class CmdLine {
 		//TODO: implement
 		//TODO: parse out first word of user input string, 
 		//		if a command, do command, if not, try to send as message
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		new UserInputThread(client.buddySocket);
+		new ClientListenerThread(client.buddySocket);
 	}
 	
 	public static void main(String[] Args){
