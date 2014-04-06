@@ -169,6 +169,7 @@ public class ClientHandlerThread extends Thread {
 				LoginPacket okResponse = new LoginPacket();
 				okResponse.readyServerLoginOk();
 				okResponse.go(clientSocket);
+				sessionKey = ap.keyMake();
 				return ap.username;
 			} else {
 				LoginPacket denyResponse = new LoginPacket();
