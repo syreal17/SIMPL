@@ -65,18 +65,18 @@ public class ClientHandlerThread extends Thread {
 				//make Packet out of bytes
 				o = common.Utils.deserialize(clientPacketBytes);
 				Packet clientPacket = (Packet) o;
-				//handle the type of packet
+				//handle the initial packet for each client-server exchange (login, discover, negotiate, logout)
 				if( clientPacket.flags.contains(Packet.Flag.Login) ){
-					this.clientUsername = this.server.handle_login(clientPacket, clientSocket, this.clientStream);
+					this.clientUsername = this.server.start_handle_login(clientPacket, clientSocket, this.clientStream);
 				} else if( clientPacket.flags.contains(Packet.Flag.Discover) ){
-					this.server.handle_discover(clientSocket, clientPacket, sessionKey);
+					this.server.start_handle_discover(clientSocket, clientPacket, sessionKey);
 				} else if( clientPacket.flags.contains(Packet.Flag.Negotiate) ){
-					this.server.handle_chat_negotiation();
+					this.server.start_handle_negotiation(clientSocket, clientPacket, sessionKey);
 				} else if( clientPacket.flags.contains(Packet.Flag.Logout) ){
-					this.server.handle_logout();
+					this.server.start_handle_logout();
 					break;
 				} else {
-					System.out.println(Server.UNEXPECTED_CLIENT_PACKET_MSG);
+					System.err.println(Server.UNEXPECTED_CLIENT_PACKET_MSG);
 				}
 			} catch (SocketTimeoutException e){
 				//do nothing if the socket times out. Just return to the run function body

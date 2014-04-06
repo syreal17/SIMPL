@@ -91,7 +91,7 @@ public class Server {
 	 * @param clientStream the stream connect to clientSocket
 	 * @return the username of the user who just logged in
 	 */
-	public String handle_login(Packet clientPacket, Socket clientSocket, InputStream clientStream){
+	public String start_handle_login(Packet clientPacket, Socket clientSocket, InputStream clientStream){
 		Object o;
 		
 		byte[] R_2 = new byte[protocol.LoginPacket.R_2_size];
@@ -156,7 +156,7 @@ public class Server {
 	}
 	
 	//slide 6
-	public void handle_discover(Socket clientSocket,Packet clientPacket, SecretKey sessionKey){
+	public void start_handle_discover(Socket clientSocket,Packet clientPacket, SecretKey sessionKey){
 		//Build the initial packet and send it
 		DiscoverPacket discoverResponse = new DiscoverPacket();
 		System.out.println("Server: handle_discover1");
@@ -168,13 +168,13 @@ public class Server {
 	}
 	
 	//slide 7
-	public void handle_chat_negotiation(){
+	public void start_handle_negotiation(Socket clientSocket, Packet clientPacket, SecretKey sessionKey){
 		//TODO: implement
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
 	//slide 9
-	public void handle_logout(){
+	public void start_handle_logout(){
 		//TODO: implement
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
