@@ -156,7 +156,7 @@ public class Server {
 	}
 	
 	//slide 6
-	public void start_handle_discover(Socket clientSocket,Packet clientPacket, SecretKey sessionKey){
+	public void start_handle_discover(Socket clientSocket,Packet clientPacket, byte[] sessionKey){
 		//Build the initial packet and send it
 		DiscoverPacket discoverResponse = new DiscoverPacket();
 		System.out.println("Server: handle_discover1");
@@ -168,7 +168,7 @@ public class Server {
 	}
 	
 	//slide 7
-	public void start_handle_negotiation(Socket clientSocket, Packet clientPacket, SecretKey sessionKey){
+	public void start_handle_negotiation(Socket clientSocket, Packet clientPacket, byte[] sessionKey){
 		//TODO: implement
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}

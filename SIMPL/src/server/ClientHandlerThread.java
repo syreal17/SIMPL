@@ -13,7 +13,7 @@ public class ClientHandlerThread extends Thread {
 	private Socket clientSocket;
 	private InputStream clientStream;
 	private String clientUsername;
-	private SecretKey sessionKey;
+	private byte[] sessionKey;
 
 	//these fields the Server will manipulate when a different ClientHandlerThread wants to talk to this one's Client
 	public boolean wanted;
