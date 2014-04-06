@@ -207,10 +207,12 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		
 		//build authPayload so it can be encrypted
 		this.authPayload = new AuthenticationPayload(username, pwHash, N);
-		
+		common.Utils.printByteArr(this.authPayload.getSerialization());
+		System.out.println();
 		//encrypt it
 		byte[] encrypted_data = this.authPayload.encrypt(pubk);
-		
+		common.Utils.printByteArr(encrypted_data);
+		System.out.println();
 		//reset the packet (we don't want to send object with all filled out fields)
 		this.clearAllFields();
 		
@@ -218,7 +220,7 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		this.setClientLoginChallengeResponseFlags();
 		
 		//stuff encrypted data into crypto data packet field
-		this.crypto_data = Arrays.copyOf(encrypted_data, encrypted_data.length);
+		this.crypto_data = encrypted_data;
 		
 		//set R_2 to what the Client found it to be
 		this.R_2 = R_2;
