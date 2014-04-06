@@ -30,10 +30,10 @@ public class Keymake
 		}
 	}
     
-    public static void writePublicKey(String path){
+    public static void writePublicKey(File publicKeyFile){
     	try{
     		Keymake.ensureGeneration();
-			FileOutputStream fos = new FileOutputStream(path);
+			FileOutputStream fos = new FileOutputStream(publicKeyFile);
 			byte[] publicKeyBytes = Keymake.publicKey.getEncoded();
 			fos.write(publicKeyBytes);
 			fos.close();
@@ -48,10 +48,10 @@ public class Keymake
     	}
     }
     
-    public static void writePrivateKey(String path){
+    public static void writePrivateKey(File privateKeyFile){
     	try{
     		Keymake.ensureGeneration();
-			FileOutputStream fos = new FileOutputStream(path);
+			FileOutputStream fos = new FileOutputStream(privateKeyFile);
 			byte[] privateKeyBytes = Keymake.privateKey.getEncoded();
 			fos.write(privateKeyBytes);
 			fos.close();

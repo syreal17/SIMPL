@@ -179,7 +179,7 @@ public class Server {
 	private void get_private_key(String filepath) throws IOException, UnsupportedOperationException {
 		try{
 			File privateKeyFile = new File(filepath);
-			if( privateKeyFile.isFile() ){
+			if( !privateKeyFile.isDirectory() ){
 				if( privateKeyFile.canRead() ){
 					long lKeyFileLength = privateKeyFile.length();
 					if( lKeyFileLength > Integer.MAX_VALUE ){
@@ -198,10 +198,13 @@ public class Server {
 						this.serverPrivK = kf.generatePrivate(privateKeySpec);
 					}
 				} else if( privateKeyFile.canWrite() ){
-					//if we can't read (presumably because it doesn't exist, but we can write,
-					//create a key and write it.
-					Keymake.writePrivateKey(filepath);
+					//if we can't read but we can write it; create a key and write it.
+					Keymake.writePrivateKey(privateKeyFile);
+				} else if( privateKeyFile.createNewFile() ){
+					//if file doesn't exist but is writable
+					Keymake.writePrivateKey(privateKeyFile);
 				} else {
+					//else it's a bad path to use
 					this.serverPrivK = null;
 					throw new IOException(common.Constants.FILE_UNREADABLE_UNWRITABLE_MSG);
 				}

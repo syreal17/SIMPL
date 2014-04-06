@@ -31,8 +31,6 @@ import protocol.*;
  * correct types of packets, prints diagnostic messages if they are the wrong
  * types of packets, and constructs correct response packets.
  * (Most computation is pushed to the packet classes)
- * Note: Singleton design pattern might be appropriate, but trying implementation
- * 			without quirky software engineering tricks first.
  * @author syreal
  *
  */
