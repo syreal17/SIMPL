@@ -29,6 +29,9 @@ public class Constants {
 	//CONSTANTS OF FAITH
 	public final static int MAX_EXPECTED_PACKET_SIZE = 65536;
 	
+	//TESTING
+	public final static boolean TESTING = true;
+	
 	//CRYPTO
 	public final static boolean CRYPTO_OFF = true;
 	public final static String RNG_ALOGRITHM = "SHA1PRNG";

@@ -50,7 +50,7 @@ public class Server {
 			
 			this.userDB = new HashMap<String, byte[]>();
 			this.userDBPath = userDBPath;
-			this.load_users(this.userDBPath);
+			this.load_users();
 			
 			this.clientHandler = new ClientHandler();
 			this.threads = new ArrayList<Thread>();
@@ -237,17 +237,23 @@ public class Server {
 	 * @param filepath points to the CSV file that contains all user records
 	 * @return success or not
 	 */
-	private void load_users(String filepath){
-		String entry1 = "goliath";
-		String entry2 = "agamemnon";
-		String entry3 = "charbydis";
-		String entry4 = "enchilada";
-		String entry5 = "kimjongun";
-		userDB.put(entry1, entry1.getBytes());
-		userDB.put(entry2, entry2.getBytes());
-		userDB.put(entry3, entry3.getBytes());
-		userDB.put(entry4, entry4.getBytes());
-		userDB.put(entry5, entry5.getBytes());		
+	private void load_users(){
+		if( common.Constants.TESTING ){
+			String entry1 = "goliath";
+			String entry2 = "agamemnon";
+			String entry3 = "charbydis";
+			String entry4 = "enchilada";
+			String entry5 = "kimjongun";
+			userDB.put(entry1, entry1.getBytes());
+			userDB.put(entry2, entry2.getBytes());
+			userDB.put(entry3, entry3.getBytes());
+			userDB.put(entry4, entry4.getBytes());
+			userDB.put(entry5, entry5.getBytes());
+		} else {
+			//TODO: implement
+			//punting on this right now because it's not critical
+			throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		}
 	}
 	
 	/**
