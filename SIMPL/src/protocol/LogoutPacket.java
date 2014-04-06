@@ -44,14 +44,14 @@ public class LogoutPacket extends ClientServerSessionPacket {
 	 * Client logout FIN flag set
 	 */
 	private void setClientLogoutFINFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Logout, Packet.Flag.Syncronization);
+		this.flags = EnumSet.of(Packet.Flag.Logout, Packet.Flag.Finished);
 	}
 	
 	/**
 	 * Server logout FIN/ACK flag set
 	 */
 	private void setServerLogoutFINACKFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Logout, Packet.Flag.Syncronization, Packet.Flag.Acknowledgement);
+		this.flags = EnumSet.of(Packet.Flag.Logout, Packet.Flag.Finished, Packet.Flag.Acknowledgement);
 	}
 	
 	/**
