@@ -86,20 +86,23 @@ public class Client {
 			System.arraycopy(recv, 0, serverChallengeBytes, 0, count);
 			//deserialize and cast to Packet
 			o = common.Utils.deserialize(serverChallengeBytes);
-			Packet serverChallenge = (Packet) o;
+			LoginPacket serverChallenge = (LoginPacket) o;
 			//get all the challengePayloadBytes
-			byte[] challengePayloadBytes = serverChallenge.crypto_data;
-			ChallengePayload cp;
+			byte[] signature = serverChallenge.signature;
+			ChallengePayload cp = serverChallenge.challengePayload;
+			
 			if( common.Constants.CRYPTO_OFF ){
-				//if there is no crypto, then we can deal simply with the challengePayloadBytes
-				o = common.Utils.deserialize(challengePayloadBytes);
-				cp = (ChallengePayload) o;
+
 			} else {
-				//TODO: grab challengePayloadBytes sans signature bytes
-				//TODO: construct ChallengePayload from deserialization
-				//TODO: pass in signature bytes to ChallengePayload verify
-				//----------------------
-				throw new UnsupportedOperationException();
+				
+				if (cp.verify(this.serverPubK, signature))
+				{
+					System.out.println("Signature success!");
+				}
+				else
+				{
+					System.out.println("Signature failure...");
+				}
 			}
 			
 			//Start constructing the response packet.
@@ -109,7 +112,7 @@ public class Client {
 			String username = "syreal";
 			String password = "password";
 			//Hashing the password
-			MessageDigest md = MessageDigest.getInstance(common.Constants.HASH_ALGORITHM);
+			MessageDigest md = MessageDigest.getInstance(common.Constants.PASSWORD_HASH_ALGORITHM);
 			md.update(password.getBytes());
 			byte[] pwHash = md.digest();
 			//generating the nonce

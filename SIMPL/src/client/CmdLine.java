@@ -4,7 +4,15 @@
 
 package client;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+
+import common.Keymake;
 
 /**
  * @author syreal
@@ -51,9 +59,40 @@ public class CmdLine {
 		if( common.Constants.CRYPTO_OFF ){
 			return null;
 		} else {
-			//TODO: implement
-			throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+			try{
+				File publicKeyFile = new File(filename);
+				if( !publicKeyFile.isDirectory() ){
+					if( publicKeyFile.canRead() ){
+						long lKeyFileLength = publicKeyFile.length();
+						if( lKeyFileLength > Integer.MAX_VALUE ){
+							throw new UnsupportedOperationException(common.Constants.FILE_TOO_LARGE_MSG);
+						} else {
+							//read key file bytes from file
+							int iKeyFileLength = (int) lKeyFileLength;
+							byte[] publicKeyBytes = new byte[iKeyFileLength];
+							FileInputStream fis = new FileInputStream(publicKeyFile);
+							fis.read(publicKeyBytes);
+							fis.close();
+							
+							//convert to PrivateKey
+							KeyFactory kf = KeyFactory.getInstance(common.Constants.ASYMMETRIC_CRYPTO_MODE);
+							X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyBytes);
+							return kf.generatePublic(publicKeySpec);
+						}
+					}
+				} 
+			} catch (NoSuchAlgorithmException e){
+				e.printStackTrace();
+				return null;
+			} catch (InvalidKeySpecException e){
+				e.printStackTrace();
+				return null;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
+		return null;
 	}
 	
 	/**
