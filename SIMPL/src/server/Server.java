@@ -145,29 +145,17 @@ public class Server {
 	}
 	
 	//slide 6
-	public void handle_discover(Socket clientSocket,InputStream clientStream, SecretKey sessionKey){
-		try{
-			Object o;
-			
-			//Build the initial packet and send it
-			DiscoverPacket discoverRequest = new DiscoverPacket();
-			System.out.println("Server: handle_discover1");
-			//TODO: check flags? or just rely on FSM?
-			//Get challenge packet
-			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
-			int count = clientStream.read(recv);
-			//truncating the unused part of the recv buffer
-			byte[] serverDiscoverBytes = new byte[count];
-			System.arraycopy(recv, 0, serverDiscoverBytes, 0, count);
-			//prepare the username list
-			discoverRequest.readyServerDiscoverResponse(userDB.keySet(), sessionKey);
-			//send the usernames to the client
-			discoverRequest.go(clientSocket);
-			System.out.println("Server: handle_discover2");
-			
-			} catch (IOException e){
-				e.printStackTrace();
-			}
+	public void handle_discover(Socket clientSocket,Packet clientPacket, SecretKey sessionKey){
+		Object o;
+		
+		//Build the initial packet and send it
+		DiscoverPacket discoverResponse = new DiscoverPacket();
+		System.out.println("Server: handle_discover1");
+		discoverResponse.readyServerDiscoverResponse(userDB.keySet(), sessionKey);
+		System.out.println("Server: handle_discover2");
+		//send the usernames to the client
+		discoverResponse.go(clientSocket);
+		System.out.println("Server: handle_discover3");
 	}
 	
 	//slide 7

@@ -18,9 +18,9 @@ import common.Constants;
 public class DiscoverPayload implements Serializable {
 	
 	private static final long serialVersionUID = 102688147909876831L;
-	Set<String> usernames;
+	ArrayList<String> usernames;
 	
-	public DiscoverPayload(Set<String> usernames){
+	public DiscoverPayload(ArrayList<String> usernames){
 		this.usernames = usernames;
 	}
 	
@@ -83,10 +83,11 @@ public class DiscoverPayload implements Serializable {
 		try{
 			if (Constants.CRYPTO_OFF)
 			{
-				ArrayList<String> strings = new ArrayList<String>();
-				//populate the array list
-				for( String s : usernames ) strings.add(s);
-				return strings;
+				Object o = common.Utils.deserialize(encryptedData);
+				//cast the object as a DiscoverPayload
+				DiscoverPayload list = (DiscoverPayload) o;
+				//create an array list for the client
+				return list.usernames;
 			}
 			else
 			{
@@ -95,16 +96,13 @@ public class DiscoverPayload implements Serializable {
 				//init signature with private key
 				cipher.init(Cipher.DECRYPT_MODE, seshKey);
 				//write encrypted bytes to encryptedData since it was passed by reference
-				byte[] plaintext = cipher.doFinal(encryptedData);
+				byte[] plaintext =  cipher.doFinal(encryptedData);
 				//deserialize the plaintext into an object
 				Object o = common.Utils.deserialize(plaintext);
 				//cast the object as a DiscoverPayload
 				DiscoverPayload list = (DiscoverPayload) o;
 				//create an array list for the client
-				ArrayList<String> strings = new ArrayList<String>();
-				//populate the array list
-				for( String s : list.usernames ) strings.add(s);
-				return strings;
+				return list.usernames;
 			}
 		} catch (NoSuchAlgorithmException e){
 			e.printStackTrace();

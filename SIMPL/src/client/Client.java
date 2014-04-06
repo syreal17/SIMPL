@@ -164,6 +164,7 @@ public class Client {
 		DiscoverPacket discoverRequest = new DiscoverPacket();
 		discoverRequest.readyClientDiscoverRequest();
 		discoverRequest.go(this.simplSocket);
+
 		System.out.println("Client: do_discover1");
 		//TODO: check flags? or just rely on FSM?
 		//Get challenge packet
@@ -172,13 +173,29 @@ public class Client {
 		//truncating the unused part of the recv buffer
 		byte[] serverDiscoverBytes = new byte[count];
 		System.arraycopy(recv, 0, serverDiscoverBytes, 0, count);
+		o = common.Utils.deserialize(serverDiscoverBytes);
+		Packet serverResponse = (Packet) o;
+		byte[] usernames = serverResponse.crypto_data;
 		//get array list out of packet
-		clients = discoverRequest.decryptServerDiscoverReponse(serverDiscoverBytes, sessionKey);
+		clients = discoverRequest.decryptServerDiscoverReponse(usernames, sessionKey);
 		System.out.println("Client: do_discover2");
 		
 		} catch (IOException e){
 			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+	}
+	
+	public void do_negotiate_A(){
+		//get user input, who does client want to talk to
+		
+		//send first packet to server
+	}
+	
+	public void do_negotiate_B(){
+		//if we want to talk to A, send packet
 	}
 	
 	/**

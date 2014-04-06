@@ -3,6 +3,7 @@ package protocol;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -28,7 +29,7 @@ public class DiscoverPacket extends ClientServerSessionPacket {
 		this.setClientDiscoverRequestFlags();
 	}
 
-	public byte[] readyServerDiscoverResponse(Set<String> usernames, SecretKey seshKey){
+	public void readyServerDiscoverResponse(Set<String> usernames, SecretKey seshKey){
 		//reset the packet
 		this.clearAllFields();
 		
@@ -36,10 +37,14 @@ public class DiscoverPacket extends ClientServerSessionPacket {
 		this.setServerDiscoverResponseFlags();
 		
 		//initialize the discovery list
-		this.discoveryList = new DiscoverPayload(usernames);
+		ArrayList<String> strings = new ArrayList<String>();
+		//populate the array list
+		for( String s : usernames ) strings.add(s);
+		this.discoveryList = new DiscoverPayload(strings);
 		
 		//encrypt the discovery list
-		return this.discoveryList.encrypt(seshKey);
+		byte[] encrypted_data = this.discoveryList.encrypt(seshKey);
+		this.crypto_data = Arrays.copyOf(encrypted_data, encrypted_data.length);
 	}
 	
 	public ArrayList<String> decryptServerDiscoverReponse(byte[] usernames, SecretKey seshKey){

@@ -40,7 +40,7 @@ public class ClientHandlerThread implements Runnable {
 				if( clientPacket.flags.contains(Packet.Flag.Login) ){
 					this.server.handle_login(clientPacket, clientSocket, this.clientStream);
 				} else if( clientPacket.flags.contains(Packet.Flag.Discover) ){
-					this.server.handle_discover(clientSocket, this.clientStream, sessionKey);
+					this.server.handle_discover(clientSocket, clientPacket, sessionKey);
 				} else if( clientPacket.flags.contains(Packet.Flag.Negotiate) ){
 					this.server.handle_chat_negotiation();
 				} else if( clientPacket.flags.contains(Packet.Flag.Logout) ){
