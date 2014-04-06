@@ -119,7 +119,6 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 				    		for (int l = 0; l < 3; l++)
 				    			System.out.println(R_2[l]);
 				        }
-				        System.out.println(i);
 					}
 				}
 			}
