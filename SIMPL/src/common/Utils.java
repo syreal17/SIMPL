@@ -63,10 +63,6 @@ public class Utils {
         return o.readObject();
     }
 	
-	/**
-	 * This is because Java sucks a salty
-	 * @param byteArr
-	 */
 	public static void incrementByteArray(Byte[] byteArr){
 		for( int i = 0; i < byteArr.length; i++){
 			if( byteArr[i] < Byte.MAX_VALUE ){
@@ -76,5 +72,12 @@ public class Utils {
 				return;
 			}
 		}
+	}
+	
+	public static void printByteArr(byte[] byteArr){
+		for( int i = 0; i < byteArr.length; i++){
+			System.out.print(byteArr[i] + " ");
+		}
+		System.out.println();
 	}
 }

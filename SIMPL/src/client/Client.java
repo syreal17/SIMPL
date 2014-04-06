@@ -107,6 +107,8 @@ public class Client {
 			
 			//Start constructing the response packet.
 			LoginPacket challengeResponse = new LoginPacket();
+			//TODO: figure out why the R_1 = R_1 line is needed
+			challengeResponse.R_1 = serverChallenge.R_1;
 			challengeResponse.challengePayload = cp;
 			//TODO: actually get user input here
 			String username = "syreal";

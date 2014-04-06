@@ -126,6 +126,7 @@ public class Server {
 			if( !common.Constants.CRYPTO_OFF ){
 				//TODO: Jaffe AuthenticationPayload decrypt, etc.
 				//TODO: then deserialize
+				throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 			}
 			//deserialize to AuthenticationPayload
 			o = common.Utils.deserialize(authenticationPayloadBytes);

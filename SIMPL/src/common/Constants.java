@@ -1,6 +1,9 @@
 package common;
 
 public class Constants {
+	//UI
+	public final static int UI_FEEDBACK_FREQ = 8; //higher number is less frequent
+	
 	//FILESYSTEM
 	public final static String USER_DB_NAME = "simpl.user.db";
 	public final static String SERVER_PRIVK_NAME = "simpl.server.priv";
@@ -9,6 +12,8 @@ public class Constants {
 	//erm..PROGRAMMING
 	public final static int GENERIC_SUCCESS = 0;
 	public final static int GENERIC_FAILURE = -1;
+	public final static int BYTE_MIN = -128;
+	public final static int BYTE_MAX_PLUS_1 = 128;
 	
 	//NETWORKING
 	public final static int MIN_PORT = 1;

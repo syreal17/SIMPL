@@ -52,8 +52,10 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 	public void generateRs(){
 		//generate PRN R1 using R_1_size bits
 		RNG.nextBytes(R_1);
+		//common.Utils.printByteArr(R_1);
 		//generate PRN R2 using R_2_size bits
 		RNG.nextBytes(R_2);
+		//common.Utils.printByteArr(R_2);
 	}
 	
 	/**
@@ -96,17 +98,23 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 		}
 		else
 		{
+			//common.Utils.printByteArr(R_1);
+			System.out.println("Finding R");
+
 			//use the hash class to solve the challenge 
 			//by feeding it the challenge and R1
 			//loop through all possible values of R2
-			for (byte i = Byte.MIN_VALUE; i <= Byte.MAX_VALUE; i++){
-				for (byte j = Byte.MIN_VALUE; j <= Byte.MAX_VALUE; j++){
-					for (byte k = Byte.MIN_VALUE; k <= Byte.MAX_VALUE; k++){
+			for (int i = Byte.MIN_VALUE; i <= Byte.MAX_VALUE; i++){
+				if( i % common.Constants.UI_FEEDBACK_FREQ == 0){
+					System.out.print(".");
+				}
+				for (int j = Byte.MIN_VALUE; j <= Byte.MAX_VALUE; j++){
+					for (int k = Byte.MIN_VALUE; k <= Byte.MAX_VALUE; k++){
 						//get the byte array form of the numbers
 						byte[] B2 = new byte[3];
-						B2[0] = i;
-						B2[1] = j;
-						B2[2] = k;
+						B2[0] = (byte) i;
+						B2[1] = (byte) j;
+						B2[2] = (byte) k;
 						//update message digest with byte array
 						md.reset();
 						md.update(R_1);
@@ -116,12 +124,13 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 				        if (Arrays.equals(md.digest(), this.challengePayload.challengeHash))
 				        {
 				        	R_2 = B2;
-				    		for (int l = 0; l < 3; l++)
-				    			System.out.println(R_2[l]);
+				    		//common.Utils.printByteArr(R_2);
+				    		break;
 				        }
 					}
 				}
 			}
+			System.out.println();
 		}
 	}
 	
