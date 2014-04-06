@@ -46,21 +46,33 @@ public class NegotiatePacket extends ClientServerSessionPacket  {
 	 * Client2
 	 */
 	private void setNegotiateRequestFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Negotiate, Packet.Flag.Syncronization);
+		this.flags = this.getNegotiateRequestFlags();
+	}
+	
+	public EnumSet<Flag> getNegotiateRequestFlags(){
+		return EnumSet.of(Packet.Flag.Negotiate, Packet.Flag.Syncronization);
 	}
 	
 	/**
 	 * Set flags for the Client2's "ok" response to Server AND Server's passing on of response to Client1
 	 */
 	private void setNegotiateOkResponseFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Negotiate, Packet.Flag.Syncronization, Packet.Flag.Acknowledgement);
+		this.flags = this.getNegotiateOkResponseFlags();
+	}
+	
+	public EnumSet<Flag> getNegotiateOkResponseFlags(){
+		return EnumSet.of(Packet.Flag.Negotiate, Packet.Flag.Syncronization, Packet.Flag.Acknowledgement);
 	}
 	
 	/**
 	 * Set flags for Client2's "deny" response to Server AND Server's passing on of response to Client1
 	 */
 	private void setNegotiateDenyResponseFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Negotiate, Packet.Flag.Deny, Packet.Flag.Finished);
+		this.flags = this.getNegotiateDenyResponseFlags();
+	}
+	
+	public EnumSet<Flag> getNegotiateDenyResponseFlags(){
+		return EnumSet.of(Packet.Flag.Negotiate, Packet.Flag.Deny, Packet.Flag.Finished);
 	}
 	
 	@Override
