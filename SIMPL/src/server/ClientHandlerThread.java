@@ -12,6 +12,7 @@ public class ClientHandlerThread implements Runnable {
 	private Server server;
 	private Socket clientSocket;
 	private InputStream clientStream;
+	private String clientUsername;
 	private SecretKey sessionKey;
 	@Override
 	public void run() {
@@ -38,7 +39,7 @@ public class ClientHandlerThread implements Runnable {
 				Packet clientPacket = (Packet) o;
 				//handle the type of packet
 				if( clientPacket.flags.contains(Packet.Flag.Login) ){
-					this.server.handle_login(clientPacket, clientSocket, this.clientStream);
+					this.clientUsername = this.server.handle_login(clientPacket, clientSocket, this.clientStream);
 				} else if( clientPacket.flags.contains(Packet.Flag.Discover) ){
 					this.server.handle_discover(clientSocket, clientPacket, sessionKey);
 				} else if( clientPacket.flags.contains(Packet.Flag.Negotiate) ){

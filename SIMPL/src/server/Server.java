@@ -85,7 +85,14 @@ public class Server {
 	}
 	
 	//slide 5
-	public void handle_login(Packet clientPacket, Socket clientSocket, InputStream clientStream){
+	/**
+	 * Handle login server-side
+	 * @param clientPacket the packet which initiated the login
+	 * @param clientSocket the associated socket
+	 * @param clientStream the stream connect to clientSocket
+	 * @return the username of the user who just logged in
+	 */
+	public String handle_login(Packet clientPacket, Socket clientSocket, InputStream clientStream){
 		Object o;
 		
 		byte[] R_2 = new byte[protocol.LoginPacket.R_2_size];
@@ -111,7 +118,7 @@ public class Server {
 				LoginPacket denyResponse = new LoginPacket();
 				denyResponse.readyServerLoginDeny();
 				denyResponse.go(clientSocket);
-				return;
+				return null;
 			}
 			//if they're the same get the auth payload, and check that
 			byte[] authenticationPayloadBytes = challengeResponse.crypto_data;
@@ -128,26 +135,24 @@ public class Server {
 				LoginPacket okResponse = new LoginPacket();
 				okResponse.readyServerLoginOk();
 				okResponse.go(clientSocket);
-				return;
+				return ap.username;
 			} else {
 				LoginPacket denyResponse = new LoginPacket();
 				denyResponse.readyServerLoginDeny();
 				denyResponse.go(clientSocket);
-				return;
+				return null;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			return;
+			return null;
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
-			return;
+			return null;
 		}
 	}
 	
 	//slide 6
 	public void handle_discover(Socket clientSocket,Packet clientPacket, SecretKey sessionKey){
-		Object o;
-		
 		//Build the initial packet and send it
 		DiscoverPacket discoverResponse = new DiscoverPacket();
 		System.out.println("Server: handle_discover1");
@@ -170,7 +175,7 @@ public class Server {
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
-	//TODO: test
+	//TODO: debug why it doesn't write a key when it creates a new file
 	/**
 	 * Either load the private key from a file, or create it, either way update the serverPrivK field
 	 * @param filepath filepath to either load or save to
