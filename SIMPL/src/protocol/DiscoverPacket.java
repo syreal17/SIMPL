@@ -54,14 +54,22 @@ public class DiscoverPacket extends ClientServerSessionPacket {
 	 * Set flags for the discovery message that the Client sends
 	 */
 	private void setClientDiscoverRequestFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Discover, Packet.Flag.Syncronization);
+		this.flags = this.getClientDiscoverRequestFlags();
+	}
+	
+	public EnumSet<Flag> getClientDiscoverRequestFlags(){
+		return EnumSet.of(Packet.Flag.Discover, Packet.Flag.Syncronization);
 	}
 
 	/**
 	 * Set flags for the Server's discovery response to the Client
 	 */
 	private void setServerDiscoverResponseFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Discover, Packet.Flag.Syncronization, Packet.Flag.Acknowledgement);
+		this.flags = this.getServerDiscoverResponseFlags();
+	}
+	
+	public EnumSet<Flag> getServerDiscoverResponseFlags(){
+		return EnumSet.of(Packet.Flag.Discover, Packet.Flag.Syncronization, Packet.Flag.Acknowledgement);
 	}
 	
 }
