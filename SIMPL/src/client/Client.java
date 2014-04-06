@@ -48,7 +48,7 @@ public class Client {
 	private ArrayList<String> clients; 	//contains result of discover
 	private byte[] N; 					//the nonce that we've used and sent to the Server
 	public PublicKey serverPubK;
-	public SecretKey sessionKey;
+	public byte[] sessionKey;
 	
 	//Constructor currently sets nothing up. Defers to other class methods
 	public Client(PublicKey serverPubK){
@@ -119,8 +119,9 @@ public class Client {
 			byte[] pwHash = md.digest();
 			//generating the nonce
 			SecureRandom.getInstance(common.Constants.RNG_ALOGRITHM).nextBytes(this.N);
-			//ready the Response for transmission
-			challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, username, pwHash, this.N);
+			//ready the Response for transmission and create the session key
+			sessionKey = challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, username, pwHash, this.N);
+			//transmit the response
 			challengeResponse.go(this.simplSocket);
 			
 			//Get the server response: ok or deny

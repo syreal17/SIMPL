@@ -2,6 +2,7 @@ package protocol;
 
 import java.io.*;
 import java.security.*;
+import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -35,7 +36,23 @@ public class AuthenticationPayload implements Serializable {
 			return null;
 		}
 	}
+		
+	public byte[] keyMake(){
+		MessageDigest hasher;
+		try {
+			hasher = MessageDigest.getInstance(Constants.KEY_HASH_ALGORITHM);
+			hasher.update(this.username.getBytes());
+			hasher.update(this.pwHash);
+			byte[] keyBytes = hasher.digest();
+			return Arrays.copyOf(keyBytes, 16);
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return pwHash;
+	}
 	
+
 	/**
 	 * Serializes then encrypts result and returns it. Only called by Client
 	 * @author Jaffe
