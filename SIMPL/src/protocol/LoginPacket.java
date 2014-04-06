@@ -99,18 +99,20 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 			//use the hash class to solve the challenge 
 			//by feeding it the challenge and R1
 			//loop through all possible values of R2
-			for (int i = -128; i < 128; i++){
-				for (int j = -128; j < 128; j++){
-					for (int k = -128; k < 128; k++){
+			for (byte i = Byte.MIN_VALUE; i <= Byte.MAX_VALUE; i++){
+				System.out.println(i);
+				for (byte j = Byte.MIN_VALUE; j <= Byte.MAX_VALUE; j++){
+					for (byte k = Byte.MIN_VALUE; k <= Byte.MAX_VALUE; k++){
 						//get the byte array form of the numbers
 						byte[] B2 = new byte[3];
-						B2[0] = (byte)i;
-						B2[1] = (byte)j;
-						B2[2] = (byte)k;
+						B2[0] = i;
+						B2[1] = j;
+						B2[2] = k;
 						//update message digest with byte array
 						md.reset();
 						md.update(R_1);
 						md.update(B2);
+						System.out.println(i);
 						//make the hash, check if it matches the puzzle
 				        if (Arrays.equals(md.digest(), this.challengePayload.challengeHash))
 				        {
@@ -118,6 +120,7 @@ public class LoginPacket extends ClientServerPreSessionPacket {
 				    		for (int l = 0; l < 3; l++)
 				    			System.out.println(R_2[l]);
 				        }
+				        System.out.println(i);
 					}
 				}
 			}
