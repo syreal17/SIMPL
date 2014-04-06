@@ -14,7 +14,7 @@ import protocol.*;
 public class ClientHandlerThread extends Thread {
 	
 	private Server server;
-	private PrivateKey serverPrivK = this.server.serverPrivK;
+	private PrivateKey serverPrivK;
 	private Socket clientSocket;
 	private InetAddress clientIP;
 	private InputStream clientStream;
@@ -36,6 +36,7 @@ public class ClientHandlerThread extends Thread {
 			
 			//remember some variables for thread lifetime
 			this.server = CmdLine.server;
+			this.serverPrivK = this.server.serverPrivK;
 			//query the Server's ClientHandler for the unhandled client socket
 			this.clientSocket = this.server.getClientHandler().getUnhandledEntry().getClientSocket();
 			this.clientSocket.setSoTimeout(common.Constants.SO_TIMEOUT);
@@ -95,49 +96,123 @@ public class ClientHandlerThread extends Thread {
 	}
 	
 	private void handlePacket(Packet clientPacket){
-		if( clientPacket.flags.contains(Packet.Flag.Login) )
+		//Login steps
+		if( clientPacket.checkForFlags(LoginPacket.getClientLoginRequestFlags()) )
 		{
-			this.clientUsername = this.start_handle_login();
-		} else if( clientPacket.flags.contains(Packet.Flag.Discover) )
+			this.handle_login_request();
+		} else if( clientPacket.checkForFlags(LoginPacket.getClientLoginChallengeResponseFlags())){
+			this.handle_login_challenge_response(clientPacket);
+		}
+		
+		//Discover step
+		else if( clientPacket.flags.contains(Packet.Flag.Discover) )
 		{
 			this.start_handle_discover();
-		} else if( clientPacket.flags.contains(Packet.Flag.Negotiate) )//vvv TODO: readd clientIP and clientUsername
+		} 
+		
+		//Negotiate steps
+		else if( clientPacket.flags.contains(Packet.Flag.Negotiate) )//vvv TODO: readd clientIP and clientUsername
 		{
 			this.start_handle_negotiation();
-		} else if( clientPacket.flags.contains(Packet.Flag.Logout) )
+		}
+		
+		//Logout steps
+		else if( clientPacket.flags.contains(Packet.Flag.Logout) )
 		{
 			this.start_handle_logout();
 			//break;
-		} else
+		}
+		
+		//weirdness
+		else
 		{
 			System.err.println(Server.UNEXPECTED_CLIENT_PACKET_MSG);
 		}
 	}
 	
-	//slide 5
-	/**
-	 * Handle login server-side
-	 * @return the username of the user who just logged in
-	 */
-	public String start_handle_login(){
-		Object o;
-		
+//	//slide 5
+//	/**
+//	 * Handle login server-side
+//	 * @return the username of the user who just logged in
+//	 */
+//	public String start_handle_login(){
+//		Object o;
+//		
+//		//ready the challenge for the client and send
+//		LoginPacket serverChallenge = new LoginPacket();
+//		//remember R_2 so we can check the challengeResponse
+//		this.R_2 = serverChallenge.readyServerLoginChallenge(this.serverPrivK);
+//		serverChallenge.go(clientSocket);
+//		
+//		try {
+//			//receive back the Client's challenge response
+//			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
+//			int count = clientStream.read(recv);
+//			//truncate the buffer
+//			byte[] challengeResponseBytes = new byte[count];
+//			System.arraycopy(recv, 0, challengeResponseBytes, 0, count);
+//			//deserialize and cast to LoginPacket (all the way to LoginPacket so we can get R_2)
+//			o = common.Utils.deserialize(challengeResponseBytes);
+//			LoginPacket challengeResponse = (LoginPacket) o;
+//			//ensure the right R_2 was found before doing crypto work
+//			if( !Arrays.equals(this.R_2, challengeResponse.R_2) ){
+//				//if they aren't the same, send deny message
+//				LoginPacket denyResponse = new LoginPacket();
+//				denyResponse.readyServerLoginDeny();
+//				denyResponse.go(clientSocket);
+//				return null;
+//			}
+//			//if they're the same get the auth payload, and check that
+//			byte[] authenticationPayloadBytes = challengeResponse.crypto_data;
+//			//decrypt it first if CRYPTO isn't OFF
+//			if( !common.Constants.CRYPTO_OFF ){
+//				//TODO: Jaffe AuthenticationPayload decrypt, etc.
+//				//TODO: then deserialize
+//				//common.Utils.printByteArr(authenticationPayloadBytes);
+//				System.out.println();
+//				authenticationPayloadBytes = challengeResponse.authPayload.decrypt(this.serverPrivK, 
+//						authenticationPayloadBytes);	
+//			}
+//			//common.Utils.printByteArr(authenticationPayloadBytes);
+//			System.out.println();
+//			//deserialize to AuthenticationPayload
+//			o = common.Utils.deserialize(authenticationPayloadBytes);
+//			AuthenticationPayload ap = (AuthenticationPayload) o;
+//			//check the user supplied username and password hash
+//			if( this.server.verify_user(ap.username, ap.pwHash) ){
+//				LoginPacket okResponse = new LoginPacket();
+//				okResponse.readyServerLoginOk();
+//				okResponse.go(clientSocket);
+//				sessionKey = ap.keyMake();
+//				return ap.username;
+//			} else {
+//				LoginPacket denyResponse = new LoginPacket();
+//				denyResponse.readyServerLoginDeny();
+//				denyResponse.go(clientSocket);
+//				return null;
+//			}
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//			return null;
+//		} catch (ClassNotFoundException e) {
+//			e.printStackTrace();
+//			return null;
+//		}
+//	}
+	
+	public void handle_login_request(){
 		//ready the challenge for the client and send
 		LoginPacket serverChallenge = new LoginPacket();
 		//remember R_2 so we can check the challengeResponse
-		this.R_2 = serverChallenge.readyServerLoginChallenge(this.server.serverPrivK);
-		serverChallenge.go(clientSocket);
-		
-		try {
-			//receive back the Client's challenge response
-			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
-			int count = clientStream.read(recv);
-			//truncate the buffer
-			byte[] challengeResponseBytes = new byte[count];
-			System.arraycopy(recv, 0, challengeResponseBytes, 0, count);
-			//deserialize and cast to LoginPacket (all the way to LoginPacket so we can get R_2)
-			o = common.Utils.deserialize(challengeResponseBytes);
-			LoginPacket challengeResponse = (LoginPacket) o;
+		this.R_2 = serverChallenge.readyServerLoginChallenge(this.serverPrivK);
+		serverChallenge.go(this.clientSocket);
+	}
+	
+	public String handle_login_challenge_response(Packet clientPacket){
+		try{
+			Object o;
+			
+			LoginPacket challengeResponse = (LoginPacket) clientPacket;
 			//ensure the right R_2 was found before doing crypto work
 			if( !Arrays.equals(this.R_2, challengeResponse.R_2) ){
 				//if they aren't the same, send deny message
@@ -154,7 +229,7 @@ public class ClientHandlerThread extends Thread {
 				//TODO: then deserialize
 				//common.Utils.printByteArr(authenticationPayloadBytes);
 				System.out.println();
-				authenticationPayloadBytes = challengeResponse.authPayload.decrypt(this.server.serverPrivK, 
+				authenticationPayloadBytes = challengeResponse.authPayload.decrypt(this.serverPrivK, 
 						authenticationPayloadBytes);	
 			}
 			//common.Utils.printByteArr(authenticationPayloadBytes);
@@ -175,21 +250,15 @@ public class ClientHandlerThread extends Thread {
 				denyResponse.go(clientSocket);
 				return null;
 			}
-		} catch (IOException e) {
+		} catch (ClassNotFoundException e) {
+			System.err.println(e.getMessage());
 			e.printStackTrace();
 			return null;
-		} catch (ClassNotFoundException e) {
+		} catch (IOException e) {
+			System.err.println(e.getMessage());
 			e.printStackTrace();
 			return null;
 		}
-	}
-	
-	public void handle_login_init(){
-		
-	}
-	
-	public void handle_login_challenge_response(){
-		
 	}
 	
 	//slide 6

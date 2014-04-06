@@ -68,7 +68,7 @@ public abstract class Packet implements Serializable {
 	}
 	
 	public boolean checkForFlags(EnumSet<Flag> flagsToCheckFor){
-		return this.flags.contains(flagsToCheckFor);
+		return this.flags.containsAll(flagsToCheckFor);
 	}
 	
 	/**
