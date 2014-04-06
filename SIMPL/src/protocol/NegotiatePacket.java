@@ -37,7 +37,7 @@ public class NegotiatePacket extends ClientServerSessionPacket  {
 				clientA_DHContrib, N);
 		this.clearAllFields();
 		this.setNegotiateRequestFlags();
-		this.crypto_data = 
+		//TODO: this.crypto_data = 
 		
 	}
 
