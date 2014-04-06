@@ -23,7 +23,7 @@ public class NegotiatePacket extends ClientServerSessionPacket  {
 		this.serverNegRespPayload = null;
 	}
 	
-	public void readyClientANegotiateRequest(SecretKey clientA_seshKey, String clientB_Username, PublicKey clientA_DHContrib, 
+	public void readyClientANegotiateRequest(byte[] clientA_seshKey, String clientB_Username, PublicKey clientA_DHContrib, 
 			byte[] N){
 		ClientANegotiateRequestPayload payload = new ClientANegotiateRequestPayload(clientB_Username, clientA_DHContrib, N);
 		this.clearAllFields();
@@ -31,13 +31,13 @@ public class NegotiatePacket extends ClientServerSessionPacket  {
 		this.crypto_data = payload.encrypt(clientA_seshKey);
 	}
 	
-	public void readyServerNegotiateRequest(SecretKey clientB_seshKey, String clientA_Username, InetAddress clientA_IP, 
+	public void readyServerNegotiateRequest(byte[] clientB_seshKey, String clientA_Username, InetAddress clientA_IP, 
 			PublicKey clientA_DHContrib, byte[] N){
 		ServerNegotiateRequestPayload payload = new ServerNegotiateRequestPayload(clientA_Username, clientA_IP, 
 				clientA_DHContrib, N);
 		this.clearAllFields();
 		this.setNegotiateRequestFlags();
-		//TODO: this.crypto_data = 
+		this.crypto_data = payload.encrypt(clientB_seshKey); 
 		
 	}
 

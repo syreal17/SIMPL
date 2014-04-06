@@ -63,6 +63,12 @@ public class Utils {
         return o.readObject();
     }
 	
+	public static void print_debug_msg(String msg){
+		if( common.Constants.TESTING ){
+			System.out.println(msg);
+		}
+	}
+	
 	public static void incrementByteArray(Byte[] byteArr){
 		for( int i = 0; i < byteArr.length; i++){
 			if( byteArr[i] < Byte.MAX_VALUE ){

@@ -10,6 +10,7 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 import common.Constants;
 
@@ -27,6 +28,7 @@ public class ClientANegotiateRequestPayload implements Serializable {
 		this.N = N;
 	}
 	
+	//COPY PASTA!!!!!!!!!!!!
 	public byte[] getSerialization(){
 		try{
 			return common.Utils.serialize(this);
@@ -37,7 +39,7 @@ public class ClientANegotiateRequestPayload implements Serializable {
 	}
 	
 	//COPY PASTA!!!!!!!!!!!!
-	public byte[] encrypt(SecretKey seshKey){
+	public byte[] encrypt(byte[] seshKey){
 		try{
 			if (Constants.CRYPTO_OFF)
 			{
@@ -46,7 +48,8 @@ public class ClientANegotiateRequestPayload implements Serializable {
 			else
 			{
 				Cipher cipher = Cipher.getInstance(Constants.SYMMETRIC_CRYPTO_MODE);
-				cipher.init(Cipher.ENCRYPT_MODE, seshKey);
+				SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
+				cipher.init(Cipher.ENCRYPT_MODE, k);
 				//return encrypted bytes
 				return cipher.doFinal(this.getSerialization());
 			}
@@ -74,7 +77,7 @@ public class ClientANegotiateRequestPayload implements Serializable {
 	}
 	
 	//COPY PASTA!! Minor tweaks
-	public ClientANegotiateRequestPayload decrypt(SecretKey seshKey, byte[] encryptedData){
+	public ClientANegotiateRequestPayload decrypt(byte[] seshKey, byte[] encryptedData){
 		try{
 			if (Constants.CRYPTO_OFF)
 			{
@@ -85,7 +88,8 @@ public class ClientANegotiateRequestPayload implements Serializable {
 			else
 			{
 				Cipher cipher = Cipher.getInstance(Constants.SYMMETRIC_CRYPTO_MODE);
-				cipher.init(Cipher.DECRYPT_MODE, seshKey);
+				SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
+				cipher.init(Cipher.DECRYPT_MODE, k);
 				//write encrypted bytes to encryptedData since it was passed by reference
 				byte[] plaintext =  cipher.doFinal(encryptedData);
 				//deserialize the plaintext into an object

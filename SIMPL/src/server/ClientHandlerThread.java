@@ -65,13 +65,17 @@ public class ClientHandlerThread extends Thread {
 	//ltj: One way of more robustly doing this is setting an ArrayList<EnumSet<Flag>> Expected so the Server can report
 	//		unexpected packets from the Client. That would be fairly hefty, so we will just be assuming that the Client
 	//		sends the packets in the right order.
+	/**
+	 * This is the packet handling "DEMULTIPLEXER".
+	 * What's not obvious is that the while(true) loop is often broken out of by a SocketTimeoutException
+	 */
 	private void enterClientHandleLoop(){
 		Object o;
+		
 		while( true ){
 			try{
-				//not doing FSM server side for beginning of comm; rather, relying on flags
 				byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
-				//wait for data from client
+				//wait for data from client for common.Constants.SO_TIMEOUT ms, then throw SocketTimeoutException
 				int count = this.clientStream.read(recv);
 				//once we have it, truncate down to smallest array
 				byte[] clientPacketBytes = new byte[count];
@@ -80,6 +84,7 @@ public class ClientHandlerThread extends Thread {
 				o = common.Utils.deserialize(clientPacketBytes);
 				Packet clientPacket = (Packet) o;
 
+				//Send packet to the real meat of the demultiplexer.
 				this.handlePacket(clientPacket);
 				
 			} catch (SocketTimeoutException e){
@@ -107,11 +112,11 @@ public class ClientHandlerThread extends Thread {
 		//Discover step
 		else if( clientPacket.flags.contains(Packet.Flag.Discover) )
 		{
-			this.start_handle_discover();
+			this.handle_discover();
 		} 
 		
 		//Negotiate steps
-		else if( clientPacket.flags.contains(Packet.Flag.Negotiate) )//vvv TODO: readd clientIP and clientUsername
+		else if( clientPacket.flags.contains(Packet.Flag.Negotiate) )
 		{
 			this.start_handle_negotiation();
 		}
@@ -123,82 +128,12 @@ public class ClientHandlerThread extends Thread {
 			//break;
 		}
 		
-		//weirdness
+		//weirdness ensued
 		else
 		{
 			System.err.println(Server.UNEXPECTED_CLIENT_PACKET_MSG);
 		}
 	}
-	
-//	//slide 5
-//	/**
-//	 * Handle login server-side
-//	 * @return the username of the user who just logged in
-//	 */
-//	public String start_handle_login(){
-//		Object o;
-//		
-//		//ready the challenge for the client and send
-//		LoginPacket serverChallenge = new LoginPacket();
-//		//remember R_2 so we can check the challengeResponse
-//		this.R_2 = serverChallenge.readyServerLoginChallenge(this.serverPrivK);
-//		serverChallenge.go(clientSocket);
-//		
-//		try {
-//			//receive back the Client's challenge response
-//			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
-//			int count = clientStream.read(recv);
-//			//truncate the buffer
-//			byte[] challengeResponseBytes = new byte[count];
-//			System.arraycopy(recv, 0, challengeResponseBytes, 0, count);
-//			//deserialize and cast to LoginPacket (all the way to LoginPacket so we can get R_2)
-//			o = common.Utils.deserialize(challengeResponseBytes);
-//			LoginPacket challengeResponse = (LoginPacket) o;
-//			//ensure the right R_2 was found before doing crypto work
-//			if( !Arrays.equals(this.R_2, challengeResponse.R_2) ){
-//				//if they aren't the same, send deny message
-//				LoginPacket denyResponse = new LoginPacket();
-//				denyResponse.readyServerLoginDeny();
-//				denyResponse.go(clientSocket);
-//				return null;
-//			}
-//			//if they're the same get the auth payload, and check that
-//			byte[] authenticationPayloadBytes = challengeResponse.crypto_data;
-//			//decrypt it first if CRYPTO isn't OFF
-//			if( !common.Constants.CRYPTO_OFF ){
-//				//TODO: Jaffe AuthenticationPayload decrypt, etc.
-//				//TODO: then deserialize
-//				//common.Utils.printByteArr(authenticationPayloadBytes);
-//				System.out.println();
-//				authenticationPayloadBytes = challengeResponse.authPayload.decrypt(this.serverPrivK, 
-//						authenticationPayloadBytes);	
-//			}
-//			//common.Utils.printByteArr(authenticationPayloadBytes);
-//			System.out.println();
-//			//deserialize to AuthenticationPayload
-//			o = common.Utils.deserialize(authenticationPayloadBytes);
-//			AuthenticationPayload ap = (AuthenticationPayload) o;
-//			//check the user supplied username and password hash
-//			if( this.server.verify_user(ap.username, ap.pwHash) ){
-//				LoginPacket okResponse = new LoginPacket();
-//				okResponse.readyServerLoginOk();
-//				okResponse.go(clientSocket);
-//				sessionKey = ap.keyMake();
-//				return ap.username;
-//			} else {
-//				LoginPacket denyResponse = new LoginPacket();
-//				denyResponse.readyServerLoginDeny();
-//				denyResponse.go(clientSocket);
-//				return null;
-//			}
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//			return null;
-//		} catch (ClassNotFoundException e) {
-//			e.printStackTrace();
-//			return null;
-//		}
-//	}
 	
 	public void handle_login_request(){
 		//ready the challenge for the client and send
@@ -225,15 +160,10 @@ public class ClientHandlerThread extends Thread {
 			byte[] authenticationPayloadBytes = challengeResponse.crypto_data;
 			//decrypt it first if CRYPTO isn't OFF
 			if( !common.Constants.CRYPTO_OFF ){
-				//TODO: Jaffe AuthenticationPayload decrypt, etc.
-				//TODO: then deserialize
-				//common.Utils.printByteArr(authenticationPayloadBytes);
 				System.out.println();
 				authenticationPayloadBytes = challengeResponse.authPayload.decrypt(this.serverPrivK, 
 						authenticationPayloadBytes);	
 			}
-			//common.Utils.printByteArr(authenticationPayloadBytes);
-			System.out.println();
 			//deserialize to AuthenticationPayload
 			o = common.Utils.deserialize(authenticationPayloadBytes);
 			AuthenticationPayload ap = (AuthenticationPayload) o;
@@ -261,26 +191,20 @@ public class ClientHandlerThread extends Thread {
 		}
 	}
 	
-	//slide 6
-	public void start_handle_discover(){
+	public void handle_discover(){
 		//Build the initial packet and send it
 		DiscoverPacket discoverResponse = new DiscoverPacket();
-		//System.out.println("Server: handle_discover1");
 		discoverResponse.readyServerDiscoverResponse(this.server.userDB.keySet(), sessionKey);
-		//System.out.println("Server: handle_discover2");
 		//send the usernames to the client
 		discoverResponse.go(clientSocket);
-		//System.out.println("Server: handle_discover3");
 	}
 	
-	//slide 7
 	public void start_handle_negotiation(){
 		//TODO: implement
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 
 	}
 	
-	//slide 9
 	public void start_handle_logout(){
 		//TODO: implement
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);

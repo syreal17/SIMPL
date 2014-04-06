@@ -6,10 +6,7 @@ import java.security.*;
 import java.security.spec.*;
 import java.util.*;
 
-import javax.crypto.*;
-
 import common.*;
-import protocol.*;
 
 /*
  * _NETWORKING_
@@ -21,17 +18,12 @@ import protocol.*;
  * 		http://docs.oracle.com/javase/tutorial/essential/concurrency/runthread.html
  */
 
-/**
- * ltj: I've mostly just included functions names here. There's plenty of missing pieces I think
- *
- */
 public class Server {
-//TODO:close streams?
 	
 	public static final String UNEXPECTED_CLIENT_PACKET_MSG = "Client's drunk! Got unexpected packet.";
 	
 	public PrivateKey serverPrivK;
-	//the username->pwHash map that the server retains TODO: include N(once) too?
+	//the username->pwHash map that the server retains
 	public Map<String, byte[]> userDB;
 	
 	private ServerSocket listenerSocket;
@@ -58,13 +50,16 @@ public class Server {
 			
 			//call to either load the PrivateKey at privKPath or create it there
 			this.get_private_key(privKPath);
+			
 		} catch (IOException e) {
+			System.err.println(e.getMessage());
 			e.printStackTrace();
+			return;
 		}
 	}
 	
 	/**
-	 * Start the loop for the Server to accept multiple Client connections, and spin off threads
+	 * Start the loop for the Server to accept multiple Client connections, and spin off ClientHandlerThreads
 	 */
 	public void start_listener_loop(){
 		try {
