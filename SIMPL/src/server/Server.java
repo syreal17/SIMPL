@@ -159,18 +159,18 @@ public class Server {
 	public void start_handle_discover(Socket clientSocket,Packet clientPacket, SecretKey sessionKey){
 		//Build the initial packet and send it
 		DiscoverPacket discoverResponse = new DiscoverPacket();
-		System.out.println("Server: handle_discover1");
+		//System.out.println("Server: handle_discover1");
 		discoverResponse.readyServerDiscoverResponse(userDB.keySet(), sessionKey);
-		System.out.println("Server: handle_discover2");
+		//System.out.println("Server: handle_discover2");
 		//send the usernames to the client
 		discoverResponse.go(clientSocket);
-		System.out.println("Server: handle_discover3");
+		//System.out.println("Server: handle_discover3");
 	}
 	
 	//slide 7
-	public void start_handle_negotiation(Socket clientSocket, Packet clientPacket, SecretKey sessionKey){
-		//TODO: implement
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+	public void start_handle_negotiation(Socket clientA_Socket, Packet clientA_Init_Packet, SecretKey sessionA_Key,
+			InetAddress clientA_IP, String clientA_Username){
+		NegotiatePacket clientA_Neg_Packet = (NegotiatePacket) clientA_Init_Packet;
 	}
 	
 	//slide 9
