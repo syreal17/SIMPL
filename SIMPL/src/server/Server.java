@@ -30,10 +30,11 @@ public class Server {
 	
 	public static final String UNEXPECTED_CLIENT_PACKET_MSG = "Client's drunk! Got unexpected packet.";
 	
-	private ServerSocket listenerSocket;
-	private PrivateKey serverPrivK;
+	public PrivateKey serverPrivK;
 	//the username->pwHash map that the server retains TODO: include N(once) too?
-	private Map<String, byte[]> userDB;
+	public Map<String, byte[]> userDB;
+	
+	private ServerSocket listenerSocket;
 	private String userDBPath;
 	//used for a new thread knowing which socket to use
 	private ClientHandler clientHandler;
@@ -81,103 +82,6 @@ public class Server {
 			e.printStackTrace();
 			return;
 		}
-	}
-	
-	//slide 5
-	/**
-	 * Handle login server-side
-	 * @param clientPacket the packet which initiated the login
-	 * @param clientSocket the associated socket
-	 * @param clientStream the stream connect to clientSocket
-	 * @return the username of the user who just logged in
-	 */
-	public String start_handle_login(Packet clientPacket, Socket clientSocket, InputStream clientStream){
-		Object o;
-		
-		byte[] R_2 = new byte[protocol.LoginPacket.R_2_size];
-		//ready the challenge for the client and send
-		LoginPacket serverChallenge = new LoginPacket();
-		//remember R_2 so we can check the challengeResponse
-		R_2 = serverChallenge.readyServerLoginChallenge(this.serverPrivK);
-		serverChallenge.go(clientSocket);
-		
-		try {
-			//receive back the Client's challenge response
-			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
-			int count = clientStream.read(recv);
-			//truncate the buffer
-			byte[] challengeResponseBytes = new byte[count];
-			System.arraycopy(recv, 0, challengeResponseBytes, 0, count);
-			//deserialize and cast to LoginPacket (all the way to LoginPacket so we can get R_2)
-			o = common.Utils.deserialize(challengeResponseBytes);
-			LoginPacket challengeResponse = (LoginPacket) o;
-			//ensure the right R_2 was found before doing crypto work
-			if( !Arrays.equals(R_2, challengeResponse.R_2) ){
-				//if they aren't the same, send deny message
-				LoginPacket denyResponse = new LoginPacket();
-				denyResponse.readyServerLoginDeny();
-				denyResponse.go(clientSocket);
-				return null;
-			}
-			//if they're the same get the auth payload, and check that
-			byte[] authenticationPayloadBytes = challengeResponse.crypto_data;
-			//decrypt it first if CRYPTO isn't OFF
-			if( !common.Constants.CRYPTO_OFF ){
-				//TODO: Jaffe AuthenticationPayload decrypt, etc.
-				//TODO: then deserialize
-				//common.Utils.printByteArr(authenticationPayloadBytes);
-				System.out.println();
-				authenticationPayloadBytes = challengeResponse.authPayload.decrypt(serverPrivK, authenticationPayloadBytes);	
-			}
-			//common.Utils.printByteArr(authenticationPayloadBytes);
-			System.out.println();
-			//deserialize to AuthenticationPayload
-			o = common.Utils.deserialize(authenticationPayloadBytes);
-			AuthenticationPayload ap = (AuthenticationPayload) o;
-			//check the user supplied username and password hash
-			if( this.verify_user(ap.username, ap.pwHash) ){
-				LoginPacket okResponse = new LoginPacket();
-				okResponse.readyServerLoginOk();
-				okResponse.go(clientSocket);
-				return ap.username;
-			} else {
-				LoginPacket denyResponse = new LoginPacket();
-				denyResponse.readyServerLoginDeny();
-				denyResponse.go(clientSocket);
-				return null;
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
-	//slide 6
-	public void start_handle_discover(Socket clientSocket,Packet clientPacket, byte[] sessionKey){
-		//Build the initial packet and send it
-		DiscoverPacket discoverResponse = new DiscoverPacket();
-		//System.out.println("Server: handle_discover1");
-		discoverResponse.readyServerDiscoverResponse(userDB.keySet(), sessionKey);
-		//System.out.println("Server: handle_discover2");
-		//send the usernames to the client
-		discoverResponse.go(clientSocket);
-		//System.out.println("Server: handle_discover3");
-	}
-	
-	//slide 7
-	public void start_handle_negotiation(Socket clientSocket, Packet clientPacket, byte[] sessionKey){
-		//TODO: implement
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
-
-	}
-	
-	//slide 9
-	public void start_handle_logout(){
-		//TODO: implement
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
 	//TODO: debug why it doesn't write a key when it creates a new file
@@ -284,7 +188,7 @@ public class Server {
 	 * @param suppliedPwHash the pwhash that was supplied by the user
 	 * @return is user verified or not, if user was added to DB, also true
 	 */
-	private boolean verify_user(String username, byte[] suppliedPwHash){
+	public boolean verify_user(String username, byte[] suppliedPwHash){
 		if( common.Constants.CRYPTO_OFF ){
 			return true;
 		} else {

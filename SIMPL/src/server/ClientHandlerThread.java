@@ -2,11 +2,19 @@ package server;
 
 import java.io.*;
 import java.net.*;
+import java.util.Arrays;
 
 import javax.crypto.SecretKey;
 
+import protocol.AuthenticationPayload;
+import protocol.DiscoverPacket;
+import protocol.LoginPacket;
 import protocol.Packet;
 
+/*
+ * An actual FSM implementation, which might be interesting and extreme over-engineering:
+ * 		http://stackoverflow.com/questions/13221168/how-to-implement-a-fsm-finite-state-machine-in-java
+ */
 public class ClientHandlerThread extends Thread {
 	
 	private Server server;
@@ -70,19 +78,9 @@ public class ClientHandlerThread extends Thread {
 				//make Packet out of bytes
 				o = common.Utils.deserialize(clientPacketBytes);
 				Packet clientPacket = (Packet) o;
-				//handle the initial packet for each client-server exchange (login, discover, negotiate, logout)
-				if( clientPacket.flags.contains(Packet.Flag.Login) ){
-					this.clientUsername = this.server.start_handle_login(clientPacket, clientSocket, this.clientStream);
-				} else if( clientPacket.flags.contains(Packet.Flag.Discover) ){
-					this.server.start_handle_discover(clientSocket, clientPacket, sessionKey);
-				} else if( clientPacket.flags.contains(Packet.Flag.Negotiate) ){//vvv TODO: readd clientIP and clientUsername
-					this.server.start_handle_negotiation(clientSocket, clientPacket, sessionKey);
-				} else if( clientPacket.flags.contains(Packet.Flag.Logout) ){
-					this.server.start_handle_logout();
-					break;
-				} else {
-					System.err.println(Server.UNEXPECTED_CLIENT_PACKET_MSG);
-				}
+
+				this.handlePacket(clientPacket);
+				
 			} catch (SocketTimeoutException e){
 				//do nothing if the socket times out. Just return to the run function body
 				return;
@@ -96,6 +94,123 @@ public class ClientHandlerThread extends Thread {
 		}
 	}
 	
+	private void handlePacket(Packet clientPacket){
+		if( clientPacket.flags.contains(Packet.Flag.Login) ){
+			this.clientUsername = this.start_handle_login();
+		} else if( clientPacket.flags.contains(Packet.Flag.Discover) ){
+			this.start_handle_discover();
+		} else if( clientPacket.flags.contains(Packet.Flag.Negotiate) ){//vvv TODO: readd clientIP and clientUsername
+			this.start_handle_negotiation();
+		} else if( clientPacket.flags.contains(Packet.Flag.Logout) ){
+			this.start_handle_logout();
+			//break;
+		} else {
+			System.err.println(Server.UNEXPECTED_CLIENT_PACKET_MSG);
+		}
+	}
+	
+	//slide 5
+	/**
+	 * Handle login server-side
+	 * @param clientPacket the packet which initiated the login
+	 * @param clientSocket the associated socket
+	 * @param clientStream the stream connect to clientSocket
+	 * @return the username of the user who just logged in
+	 */
+	public String start_handle_login(){
+		Object o;
+		
+		byte[] R_2 = new byte[protocol.LoginPacket.R_2_size];
+		//ready the challenge for the client and send
+		LoginPacket serverChallenge = new LoginPacket();
+		//remember R_2 so we can check the challengeResponse
+		R_2 = serverChallenge.readyServerLoginChallenge(this.server.serverPrivK);
+		serverChallenge.go(clientSocket);
+		
+		try {
+			//receive back the Client's challenge response
+			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
+			int count = clientStream.read(recv);
+			//truncate the buffer
+			byte[] challengeResponseBytes = new byte[count];
+			System.arraycopy(recv, 0, challengeResponseBytes, 0, count);
+			//deserialize and cast to LoginPacket (all the way to LoginPacket so we can get R_2)
+			o = common.Utils.deserialize(challengeResponseBytes);
+			LoginPacket challengeResponse = (LoginPacket) o;
+			//ensure the right R_2 was found before doing crypto work
+			if( !Arrays.equals(R_2, challengeResponse.R_2) ){
+				//if they aren't the same, send deny message
+				LoginPacket denyResponse = new LoginPacket();
+				denyResponse.readyServerLoginDeny();
+				denyResponse.go(clientSocket);
+				return null;
+			}
+			//if they're the same get the auth payload, and check that
+			byte[] authenticationPayloadBytes = challengeResponse.crypto_data;
+			//decrypt it first if CRYPTO isn't OFF
+			if( !common.Constants.CRYPTO_OFF ){
+				//TODO: Jaffe AuthenticationPayload decrypt, etc.
+				//TODO: then deserialize
+				//common.Utils.printByteArr(authenticationPayloadBytes);
+				System.out.println();
+				authenticationPayloadBytes = challengeResponse.authPayload.decrypt(this.server.serverPrivK, 
+						authenticationPayloadBytes);	
+			}
+			//common.Utils.printByteArr(authenticationPayloadBytes);
+			System.out.println();
+			//deserialize to AuthenticationPayload
+			o = common.Utils.deserialize(authenticationPayloadBytes);
+			AuthenticationPayload ap = (AuthenticationPayload) o;
+			//check the user supplied username and password hash
+			if( this.server.verify_user(ap.username, ap.pwHash) ){
+				LoginPacket okResponse = new LoginPacket();
+				okResponse.readyServerLoginOk();
+				okResponse.go(clientSocket);
+				return ap.username;
+			} else {
+				LoginPacket denyResponse = new LoginPacket();
+				denyResponse.readyServerLoginDeny();
+				denyResponse.go(clientSocket);
+				return null;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	//slide 6
+	public void start_handle_discover(){
+		//Build the initial packet and send it
+		DiscoverPacket discoverResponse = new DiscoverPacket();
+		//System.out.println("Server: handle_discover1");
+		discoverResponse.readyServerDiscoverResponse(this.server.userDB.keySet(), sessionKey);
+		//System.out.println("Server: handle_discover2");
+		//send the usernames to the client
+		discoverResponse.go(clientSocket);
+		//System.out.println("Server: handle_discover3");
+	}
+	
+	//slide 7
+	public void start_handle_negotiation(){
+		//TODO: implement
+		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+
+	}
+	
+	//slide 9
+	public void start_handle_logout(){
+		//TODO: implement
+		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
 	public boolean isClientUsernameInitialized(){
 		if( this.clientUsername == null ){
 			return false;
