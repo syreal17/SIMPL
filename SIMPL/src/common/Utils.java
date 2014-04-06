@@ -80,4 +80,12 @@ public class Utils {
 		}
 		System.out.println();
 	}
+	
+	public static void reportCrypto(){
+		if( Constants.CRYPTO_OFF ){
+			System.out.println("Crypto is off!");
+		} else {
+			System.out.println("Crypto is on!");
+		}
+	}
 }

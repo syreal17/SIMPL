@@ -2,14 +2,10 @@ package server;
 
 import java.io.*;
 import java.net.*;
-import java.util.Arrays;
+import java.security.*;
+import java.util.*;
 
-import javax.crypto.SecretKey;
-
-import protocol.AuthenticationPayload;
-import protocol.DiscoverPacket;
-import protocol.LoginPacket;
-import protocol.Packet;
+import protocol.*;
 
 /*
  * An actual FSM implementation, which might be interesting and extreme over-engineering:
@@ -18,9 +14,11 @@ import protocol.Packet;
 public class ClientHandlerThread extends Thread {
 	
 	private Server server;
+	private PrivateKey serverPrivK = this.server.serverPrivK;
 	private Socket clientSocket;
 	private InetAddress clientIP;
 	private InputStream clientStream;
+	private byte[] R_2;
 	private String clientUsername;
 	private byte[] sessionKey;
 
@@ -43,6 +41,7 @@ public class ClientHandlerThread extends Thread {
 			this.clientSocket.setSoTimeout(common.Constants.SO_TIMEOUT);
 			this.clientIP = this.clientSocket.getInetAddress();
 			this.clientStream = this.clientSocket.getInputStream();
+			this.R_2 = new byte[protocol.LoginPacket.R_2_size];
 			this.clientUsername = null;
 			
 			while(true){
@@ -123,11 +122,10 @@ public class ClientHandlerThread extends Thread {
 	public String start_handle_login(){
 		Object o;
 		
-		byte[] R_2 = new byte[protocol.LoginPacket.R_2_size];
 		//ready the challenge for the client and send
 		LoginPacket serverChallenge = new LoginPacket();
 		//remember R_2 so we can check the challengeResponse
-		R_2 = serverChallenge.readyServerLoginChallenge(this.server.serverPrivK);
+		this.R_2 = serverChallenge.readyServerLoginChallenge(this.server.serverPrivK);
 		serverChallenge.go(clientSocket);
 		
 		try {
@@ -141,7 +139,7 @@ public class ClientHandlerThread extends Thread {
 			o = common.Utils.deserialize(challengeResponseBytes);
 			LoginPacket challengeResponse = (LoginPacket) o;
 			//ensure the right R_2 was found before doing crypto work
-			if( !Arrays.equals(R_2, challengeResponse.R_2) ){
+			if( !Arrays.equals(this.R_2, challengeResponse.R_2) ){
 				//if they aren't the same, send deny message
 				LoginPacket denyResponse = new LoginPacket();
 				denyResponse.readyServerLoginDeny();
@@ -184,6 +182,14 @@ public class ClientHandlerThread extends Thread {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	public void handle_login_init(){
+		
+	}
+	
+	public void handle_login_challenge_response(){
+		
 	}
 	
 	//slide 6

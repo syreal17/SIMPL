@@ -135,6 +135,7 @@ public class CmdLine {
 	}
 	
 	public static void main(String[] Args){
+		common.Utils.reportCrypto();
 		
 		if( Args.length != CmdLine.ARG_NUM ){
 			System.out.println(common.Constants.INVALID_ARG_NUM);
