@@ -59,18 +59,23 @@ public class DiscoverPayload implements Serializable {
 				return cipher.doFinal(this.getSerialization());
 			}
 		} catch (NoSuchAlgorithmException e){
+			System.err.println(e.getMessage());
 			e.printStackTrace();
 			return null;
 		} catch (NoSuchPaddingException e){
+			System.err.println(e.getMessage());
 			e.printStackTrace();
 			return null;
 		} catch (InvalidKeyException e){
+			System.err.println(e.getMessage());
 			e.printStackTrace();
 			return null;
 		} catch (IllegalBlockSizeException e){
+			System.err.println(e.getMessage());
 			e.printStackTrace();
 			return null;
 		} catch (BadPaddingException e){
+			System.err.println(e.getMessage());
 			e.printStackTrace();
 			return null;
 		}
@@ -109,24 +114,35 @@ public class DiscoverPayload implements Serializable {
 				//create an array list for the client
 				return list.usernames;
 			}
+		//ltj: for all of these exceptions, return null if an Exception was raised so that return value is more defined
 		} catch (NoSuchAlgorithmException e){
+			System.err.println(e.getMessage());
 			e.printStackTrace();
+			return null;
 		} catch (NoSuchPaddingException e){
+			System.err.println(e.getMessage());
 			e.printStackTrace();
+			return null;
 		} catch (InvalidKeyException e){
+			System.err.println(e.getMessage());
 			e.printStackTrace();
+			return null;
 		} catch (IllegalBlockSizeException e){
+			System.err.println(e.getMessage());
 			e.printStackTrace();
+			return null;
 		} catch (BadPaddingException e){
+			System.err.println(e.getMessage());
 			e.printStackTrace();
+			return null;
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
+			System.err.println(e.getMessage());
 			e.printStackTrace();
+			return null;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.err.println(e.getMessage());
 			e.printStackTrace();
+			return null;
 		}
-		return (ArrayList<String>) usernames;	
 	}
-
 }

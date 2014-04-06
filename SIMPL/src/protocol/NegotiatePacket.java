@@ -1,6 +1,10 @@
 package protocol;
 
-import java.util.EnumSet;
+import java.net.*;
+import java.security.*;
+import java.util.*;
+
+import javax.crypto.*;
 
 public class NegotiatePacket extends ClientServerSessionPacket  {
 
@@ -17,6 +21,24 @@ public class NegotiatePacket extends ClientServerSessionPacket  {
 		this.serverNegReqPayload = null;
 		this.clientNegRespPayload = null;
 		this.serverNegRespPayload = null;
+	}
+	
+	public void readyClientANegotiateRequest(SecretKey clientA_seshKey, String clientB_Username, PublicKey clientA_DHContrib, 
+			byte[] N){
+		ClientANegotiateRequestPayload payload = new ClientANegotiateRequestPayload(clientB_Username, clientA_DHContrib, N);
+		this.clearAllFields();
+		this.setNegotiateRequestFlags();
+		this.crypto_data = payload.encrypt(clientA_seshKey);
+	}
+	
+	public void readyServerNegotiateRequest(SecretKey clientB_seshKey, String clientA_Username, InetAddress clientA_IP, 
+			PublicKey clientA_DHContrib, byte[] N){
+		ServerNegotiateRequestPayload payload = new ServerNegotiateRequestPayload(clientA_Username, clientA_IP, 
+				clientA_DHContrib, N);
+		this.clearAllFields();
+		this.setNegotiateRequestFlags();
+		//TODO: this.crypto_data = 
+		
 	}
 
 	/**

@@ -11,6 +11,7 @@ public class ClientHandlerThread extends Thread {
 	
 	private Server server;
 	private Socket clientSocket;
+	private InetAddress clientIP;
 	private InputStream clientStream;
 	private String clientUsername;
 	private byte[] sessionKey;
@@ -32,6 +33,7 @@ public class ClientHandlerThread extends Thread {
 			//query the Server's ClientHandler for the unhandled client socket
 			this.clientSocket = this.server.getClientHandler().getUnhandledEntry().getClientSocket();
 			this.clientSocket.setSoTimeout(common.Constants.SO_TIMEOUT);
+			this.clientIP = this.clientSocket.getInetAddress();
 			this.clientStream = this.clientSocket.getInputStream();
 			this.clientUsername = null;
 			
@@ -71,7 +73,8 @@ public class ClientHandlerThread extends Thread {
 				} else if( clientPacket.flags.contains(Packet.Flag.Discover) ){
 					this.server.start_handle_discover(clientSocket, clientPacket, sessionKey);
 				} else if( clientPacket.flags.contains(Packet.Flag.Negotiate) ){
-					this.server.start_handle_negotiation(clientSocket, clientPacket, sessionKey);
+					this.server.start_handle_negotiation(clientSocket, clientPacket, sessionKey, 
+							clientIP, clientUsername);
 				} else if( clientPacket.flags.contains(Packet.Flag.Logout) ){
 					this.server.start_handle_logout();
 					break;
