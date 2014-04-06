@@ -81,7 +81,7 @@ public class AuthenticationPayload implements Serializable {
 	 * @param encryptedData encrypted byte array of AuthenticationPayload
 	 * @return the decrypted serialized object
 	 */
-	public void decrypt(PrivateKey privk, byte[] encryptedData){
+	public byte[] decrypt(PrivateKey privk, byte[] encryptedData){
 		try{
 			if (Constants.CRYPTO_OFF)
 			{
@@ -94,23 +94,24 @@ public class AuthenticationPayload implements Serializable {
 				//init signature with private key
 				cipher.init(Cipher.DECRYPT_MODE, privk);
 				//write encrypted bytes to encryptedData since it was passed by reference
-				encryptedData = cipher.doFinal(encryptedData);
+				return cipher.doFinal(encryptedData);
 			}
 		} catch (NoSuchAlgorithmException e){
 			e.printStackTrace();
-			return;
+			return null;
 		} catch (NoSuchPaddingException e){
 			e.printStackTrace();
-			return;
+			return null;
 		} catch (InvalidKeyException e){
 			e.printStackTrace();
-			return;
+			return null;
 		} catch (IllegalBlockSizeException e){
 			e.printStackTrace();
-			return;
+			return null;
 		} catch (BadPaddingException e){
 			e.printStackTrace();
-			return;
+			return null;
 		}
+		return encryptedData;
 	}
 }

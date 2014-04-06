@@ -9,7 +9,6 @@ import java.util.*;
 import javax.crypto.*;
 
 import common.*;
-
 import protocol.*;
 
 /*
@@ -126,8 +125,12 @@ public class Server {
 			if( !common.Constants.CRYPTO_OFF ){
 				//TODO: Jaffe AuthenticationPayload decrypt, etc.
 				//TODO: then deserialize
-				throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+				common.Utils.printByteArr(authenticationPayloadBytes);
+				System.out.println();
+				authenticationPayloadBytes = challengeResponse.authPayload.decrypt(serverPrivK, authenticationPayloadBytes);	
 			}
+			common.Utils.printByteArr(authenticationPayloadBytes);
+			System.out.println();
 			//deserialize to AuthenticationPayload
 			o = common.Utils.deserialize(authenticationPayloadBytes);
 			AuthenticationPayload ap = (AuthenticationPayload) o;
