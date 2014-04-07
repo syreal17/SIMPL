@@ -50,10 +50,13 @@ public class Client {
 	private Socket simplSocket; 		//socket used for communication to server
 	public Socket buddySocket;
 	private InputStream simplStream;
-	private ArrayList<String> clients; 	//contains result of discover
-	private byte[] N; 					//the nonce that we've used and sent to the Server
+	private ArrayList<String> clients; 			//contains result of discover
+	private byte[] N; 							//the nonce that we've used and sent to the Server
 	public PublicKey serverPubK;
 	public byte[] serverSeshKey;
+	private PrivateKey clientAgreementPrivK;	//the PrivateKey used in the KeyAgreement
+	private SecretKey clientSeshKey;			//the result of the KeyAgreement, used as the session key between
+												//two chatting clients
 	
 	//Constructor currently sets nothing up. Defers to other class methods
 	public Client(PublicKey serverPubK){
@@ -214,7 +217,7 @@ public class Client {
 	
 	/**
 	 * This is the only public method of all Client.*negotiate* methods, because this is the only one
-	 * called by CmdLine.
+	 * called by CmdLine. Fortunately, the Server is transparent at these calls.
 	 * Initiates A->B from A
 	 */
 	public void do_negotiate_request(String clientB){
@@ -241,13 +244,6 @@ public class Client {
 	 */
 	private void handle_negotiate_response(){
 		
-	}
-	
-	public void do_negotiate_B(){
-		//TODO: generate DH key pair here
-		//ref: http://docs.oracle.com/javase/7/docs/technotes/guides/security/crypto/CryptoSpec.html#KeyPairGenerator
-		
-		//if we want to talk to A, send packet
 	}
 	
 	/**
@@ -291,6 +287,17 @@ public class Client {
 	public void do_logout(){
 		//TODO: implement
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+	}
+	
+	/**
+	 * Generate the Private/PublicKey pair used in the KeyAgreement
+	 */
+	private void generateKeyPairForKeyAgreement(){
+		
+	}
+	
+	private void findSecretKey(){
+		//TODO: forget PrivateKey here
 	}
 	
 	/**

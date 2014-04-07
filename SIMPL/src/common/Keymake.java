@@ -3,6 +3,7 @@ package common;
 import java.io.*;
 import java.security.*;
 
+//TODO: The carefulness of only generating one set might only really work when Client and Server are on same box
 public class Keymake
 {
 	private static boolean generated = false;
