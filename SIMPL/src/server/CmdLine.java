@@ -1,7 +1,5 @@
 package server;
 
-import java.security.*;
-
 public class CmdLine {
 	
 	public static final String USAGE_MSG = "Usage: java server.CmdLine <port> <path to user db> " +

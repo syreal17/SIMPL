@@ -1,13 +1,8 @@
 package protocol.packet;
 
-import java.net.*;
 import java.security.*;
 import java.util.*;
-
-import protocol.payload.ClientANegotiateRequestPayload;
-import protocol.payload.ClientBNegotiateResponsePayload;
-import protocol.payload.ServerNegotiateRequestPayload;
-import protocol.payload.ServerNegotiateResponsePayload;
+import protocol.payload.*;
 
 public class NegotiatePacket extends Packet  {
 

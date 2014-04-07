@@ -163,7 +163,9 @@ public class ClientHandlerThread extends Thread {
 		}
 		
 		//Leave handle step
-		else if( clientPacket.checkForFlags(LeavePacket.))
+		else if( clientPacket.checkForFlags(LeavePacket.getClientA_ACK()) ){
+			this.handle_leave();
+		}
 		
 		//Logout handle steps
 		else if( clientPacket.checkForFlags(LogoutPacket.getClientLogoutFINFlags()) )
@@ -174,7 +176,7 @@ public class ClientHandlerThread extends Thread {
 			this.do_logout();
 		}
 		
-		//else, weirdness ensued
+		//else, unexpected packet
 		else
 		{
 			System.err.println(Server.UNEXPECTED_CLIENT_PACKET_MSG);

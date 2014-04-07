@@ -6,8 +6,7 @@ import java.security.*;
 import java.security.spec.*;
 import java.util.*;
 
-import protocol.payload.ClientANegotiateRequestPayload;
-import protocol.payload.ServerNegotiateRequestPayload;
+import protocol.payload.*;
 
 import common.*;
 
