@@ -162,6 +162,9 @@ public class ClientHandlerThread extends Thread {
 			this.handle_negotiation_response(clientPacket);
 		}
 		
+		//Leave handle step
+		else if( clientPacket.checkForFlags(LeavePacket.))
+		
 		//Logout handle steps
 		else if( clientPacket.checkForFlags(LogoutPacket.getClientLogoutFINFlags()) )
 		{
@@ -335,30 +338,21 @@ public class ClientHandlerThread extends Thread {
 	}
 	
 	/**
-	 * in a perfect world, might also have a do_leave_ack or something
+	 * in a perfect world, might also have a do_leave_ack or something, analog to do_logout for Logout
 	 */
 	private void handle_leave(){
 		this.chatting = false;
 	}
 	
-	/**
-	 * in a perfect world, might also have a handle_ack or something
-	 */
 	private void start_handle_logout(){
-		//TODO: implement
-		//TODO: sent LogoutFINACK
 		LogoutPacket packet = new LogoutPacket();
 		packet.readyServerLogoutFINACK();
 		packet.go(this.clientSocket);
-		
-		//exit the thread on next 
-		this.running = false;
 	}
 	
 	private void do_logout(){
-		//TODO: implement
-		//TODO: set this.running to false
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		//exit the thread on next loop
+		this.running = false;
 	}
 	
 	public boolean isClientUsernameInitialized(){
