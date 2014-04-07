@@ -1,18 +1,10 @@
 package protocol.payload;
 
-import java.io.*;
 import java.security.*;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
+import common.SimplException;
 
-import common.Constants;
-
-public class ClientBNegotiateResponsePayload implements Serializable {
+public class ClientBNegotiateResponsePayload extends ClientServerSessionPayload {
 
 	private static final long serialVersionUID = -5286488250088205693L;
 
@@ -23,54 +15,15 @@ public class ClientBNegotiateResponsePayload implements Serializable {
 		this.clientB_DHContrib = clientB_DHContrib;
 		this.N = N;
 	}
-	
-	//COPY PASTA!!!!!!!!!!!!
-	public byte[] getSerialization(){
-		try{
-			return common.Utils.serialize(this);
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
+
+	@Override
+	public void copyFrom(Payload template) throws SimplException {
+		if( template instanceof ClientBNegotiateResponsePayload){
+			ClientBNegotiateResponsePayload bnrTemplate = (ClientBNegotiateResponsePayload) template;
+			this.clientB_DHContrib = bnrTemplate.clientB_DHContrib;
+			this.N = bnrTemplate.N;
+		} else {
+			throw new SimplException("Payload template was not a ClientBNegotiateResponsePayload!");
 		}
 	}
-	
-	//COPY PASTA!!!!!!!!!!!!
-	public byte[] encrypt(byte[] seshKey){
-		try{
-			if (Constants.CRYPTO_OFF)
-			{
-				return this.getSerialization();
-			}
-			else
-			{
-				Cipher cipher = Cipher.getInstance(Constants.SYMMETRIC_CRYPTO_MODE);
-				SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
-				cipher.init(Cipher.ENCRYPT_MODE, k);
-				//return encrypted bytes
-				return cipher.doFinal(this.getSerialization());
-			}
-		} catch (NoSuchAlgorithmException e){
-			System.err.println(e.getMessage());
-			e.printStackTrace();
-			return null;
-		} catch (NoSuchPaddingException e){
-			System.err.println(e.getMessage());
-			e.printStackTrace();
-			return null;
-		} catch (InvalidKeyException e){
-			System.err.println(e.getMessage());
-			e.printStackTrace();
-			return null;
-		} catch (IllegalBlockSizeException e){
-			System.err.println(e.getMessage());
-			e.printStackTrace();
-			return null;
-		} catch (BadPaddingException e){
-			System.err.println(e.getMessage());
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
-	//TODO: decrypt
 }
