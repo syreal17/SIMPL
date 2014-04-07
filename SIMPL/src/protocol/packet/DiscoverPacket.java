@@ -1,11 +1,6 @@
 package protocol.packet;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.Set;
-
-import javax.crypto.SecretKey;
+import java.util.*;
 
 import protocol.payload.DiscoverPayload;
 

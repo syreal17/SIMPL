@@ -1,6 +1,5 @@
 package protocol.packet;
 
-import java.nio.ByteBuffer;
 import java.security.*;
 import java.util.*;
 
