@@ -6,6 +6,9 @@ import java.security.*;
 import java.security.spec.*;
 import java.util.*;
 
+import protocol.payload.ClientANegotiateRequestPayload;
+import protocol.payload.ServerNegotiateRequestPayload;
+
 import common.*;
 
 /*
@@ -59,6 +62,41 @@ public class Server {
 	}
 	
 	/**
+	 * Should be called by a CHT wanting to negotiate
+	 * @param clientA_CHT the CHT of the requester.
+	 * @param username the username to request a chat with
+	 * @return true if username can chat, false if username is already chatting
+	 * @throws SimplException if username was not found
+	 */
+//	public boolean request_username_as_wanted(ClientHandlerThread clientA_CHT, ServerNegotiateRequestPayload payload)
+//			throws SimplException{
+//		
+//		//try and find the requested CHT
+//		ClientHandlerThread clientB_CHT = this.findClientThread(payload.wantToUsername);
+//		//check that it was found
+//		if( clientB_CHT == null ){
+//			//if it wasn't, inform callee
+//			throw new SimplException(common.Constants.USERNAME_NOT_FOUND_MSG);
+//		}
+//	}
+	
+	/**
+	 * Find the server's thread that is talking to the client with username
+	 * @param username the username to search for in the ClientHandlerThreads
+	 * @return the thread if found, otherwise, null
+	 */
+	private ClientHandlerThread findClientThread(String username){
+		//search all threads for the thread that is talking to "username"
+		for( ClientHandlerThread cht : this.threads ){
+			if( cht.clientUsername.equals(username)){
+				return cht;
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
 	 * Start the loop for the Server to accept multiple Client connections, and spin off ClientHandlerThreads
 	 */
 	public void start_listener_loop(){
@@ -74,6 +112,22 @@ public class Server {
 				this.threads.add(cht);
 			}
 		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		}
+	}
+	
+	/**
+	 * This is really, quite non-functional now since the main thread spins in start_listener_loop without
+	 * possibility of this method getting called.
+	 */
+	public void stop(){
+		try{
+			//TODO: good idea to save users here, but may want to do it somewhere that actually gets called
+			this.save_users();
+			this.running = false;
+		} catch (SimplException e){
+			System.err.println(e.getMessage());
 			e.printStackTrace();
 			return;
 		}
@@ -201,21 +255,5 @@ public class Server {
 	
 	public ClientHandler getClientHandler(){
 		return this.clientHandler;
-	}
-	
-	/**
-	 * This is really, quite non-functional now since the main thread spins in start_listener_loop without
-	 * possibility of this method getting called.
-	 */
-	public void stop(){
-		try{
-			//TODO: good idea to save users here, but may want to do it somewhere that actually gets called
-			this.save_users();
-			this.running = false;
-		} catch (SimplException e){
-			System.err.println(e.getMessage());
-			e.printStackTrace();
-			return;
-		}
 	}
 }

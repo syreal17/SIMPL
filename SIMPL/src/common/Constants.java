@@ -31,6 +31,7 @@ public class Constants {
 	public static final String INVALID_ARG_NUM = "Invalid number of arguments!";
 	public static final String INVALID_SERVERNAME = "Not a valid server name!";
 	public static final String INVALID_PORTNUM = "Not a valid port number!";
+	public static final String USERNAME_NOT_FOUND_MSG = "That username was not found!";
 	
 	//CONSTANTS OF FAITH
 	public final static int MAX_EXPECTED_PACKET_SIZE = 65536;

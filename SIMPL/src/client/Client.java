@@ -64,6 +64,21 @@ public class Client {
 	}
 	
 	/**
+	 * analog to ClientHandlerThread.enterClientHandleLoop
+	 */
+	private void enterClientChatLoop(){
+		
+	}
+	
+	/**
+	 * analog to CLientHandlerThread.handlePacket
+	 * @param buddyPacket
+	 */
+	private void handlePacket(Packet buddyPacket){
+		
+	}
+	
+	/**
 	 * Login to the SIMPL Server
 	 * @param serverName the host name or ip string to connect to
 	 * @param port the port number that the server is listening for SIMPL on
@@ -197,13 +212,35 @@ public class Client {
 		}
 	}
 	
-	public void do_negotiate_A(){
+	/**
+	 * This is the only public method of all Client.*negotiate* methods, because this is the only one
+	 * called by CmdLine.
+	 * Initiates A->B from A
+	 */
+	public void do_negotiate_request(String clientB){
 		//TODO: generate DH key pair here
 		//ref: http://docs.oracle.com/javase/7/docs/technotes/guides/security/crypto/CryptoSpec.html#KeyPairGenerator
+	}
+	
+	/**
+	 * Handles A->B at B
+	 */
+	private void handle_negotiate_request(){
 		
-		//get user input, who does client want to talk to
+	}
+	
+	/**
+	 * Continues with negotiation by responding B->A from B
+	 */
+	private void do_negotiate_response(){
 		
-		//send first packet to server
+	}
+	
+	/**
+	 * finishes negotiation by handling B->A at A
+	 */
+	private void handle_negotiate_response(){
+		
 	}
 	
 	public void do_negotiate_B(){
@@ -214,8 +251,6 @@ public class Client {
 	}
 	
 	/**
-	 * If, Client has no Buddy, negotiate Buddy (peer SIMPL client) with Server and then,
-	 * or otherwise, just send chat message to Buddy
 	 * @param message message to send chat buddy
 	 * @return success or failure
 	 */
@@ -225,10 +260,26 @@ public class Client {
 	}
 	
 	/**
+	 * Handle being the recipient of a Chat message, not the sender, as do_chat does.
+	 */
+	public void handle_chat(){
+		//TODO: implement
+		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+	}
+	
+	/**
 	 * Leave the chat conversation with Buddy
 	 * @return
 	 */
 	public void do_leave(){
+		//TODO: implement
+		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+	}
+	
+	/**
+	 * Handle being the recipient of a Leave message, not the sender, as d0_leave does.
+	 */
+	public void handle_leave(){
 		//TODO: implement
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}

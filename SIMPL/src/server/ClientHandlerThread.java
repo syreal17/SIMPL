@@ -8,8 +8,11 @@ import java.util.*;
 import protocol.*;
 import protocol.packet.DiscoverPacket;
 import protocol.packet.LoginPacket;
+import protocol.packet.LogoutPacket;
+import protocol.packet.NegotiatePacket;
 import protocol.packet.Packet;
 import protocol.payload.AuthenticationPayload;
+import protocol.payload.ServerNegotiateRequestPayload;
 
 /*
  * An actual FSM implementation, which might be interesting and extreme over-engineering:
@@ -17,15 +20,18 @@ import protocol.payload.AuthenticationPayload;
  */
 public class ClientHandlerThread extends Thread {
 	
+	private boolean running; //to control when thread should exit
 	private Server server;
 	private PrivateKey serverPrivK;
 	private Socket clientSocket;
-	private InetAddress clientIP;
+	public InetAddress clientIP;
 	private InputStream clientStream;
 	private byte[] R_2;
-	private String clientUsername;
+	public String clientUsername;
 	private byte[] sessionKey;
 
+	//indicating whether this thread's client is already chatting
+	public boolean chatting;
 	//these fields the Server will manipulate when a different ClientHandlerThread wants to talk to this one's Client
 	public boolean wanted;
 	public String usernameToTalkWith;
@@ -34,6 +40,7 @@ public class ClientHandlerThread extends Thread {
 	@Override
 	public void run() {
 		try{
+			this.chatting = false;
 			this.wanted = false;
 			this.usernameToTalkWith = null;
 			this.ipToTalkWith = null;
@@ -51,7 +58,7 @@ public class ClientHandlerThread extends Thread {
 			
 			while(true){
 				//
-				this.checkForNegotiations();
+				this.checkForAsyncNegotiationRequests();
 				//the client handle loop is going to return because of SocketTimeoutExceptions fairly frequently.
 				this.enterClientHandleLoop();
 			}
@@ -61,10 +68,20 @@ public class ClientHandlerThread extends Thread {
 		}
 	}
 	
-	private void checkForNegotiations(){
+	private void checkForAsyncNegotiationRequests(){
 		//TODO: check my wanted variable
 		//
 	}
+	
+	/**
+	 * 
+	 * @param requestor_CHT the requesting thread
+	 * @param payload the information that 
+	 * @return
+	 */
+//	public boolean mark_as_wanted(ClientHandlerThread requestor_CHT, ServerNegotiateRequestPayload payload){
+//		
+//	}
 	
 	//ltj: One way of more robustly doing this is setting an ArrayList<EnumSet<Flag>> Expected so the Server can report
 	//		unexpected packets from the Client. That would be fairly hefty, so we will just be assuming that the Client
@@ -76,7 +93,7 @@ public class ClientHandlerThread extends Thread {
 	private void enterClientHandleLoop(){
 		Object o;
 		
-		while( true ){
+		while( this.running ){
 			try{
 				byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
 				//wait for data from client for common.Constants.SO_TIMEOUT ms, then throw SocketTimeoutException
@@ -109,37 +126,43 @@ public class ClientHandlerThread extends Thread {
 		if( clientPacket.checkForFlags(LoginPacket.getClientLoginRequestFlags()) )
 		{
 			this.handle_login_request();
-		} else if( clientPacket.checkForFlags(LoginPacket.getClientLoginChallengeResponseFlags())){
+		} else if( clientPacket.checkForFlags(LoginPacket.getClientLoginChallengeResponseFlags()))
+		{
 			this.handle_login_challenge_response(clientPacket);
 		}
 		
 		//Discover step
-		else if( clientPacket.flags.contains(Packet.Flag.Discover) )
+		else if( clientPacket.checkForFlags(DiscoverPacket.getClientDiscoverRequestFlags()) )
 		{
 			this.handle_discover();
 		} 
 		
 		//Negotiate steps
-		else if( clientPacket.flags.contains(Packet.Flag.Negotiate) )
+		else if( clientPacket.checkForFlags(NegotiatePacket.getNegotiateRequestFlags()) )
 		{
-			this.start_handle_negotiation();
+			this.handle_negotiation_request();
+		} else if( clientPacket.checkForFlags(NegotiatePacket.getNegotiateOkResponseFlags()) )
+		{
+			this.handle_negotiation_response();
 		}
 		
 		//Logout steps
-		else if( clientPacket.flags.contains(Packet.Flag.Logout) )
+		else if( clientPacket.checkForFlags(LogoutPacket.getClientLogoutFINFlags()) )
 		{
 			this.start_handle_logout();
-			//break;
+		} else if( clientPacket.checkForFlags(LogoutPacket.getClientLogoutACKFlags()) )
+		{
+			this.do_logout();
 		}
 		
-		//weirdness ensued
+		//else, weirdness ensued
 		else
 		{
 			System.err.println(Server.UNEXPECTED_CLIENT_PACKET_MSG);
 		}
 	}
 	
-	public void handle_login_request(){
+	private void handle_login_request(){
 		//ready the challenge for the client and send
 		LoginPacket serverChallenge = new LoginPacket();
 		//remember R_2 so we can check the challengeResponse
@@ -147,7 +170,7 @@ public class ClientHandlerThread extends Thread {
 		serverChallenge.go(this.clientSocket);
 	}
 	
-	public String handle_login_challenge_response(Packet clientPacket){
+	private String handle_login_challenge_response(Packet clientPacket){
 		try{
 			Object o;
 			
@@ -195,7 +218,7 @@ public class ClientHandlerThread extends Thread {
 		}
 	}
 	
-	public void handle_discover(){
+	private void handle_discover(){
 		//Build the initial packet and send it
 		DiscoverPacket discoverResponse = new DiscoverPacket();
 		discoverResponse.readyServerDiscoverResponse(this.server.userDB.keySet(), sessionKey);
@@ -203,14 +226,26 @@ public class ClientHandlerThread extends Thread {
 		discoverResponse.go(clientSocket);
 	}
 	
-	public void start_handle_negotiation(){
+	private void handle_negotiation_request(){
 		//TODO: implement
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 
 	}
 	
-	public void start_handle_logout(){
+	private void handle_negotiation_response(){
 		//TODO: implement
+		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+	}
+	
+	private void start_handle_logout(){
+		//TODO: implement
+		//TODO: sent LogoutFINACK
+		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+	}
+	
+	private void do_logout(){
+		//TODO: implement
+		//TODO: set this.running to false
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	

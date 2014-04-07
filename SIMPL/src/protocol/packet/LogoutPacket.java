@@ -3,7 +3,13 @@ package protocol.packet;
 import java.util.EnumSet;
 
 
-
+/**
+ * I think this is currently vulnerable to TCP hijacking to do a denial of service
+ * To fix it, we would have to:
+ * 		1. Encrypt and decrypt these packets
+ * 		2. Ensure that encrypted LogoutPackets look different every time they are encrypted
+ *
+ */
 public class LogoutPacket extends Packet {
 
 	private static final long serialVersionUID = -5843876932465216286L;
@@ -45,21 +51,33 @@ public class LogoutPacket extends Packet {
 	 * Client logout FIN flag set
 	 */
 	private void setClientLogoutFINFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Logout, Packet.Flag.Finished);
+		this.flags = LogoutPacket.getClientLogoutFINFlags();
+	}
+	
+	public static EnumSet<Flag> getClientLogoutFINFlags(){
+		return EnumSet.of(Packet.Flag.Logout, Packet.Flag.Finished);
 	}
 	
 	/**
 	 * Server logout FIN/ACK flag set
 	 */
 	private void setServerLogoutFINACKFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Logout, Packet.Flag.Finished, Packet.Flag.Acknowledgement);
+		this.flags = LogoutPacket.getServerLogoutFINACKFlags();
+	}
+	
+	public static EnumSet<Flag> getServerLogoutFINACKFlags(){
+		return EnumSet.of(Packet.Flag.Logout, Packet.Flag.Finished, Packet.Flag.Acknowledgement);
 	}
 	
 	/**
 	 * Client logout ACK flag set
 	 */
 	private void setClientLogoutACKFlags(){
-		this.flags = EnumSet.of(Packet.Flag.Logout, Packet.Flag.Acknowledgement);
+		this.flags = LogoutPacket.getClientLogoutACKFlags();
+	}
+	
+	public static EnumSet<Flag> getClientLogoutACKFlags(){
+		return EnumSet.of(Packet.Flag.Logout, Packet.Flag.Acknowledgement);
 	}
 	
 }
