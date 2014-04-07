@@ -37,7 +37,7 @@ public class CmdLine {
 											"/help\t\t\t: Print this dialog\n";
 	
 	public static final String COMMAND_TOKEN_WHO = "who";
-	public static final String COMMAND_TOKEN_CHAT= "chat";
+	public static final String COMMAND_TOKEN_GREET= "chat";
 	public static final String COMMAND_TOKEN_LEAVE = "leave";
 	public static final String COMMAND_TOKEN_QUIT = "quit";
 	public static final String COMMAND_TOKEN_HELP = "help";
@@ -123,8 +123,16 @@ public class CmdLine {
 	/**
 	 * Starts a chat with another SIMPL client
 	 */
+	public static void greet_command(String msg){
+		System.out.println("Greeting this mafaka...");
+		return;
+	}
+	
+	/**
+	 * Sends chat message to the connected client
+	 */
 	public static void chat_command(String msg){
-		System.out.println("Need to parse following tokens...");
+		System.out.println("Chat this mafaka...");
 		return;
 	}
 	
@@ -160,8 +168,7 @@ public class CmdLine {
 		//TODO: implement
 		//TODO: parse out first word of user input string, 
 		//		if a command, do command, if not, try to send as message
-		new ClientListenerThread(client.buddySocket);
-		new UserInputThread(client.buddySocket, client.username);
+		new UserInputThread(client.username);
 	}
 	
 	public static boolean check_user(String username)

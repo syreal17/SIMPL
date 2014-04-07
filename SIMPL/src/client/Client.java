@@ -12,7 +12,6 @@ import java.util.*;
 import javax.crypto.*;
 
 import common.*;
-
 import protocol.packet.*;
 import protocol.payload.*;
 
@@ -71,7 +70,26 @@ public class Client {
 	 * analog to ClientHandlerThread.enterClientHandleLoop
 	 */
 	private void enterClientChatLoop(){
-		
+		try 
+		(
+            BufferedReader in = new BufferedReader(new InputStreamReader(buddySocket.getInputStream()));
+        ) 
+		{
+			String buffer1 = "tmp";
+			String buffer2 = "tmp";
+			while (true)
+			{
+				if ((buffer2 = in.readLine()) != buffer1)
+				{
+					System.out.println(buffer2);
+					buffer1 = buffer2;
+				}
+			}
+        } 
+		catch (IOException e) 
+		{
+            e.printStackTrace();
+        }
 	}
 	
 	/**

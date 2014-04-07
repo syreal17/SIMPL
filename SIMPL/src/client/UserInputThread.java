@@ -7,7 +7,6 @@ package client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Arrays;
 
@@ -17,9 +16,8 @@ public class UserInputThread implements Runnable {
 	String username;
 	boolean chatting;
 	
-	UserInputThread(Socket buddySocket, String username)
+	UserInputThread(String username)
 	{
-		this.buddySocket = buddySocket;
 		this.username = username;
 		this.chatting = false;
 	}
@@ -29,7 +27,6 @@ public class UserInputThread implements Runnable {
 		// TODO Auto-generated method stub
 		try 
 		(
-            PrintWriter out = new PrintWriter(this.buddySocket.getOutputStream(), true);
             BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in))
 		)
 		{
@@ -39,11 +36,16 @@ public class UserInputThread implements Runnable {
 			{
 				String[] words = userInput.split(" ");
 				switch (words[0])
-				{
+				{ 
 					case client.CmdLine.COMMAND_TOKEN_WHO:
 						CmdLine.who_command();
 						break;
-					case client.CmdLine.COMMAND_TOKEN_CHAT:
+					case client.CmdLine.COMMAND_TOKEN_GREET:
+						if (words.length < 2) 
+						{
+							System.out.println("Please specify a username.");
+							break;
+						}
 						//check to see if the second token is a valid username
 						if (CmdLine.check_user(words[1]))
 						{
@@ -64,7 +66,7 @@ public class UserInputThread implements Runnable {
 							message = "You have connected to client: " + this.username;
 						}
 						//send the first message to the chat_command, who will ship it off
-						CmdLine.chat_command(message);
+						CmdLine.greet_command(message);
 						this.chatting = true;
 						break;
 					case client.CmdLine.COMMAND_TOKEN_LEAVE:
@@ -81,7 +83,7 @@ public class UserInputThread implements Runnable {
 						//if currently chatting with another user
 						if (this.chatting)
 						{
-							out.println(userInput);
+							CmdLine.chat_command(userInput);
 						}
 						break;
 				}	
