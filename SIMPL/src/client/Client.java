@@ -9,13 +9,10 @@ import java.net.*;
 import java.security.*;
 import java.util.*;
 
-import javax.crypto.SecretKey;
+import javax.crypto.*;
 
-import protocol.*;
-import protocol.packet.DiscoverPacket;
-import protocol.packet.LoginPacket;
-import protocol.packet.Packet;
-import protocol.payload.ChallengePayload;
+import protocol.packet.*;
+import protocol.payload.*;
 
 /*Resources:
  * _SINGLETON DESIGN PATTERN_
@@ -47,14 +44,14 @@ public class Client {
 	private static String LOGIN_VERIFY_FAIL = "The \"server\" is evil! Punting!";
 	private static String LOGIN_CATCHEMALL = "If you are seeing this, I am wrong: Gotta catch-em-all!";
 	
-	private Socket simplSocket; 		//socket used for communication to server
+	private Socket simplSocket; 				//socket used for communication to server
 	public Socket buddySocket;
 	private InputStream simplStream;
 	private ArrayList<String> clients; 			//contains result of discover
 	private byte[] N; 							//the nonce that we've used and sent to the Server
 	public PublicKey serverPubK;
 	public byte[] serverSeshKey;
-	private PrivateKey clientAgreementPrivK;	//the PrivateKey used in the KeyAgreement
+	private KeyPair clientAgreementKeyPair;		//the PrivateKey used in the KeyAgreement
 	private SecretKey clientSeshKey;			//the result of the KeyAgreement, used as the session key between
 												//two chatting clients
 	
@@ -293,11 +290,16 @@ public class Client {
 	 * Generate the Private/PublicKey pair used in the KeyAgreement
 	 */
 	private void generateKeyPairForKeyAgreement(){
-		
+		try{
+			KeyPairGenerator kpg = KeyPairGenerator.getInstance(common.Constants.KEY_AGREEMENT_ALGORITHM);
+			kpg.initialize(common.Constants.KEY_AGREEMENT_KEY_SIZE);
+		} catch (NoSuchAlgorithmException e){
+			System.err.println(e.getMessage());
+		}
 	}
 	
 	private void findSecretKey(){
-		//TODO: forget PrivateKey here
+		//TODO: forget KeyPair here
 	}
 	
 	/**
