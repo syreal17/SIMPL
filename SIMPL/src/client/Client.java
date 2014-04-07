@@ -78,6 +78,7 @@ public class Client {
 		
 	}
 	
+	//TODO: this should probably be made like the ClientHandlerThread
 	/**
 	 * Login to the SIMPL Server
 	 * @param serverName the host name or ip string to connect to
@@ -97,7 +98,6 @@ public class Client {
 			loginRequest.readyClientLoginRequest();
 			loginRequest.go(this.simplSocket);
 			
-			//TODO: check flags? or just rely on FSM?
 			//Get challenge packet
 			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
 			int count = this.simplStream.read(recv);
@@ -127,7 +127,6 @@ public class Client {
 			
 			//Start constructing the response packet.
 			LoginPacket challengeResponse = new LoginPacket();
-			//TODO: figure out why the R_1 = R_1 line is needed
 			challengeResponse.R_1 = serverChallenge.R_1;
 			challengeResponse.challengePayload = cp;
 			//TODO: actually get user input here
@@ -165,12 +164,15 @@ public class Client {
 				return Client.LOGIN_UNDEFINED_MSG;
 			}
 		} catch (IOException e){
+			System.err.println(e.getMessage());
 			e.printStackTrace();
 			return e.getMessage();
 		} catch (ClassNotFoundException e){
+			System.err.println(e.getMessage());
 			e.printStackTrace();
 			return e.getMessage();
 		} catch (NoSuchAlgorithmException e){
+			System.err.println(e.getMessage());
 			e.printStackTrace();
 			return e.getMessage();
 		}
@@ -205,10 +207,13 @@ public class Client {
 		System.out.println("Client: do_discover2");
 		
 		} catch (IOException e){
+			System.err.println(e.getMessage());
 			e.printStackTrace();
+			return;
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
+			System.err.println(e.getMessage());
 			e.printStackTrace();
+			return;
 		}
 	}
 	
@@ -293,12 +298,15 @@ public class Client {
 		try{
 			KeyPairGenerator kpg = KeyPairGenerator.getInstance(common.Constants.KEY_AGREEMENT_ALGORITHM);
 			kpg.initialize(common.Constants.KEY_AGREEMENT_KEY_SIZE);
+			this.clientAgreementKeyPair = kpg.genKeyPair();
 		} catch (NoSuchAlgorithmException e){
 			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
 		}
 	}
 	
-	private void findSecretKey(){
+	private void findSecretKey(PublicKey buddyPublicKey){
 		//TODO: forget KeyPair here
 	}
 	
