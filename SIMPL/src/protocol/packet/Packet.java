@@ -27,8 +27,7 @@ public abstract class Packet implements Serializable {
 	public static enum Flag{
 		Login, Discover, Negotiate, Chat, Leave, Logout,	//SIMPL types 	
 		Syncronization, Acknowledgement, Finished,			//more typical flags
-		Encrypted, Signed,									//cryptography flags
-		Ok, Deny											//Login Response
+		Ok, Deny, Nonexistant								//Login Responses and Negotiate Responses
 	}
 	
 	public byte[] crypto_data;

@@ -9,6 +9,9 @@ import java.util.EnumSet;
  * 		1. Encrypt and decrypt these packets
  * 		2. Ensure that encrypted LogoutPackets look different every time they are encrypted
  *
+ * Reference
+ * 		http://www.techrepublic.com/article/tcp-hijacking/
+ * 
  */
 public class LogoutPacket extends Packet {
 

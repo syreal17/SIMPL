@@ -68,17 +68,20 @@ public class Server {
 	 * @return true if username can chat, false if username is already chatting
 	 * @throws SimplException if username was not found
 	 */
-//	public boolean request_username_as_wanted(ClientHandlerThread clientA_CHT, ServerNegotiateRequestPayload payload)
-//			throws SimplException{
-//		
-//		//try and find the requested CHT
-//		ClientHandlerThread clientB_CHT = this.findClientThread(payload.wantToUsername);
-//		//check that it was found
-//		if( clientB_CHT == null ){
-//			//if it wasn't, inform callee
-//			throw new SimplException(common.Constants.USERNAME_NOT_FOUND_MSG);
-//		}
-//	}
+	public boolean request_username_as_wanted(ClientHandlerThread clientA_CHT, String clientB_Username,
+			ServerNegotiateRequestPayload payload) throws SimplException{
+		//try and find the requested CHT
+		ClientHandlerThread clientB_CHT = this.findClientThread(clientB_Username);
+		//check that it was found
+		if( clientB_CHT == null ){
+			//if it wasn't, inform callee
+			throw new SimplException(common.Constants.USERNAME_NOT_FOUND_MSG);
+		}
+		
+		//Try to set thread up to process NegotiationRequest on next cycle. This call does the check to see
+		//if clientB is already chatting. This method itself will return whether or not clientB was free
+		return clientB_CHT.mark_as_wanted(clientA_CHT, payload);	
+	}
 	
 	/**
 	 * Find the server's thread that is talking to the client with username
@@ -204,6 +207,7 @@ public class Server {
 		} else {
 			//TODO: implement
 			//punting on this right now because it's not critical
+			//run-time adding users to userDB *IS* critical
 			throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 		}
 	}
@@ -237,6 +241,7 @@ public class Server {
 	 * @param suppliedPwHash the pwhash that was supplied by the user
 	 * @return is user verified or not, if user was added to DB, also true
 	 */
+	//TODO: rename to indicate adding of user to DB sometimes
 	public boolean verify_user(String username, byte[] suppliedPwHash){
 		if( common.Constants.CRYPTO_OFF ){
 			return true;

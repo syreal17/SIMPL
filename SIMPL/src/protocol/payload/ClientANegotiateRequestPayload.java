@@ -17,6 +17,8 @@ public class ClientANegotiateRequestPayload extends ClientServerSessionPayload {
 		this.N = N;
 	}
 	
+	public ClientANegotiateRequestPayload(){}
+	
 	@Override
 	public void copyFrom(Payload template) throws SimplException {
 		if( template instanceof ClientANegotiateRequestPayload){

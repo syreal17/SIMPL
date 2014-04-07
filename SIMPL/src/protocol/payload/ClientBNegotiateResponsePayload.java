@@ -15,6 +15,8 @@ public class ClientBNegotiateResponsePayload extends ClientServerSessionPayload 
 		this.clientB_DHContrib = clientB_DHContrib;
 		this.N = N;
 	}
+	
+	public ClientBNegotiateResponsePayload(){}
 
 	@Override
 	public void copyFrom(Payload template) throws SimplException {

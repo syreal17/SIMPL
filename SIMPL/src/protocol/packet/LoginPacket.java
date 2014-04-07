@@ -195,12 +195,6 @@ public class LoginPacket extends Packet {
 			throw new UnsupportedOperationException("Challenge Payload must exist before preparing Client response");
 		}
 		
-		/* Punting this to Client.java do_login. Easier to uncrypto and construct ChallengePayload there
-		//verify the ChallengePayload
-		if( !this.challengePayload.verify(pubk, this.crypto_data) ){
-			System.out.println(client.CmdLine.INVALID_CHALLENGE_SIG);
-			return;
-		}*/
 		//find R_2, given a ChallengePayload
 		this.findR_2();
 		

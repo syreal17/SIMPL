@@ -5,14 +5,10 @@ import java.net.*;
 import java.security.*;
 import java.util.*;
 
-import protocol.*;
-import protocol.packet.DiscoverPacket;
-import protocol.packet.LoginPacket;
-import protocol.packet.LogoutPacket;
-import protocol.packet.NegotiatePacket;
-import protocol.packet.Packet;
-import protocol.payload.AuthenticationPayload;
-import protocol.payload.ServerNegotiateRequestPayload;
+import common.*;
+
+import protocol.packet.*;
+import protocol.payload.*;
 
 /*
  * An actual FSM implementation, which might be interesting and extreme over-engineering:
@@ -20,7 +16,8 @@ import protocol.payload.ServerNegotiateRequestPayload;
  */
 public class ClientHandlerThread extends Thread {
 	
-	private boolean running; //to control when thread should exit
+	private boolean chatting; 	//indicating whether this thread's client is already chatting
+	private boolean running; 	//to control when thread should exit
 	private Server server;
 	private PrivateKey serverPrivK;
 	private Socket clientSocket;
@@ -30,20 +27,18 @@ public class ClientHandlerThread extends Thread {
 	public String clientUsername;
 	private byte[] sessionKey;
 
-	//indicating whether this thread's client is already chatting
-	public boolean chatting;
 	//these fields the Server will manipulate when a different ClientHandlerThread wants to talk to this one's Client
 	public boolean wanted;
-	public String usernameToTalkWith;
-	public InetAddress ipToTalkWith;
+	public ServerNegotiateRequestPayload requestPayload;
+	public ServerNegotiateResponsePayload responsePayload;
+	public ClientHandlerThread requestor_CHT;
 	
 	@Override
 	public void run() {
 		try{
 			this.chatting = false;
 			this.wanted = false;
-			this.usernameToTalkWith = null;
-			this.ipToTalkWith = null;
+			this.running = true;
 			
 			//remember some variables for thread lifetime
 			this.server = CmdLine.server;
@@ -54,9 +49,8 @@ public class ClientHandlerThread extends Thread {
 			this.clientIP = this.clientSocket.getInetAddress();
 			this.clientStream = this.clientSocket.getInputStream();
 			this.R_2 = new byte[protocol.packet.LoginPacket.R_2_size];
-			this.clientUsername = null;
 			
-			while(true){
+			while( this.running ){
 				//
 				this.checkForAsyncNegotiationRequests();
 				//the client handle loop is going to return because of SocketTimeoutExceptions fairly frequently.
@@ -68,20 +62,37 @@ public class ClientHandlerThread extends Thread {
 		}
 	}
 	
+	/**
+	 * Checks to see if any other CHTs have requested this CHT for a chat. If they have, it passes on the
+	 * negotiation request payload
+	 */
 	private void checkForAsyncNegotiationRequests(){
-		//TODO: check my wanted variable
-		//
+		if( this.wanted ){
+			this.wanted = false;
+			this.do_negotiation_request();
+		}
 	}
 	
 	/**
 	 * 
 	 * @param requestor_CHT the requesting thread
 	 * @param payload the information that 
-	 * @return
+	 * @return true if client was free to chat, false if client was already chatting
 	 */
-//	public boolean mark_as_wanted(ClientHandlerThread requestor_CHT, ServerNegotiateRequestPayload payload){
-//		
-//	}
+	public boolean mark_as_wanted(ClientHandlerThread requestor_CHT, ServerNegotiateRequestPayload payload){
+		
+		if( !this.chatting ){
+			this.chatting = true; 	//ltj: it might be jumping the gun a little bit to set chatting as true here
+									//		but probably just semantically, not functionally
+			this.wanted = true;
+			this.requestor_CHT = requestor_CHT;
+			this.requestPayload = payload;
+			return true;
+		} else {
+			return false;
+		}
+		
+	}
 	
 	//ltj: One way of more robustly doing this is setting an ArrayList<EnumSet<Flag>> Expected so the Server can report
 	//		unexpected packets from the Client. That would be fairly hefty, so we will just be assuming that the Client
@@ -93,6 +104,10 @@ public class ClientHandlerThread extends Thread {
 	private void enterClientHandleLoop(){
 		Object o;
 		
+		//ltj: 	on second thought, this maybe shouldn't be in a loop, because then we are relying on 
+		// 		SocketTimeoutExceptions to go look for asynchronous negotiation request, although, on
+		//		third thought, this could be perfect if the timeout value is just right so that other 
+		//		communication exchanges aren't killed by a timeout and interrupted by a negotiation.
 		while( this.running ){
 			try{
 				byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
@@ -109,7 +124,8 @@ public class ClientHandlerThread extends Thread {
 				this.handlePacket(clientPacket);
 				
 			} catch (SocketTimeoutException e){
-				//do nothing if the socket times out. Just return to the run function body
+				//do nothing if the socket times out. Just return to the run() function body
+				//this is how we check for negotiation requests
 				return;
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -122,7 +138,7 @@ public class ClientHandlerThread extends Thread {
 	}
 	
 	private void handlePacket(Packet clientPacket){
-		//Login steps
+		//Login handle steps
 		if( clientPacket.checkForFlags(LoginPacket.getClientLoginRequestFlags()) )
 		{
 			this.handle_login_request();
@@ -131,22 +147,22 @@ public class ClientHandlerThread extends Thread {
 			this.handle_login_challenge_response(clientPacket);
 		}
 		
-		//Discover step
+		//Discover handle step
 		else if( clientPacket.checkForFlags(DiscoverPacket.getClientDiscoverRequestFlags()) )
 		{
 			this.handle_discover();
 		} 
 		
-		//Negotiate steps
+		//Negotiate handle steps
 		else if( clientPacket.checkForFlags(NegotiatePacket.getNegotiateRequestFlags()) )
 		{
-			this.handle_negotiation_request();
+			this.handle_negotiation_request(clientPacket);
 		} else if( clientPacket.checkForFlags(NegotiatePacket.getNegotiateOkResponseFlags()) )
 		{
-			this.handle_negotiation_response();
+			this.handle_negotiation_response(clientPacket);
 		}
 		
-		//Logout steps
+		//Logout handle steps
 		else if( clientPacket.checkForFlags(LogoutPacket.getClientLogoutFINFlags()) )
 		{
 			this.start_handle_logout();
@@ -226,21 +242,117 @@ public class ClientHandlerThread extends Thread {
 		discoverResponse.go(clientSocket);
 	}
 	
-	private void handle_negotiation_request(){
-		//TODO: implement
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
-
+	/**
+	 * Handles A->B request from A at Server:CHT_A
+	 * 
+	 * Alerts CHT_B to do_negotiation_request next time it gets a chance
+	 */
+	private void handle_negotiation_request(Packet clientPacket){
+		try{
+			NegotiatePacket clientANegotiatePacket = (NegotiatePacket) clientPacket;
+			
+			//get the payload from A's packet
+			ClientANegotiateRequestPayload clientReqPayload = 
+					clientANegotiatePacket.getClientARequestPayload(this.sessionKey);
+			//create the payload for B
+			ServerNegotiateRequestPayload serverReqPayload = new ServerNegotiateRequestPayload(this.clientUsername,
+					this.clientIP, clientReqPayload.clientA_DHContrib, clientReqPayload.N);
+			//try to request the buddy
+			boolean clientWasFreeToChat = this.server.request_username_as_wanted(this, 
+					clientReqPayload.clientB_Username, serverReqPayload);
+			
+			if( !clientWasFreeToChat ){
+				this.do_negotiation_deny();
+				return;
+			}
+			
+			//if client was indeed free to chat, we now wait for B's ClientHandlerThread to forward the request to B.
+			//CHT_B calls CHT_A's do_negotiation_response when it receives B's response
+		} catch (SimplException e){
+			this.do_negotiation_nonexistant();
+			return;
+		}
 	}
 	
-	private void handle_negotiation_response(){
-		//TODO: implement
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+	/**
+	 * Does A->B request from Server:CHT_B on behalf of A, to B
+	 */
+	private void do_negotiation_request(){
+		NegotiatePacket packet = new NegotiatePacket();
+		packet.readyServerNegotiateRequest(sessionKey, this.requestPayload);
+		packet.go(this.clientSocket);
 	}
 	
+	/**
+	 * Server:CHT_A tells A that B was busy
+	 */
+	private void do_negotiation_deny(){
+		NegotiatePacket packet = new NegotiatePacket();
+		packet.readyServerNegotiateDenyResponse();
+		packet.go(this.clientSocket);
+	}
+	
+	/**
+	 * Server:CHT_A tells A that B didn't exist
+	 */
+	private void do_negotiation_nonexistant(){
+		NegotiatePacket packet = new NegotiatePacket();
+		packet.readyServerNegotiateNonexistantResponse();
+		packet.go(this.clientSocket);
+	}
+	
+	/**
+	 * Handles B->A response from B to Server:CHT_B
+	 */
+	private void handle_negotiation_response(Packet clientPacket){
+		NegotiatePacket clientBResponsePacket = (NegotiatePacket) clientPacket;
+		
+		//Get the payload from Client B's response
+		ClientBNegotiateResponsePayload clientRespPayload = clientBResponsePacket.getClientBResponsePayload(
+				this.sessionKey);
+		
+		//Create the server response payload for ClientA
+		ServerNegotiateResponsePayload serverRespPayload = new ServerNegotiateResponsePayload(this.clientIP, 
+				clientRespPayload.clientB_DHContrib, clientRespPayload.N);
+		
+		//stuff the server response into CHT_A's field
+		this.requestor_CHT.responsePayload = serverRespPayload;
+		
+		//tell CHT_A to send the response (this is really weird since it's another thread's execution calling a
+		//method on the other thread object)
+		this.requestor_CHT.do_negotiation_response();
+	}
+	
+	/**
+	 * Does B->A response from Server:CHT_A on behalf of B to A
+	 * Should be called by CHT_B once it has processed B's negotiation response.
+	 * Will this work? Maybe. It's not threadsafe, it's threadscary.
+	 */
+	private void do_negotiation_response(){
+		NegotiatePacket packet = new NegotiatePacket();
+		packet.readyServerNegotiateResponse(sessionKey, this.responsePayload);
+		packet.go(this.clientSocket);
+	}
+	
+	/**
+	 * in a perfect world, might also have a do_leave_ack or something
+	 */
+	private void handle_leave(){
+		this.chatting = false;
+	}
+	
+	/**
+	 * in a perfect world, might also have a handle_ack or something
+	 */
 	private void start_handle_logout(){
 		//TODO: implement
 		//TODO: sent LogoutFINACK
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		LogoutPacket packet = new LogoutPacket();
+		packet.readyServerLogoutFINACK();
+		packet.go(this.clientSocket);
+		
+		//exit the thread on next 
+		this.running = false;
 	}
 	
 	private void do_logout(){
@@ -249,10 +361,6 @@ public class ClientHandlerThread extends Thread {
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
-	/**
-	 * 
-	 * @return
-	 */
 	public boolean isClientUsernameInitialized(){
 		if( this.clientUsername == null ){
 			return false;
