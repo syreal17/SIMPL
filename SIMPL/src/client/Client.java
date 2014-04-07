@@ -44,6 +44,8 @@ public class Client {
 	private static String LOGIN_VERIFY_FAIL = "The \"server\" is evil! Punting!";
 	private static String LOGIN_CATCHEMALL = "If you are seeing this, I am wrong: Gotta catch-em-all!";
 	
+	public String username; 							//clients username stored here
+	
 	private Socket simplSocket; 				//socket used for communication to server
 	public Socket buddySocket;
 	private InputStream simplStream;
@@ -130,7 +132,7 @@ public class Client {
 			challengeResponse.R_1 = serverChallenge.R_1;
 			challengeResponse.challengePayload = cp;
 			//TODO: actually get user input here
-			String username = "syreal";
+			this.username = "syreal";
 			String password = "password";
 			//Hashing the password
 			MessageDigest md = MessageDigest.getInstance(common.Constants.PASSWORD_HASH_ALGORITHM);

@@ -123,7 +123,7 @@ public class CmdLine {
 	/**
 	 * Starts a chat with another SIMPL client
 	 */
-	public static void chat_command(){
+	public static void chat_command(String msg){
 		System.out.println("Need to parse following tokens...");
 		return;
 	}
@@ -160,8 +160,16 @@ public class CmdLine {
 		//TODO: implement
 		//TODO: parse out first word of user input string, 
 		//		if a command, do command, if not, try to send as message
-		new UserInputThread(client.buddySocket);
 		new ClientListenerThread(client.buddySocket);
+		new UserInputThread(client.buddySocket, client.username);
+	}
+	
+	public static boolean check_user(String username)
+	{
+		for( String client : CmdLine.client.getClients() ){
+			if (client == username) return true;
+		}
+		return false;
 	}
 	
 	public static void main(String[] Args){
