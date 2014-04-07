@@ -18,7 +18,12 @@ public class Constants {
 	//NETWORKING
 	public final static int MIN_PORT = 1;
 	public final static int MAX_PORT = 65535;
-	public final static int SO_TIMEOUT = 100; //ms. (amount of time the Socket.read will block until trying again)
+	//amount of time the Server Socket.read will block until trying again.
+	//This is to facilitate the ClientHandlerThreads checking if they have been requested
+	public final static int SO_SERVER_TIMEOUT = 200; //ms
+	//amount of time the Client Socket.read will wait on Server until processing outgoing packets ??
+	public final static int SO_CLIENT_TIMEOUT = 100; //ms (More responsive than the Server)
+	
 	
 	//EXCEPTIONS, ERRORS
 	public static final String KEY_PAIR_IMBALANCE_MSG = "Only one key in pair exists!";

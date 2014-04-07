@@ -11,6 +11,8 @@ import java.util.*;
 
 import javax.crypto.*;
 
+import common.*;
+
 import protocol.packet.*;
 import protocol.payload.*;
 
@@ -46,7 +48,7 @@ public class Client {
 	
 	public String username; 							//clients username stored here
 	
-	private Socket simplSocket; 				//socket used for communication to server
+	private Socket serverSocket; 				//socket used for communication to server
 	public Socket buddySocket;
 	private InputStream simplStream;
 	private ArrayList<String> clients; 			//contains result of discover
@@ -92,13 +94,13 @@ public class Client {
 			Object o;
 			
 			//create TCP connection
-			this.simplSocket = new Socket(serverName, port);
-			this.simplStream = this.simplSocket.getInputStream();
+			this.serverSocket = new Socket(serverName, port);
+			this.simplStream = this.serverSocket.getInputStream();
 			
 			//Build the initial packet and send it
 			LoginPacket loginRequest = new LoginPacket();
 			loginRequest.readyClientLoginRequest();
-			loginRequest.go(this.simplSocket);
+			loginRequest.go(this.serverSocket);
 			
 			//Get challenge packet
 			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
@@ -143,7 +145,7 @@ public class Client {
 			//ready the Response for transmission and create the session key
 			serverSeshKey = challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, username, pwHash, this.N);
 			//transmit the response
-			challengeResponse.go(this.simplSocket);
+			challengeResponse.go(this.serverSocket);
 			
 			//Get the server response: ok or deny
 			Arrays.fill(recv, (byte)0);
@@ -191,7 +193,7 @@ public class Client {
 		//Build the initial packet and send it
 		DiscoverPacket discoverRequest = new DiscoverPacket();
 		discoverRequest.readyClientDiscoverRequest();
-		discoverRequest.go(this.simplSocket);
+		discoverRequest.go(this.serverSocket);
 
 		System.out.println("Client: do_discover1");
 		//TODO: check flags? or just rely on FSM?
@@ -221,19 +223,29 @@ public class Client {
 	
 	/**
 	 * This is the only public method of all Client.*negotiate* methods, because this is the only one
-	 * called by CmdLine. Fortunately, the Server is transparent at these calls.
+	 * called by CmdLine. Fortunately, the Server is transparent at this and all following Client.*negotiate* methods.
 	 * Initiates A->B from A
 	 */
-	public void do_negotiate_request(String clientB){
-		//TODO: generate DH key pair here
-		//ref: http://docs.oracle.com/javase/7/docs/technotes/guides/security/crypto/CryptoSpec.html#KeyPairGenerator
+	public void do_negotiate_request(String clientB_Username) throws SimplException {
+		//generate the DH Public/PrivateKeyPair
+		this.generateKeyPairForKeyAgreement();
+		//ensure it was successful
+		if( this.clientAgreementKeyPair == null ){
+			throw new SimplException("Client KeyAgreement KeyPair failed");
+		}
+		
+		//build the initial NegotiatePacket
+		NegotiatePacket requestPacket = new NegotiatePacket();
+		requestPacket.readyClientANegotiateRequest(this.serverSeshKey, clientB_Username, 
+				this.clientAgreementKeyPair.getPublic(), this.N);
+		requestPacket.go(this.serverSocket);
 	}
 	
 	/**
 	 * Handles A->B at B
 	 */
 	private void handle_negotiate_request(){
-		
+		//TODO: Find out if the Client is ever waiting for this??
 	}
 	
 	/**

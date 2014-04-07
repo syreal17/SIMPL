@@ -45,7 +45,7 @@ public class ClientHandlerThread extends Thread {
 			this.serverPrivK = this.server.serverPrivK;
 			//query the Server's ClientHandler for the unhandled client socket
 			this.clientSocket = this.server.getClientHandler().getUnhandledEntry().getClientSocket();
-			this.clientSocket.setSoTimeout(common.Constants.SO_TIMEOUT);
+			this.clientSocket.setSoTimeout(common.Constants.SO_SERVER_TIMEOUT);
 			this.clientIP = this.clientSocket.getInetAddress();
 			this.clientStream = this.clientSocket.getInputStream();
 			this.R_2 = new byte[protocol.packet.LoginPacket.R_2_size];
