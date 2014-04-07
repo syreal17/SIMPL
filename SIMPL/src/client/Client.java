@@ -243,7 +243,7 @@ public class Client {
 	 * Handles A->B at B
 	 */
 	private void handle_negotiate_request(){
-		
+		//TODO: Find out if the Client is ever waiting for this??
 	}
 	
 	/**
