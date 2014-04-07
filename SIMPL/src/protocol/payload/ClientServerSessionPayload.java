@@ -1,45 +1,22 @@
-package protocol;
+package protocol.payload;
 
 import java.io.*;
-import java.net.*;
 import java.security.*;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.*;
+import javax.crypto.spec.*;
 
-import common.Constants;
+import common.*;
 
-public class ServerNegotiateRequestPayload implements Serializable {
+public abstract class ClientServerSessionPayload extends Payload {
 
-	private static final long serialVersionUID = -7149274176512251578L;
+	private static final long serialVersionUID = 8682513019611048706L;
 	
-	public String wantToUsername;
-	public InetAddress wantToIP;
-	public PublicKey clientA_DHContrib; 	//g^amodp
-	public byte[] N;						//nonce
-	
-	public ServerNegotiateRequestPayload(String wantToUsername, InetAddress wantToIP, PublicKey clientA_DHContrib, byte[] N){
-		this.wantToUsername = wantToUsername;
-		this.wantToIP = wantToIP;
-		this.clientA_DHContrib = clientA_DHContrib;
-		this.N = N;
-	}
-	
-	//COPY PASTA!!!!!!!!!!!!
-	public byte[] getSerialization(){
-		try{
-			return common.Utils.serialize(this);
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
-	//COPY PASTA!!!!!!!!!!!!
-	//TODO: put in superclass
+	/**
+	 * Returns the encrypted byte array of this object's serialization
+	 * @param seshKey the session key to encrypt with
+	 * @return the encrypted byte array of this object's serialization
+	 */
 	public byte[] encrypt(byte[] seshKey){
 		try{
 			if (Constants.CRYPTO_OFF)
@@ -77,57 +54,69 @@ public class ServerNegotiateRequestPayload implements Serializable {
 		}
 	}
 	
-	//COPY PASTA!! Minor tweaks
-	public ServerNegotiateRequestPayload decrypt(byte[] seshKey, byte[] encryptedData){
+	/**
+	 * In-place decrypt (viz, fills in its own fields) of the encryptedData
+	 * @param seshKey session key to decrypt with
+	 * @param encryptedData the encrypted, serialized form of this object
+	 */
+	public void decrypt(byte[] seshKey, byte[] encryptedData){
 		try{
 			if (Constants.CRYPTO_OFF)
 			{
 				Object o = common.Utils.deserialize(encryptedData);
-				ServerNegotiateRequestPayload payload = (ServerNegotiateRequestPayload) o;
-				return payload;
+				//cast the object as a DiscoverPayload
+				Payload template = (Payload) o;
+				//create an array list for the client
+				this.copyFrom(template);
 			}
 			else
 			{
+				//instantiate signature with chosen algorithm
 				Cipher cipher = Cipher.getInstance(Constants.SYMMETRIC_CRYPTO_MODE);
 				SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
+				//init signature with private key
 				cipher.init(Cipher.DECRYPT_MODE, k);
 				//write encrypted bytes to encryptedData since it was passed by reference
 				byte[] plaintext =  cipher.doFinal(encryptedData);
 				//deserialize the plaintext into an object
 				Object o = common.Utils.deserialize(plaintext);
 				//cast the object as a DiscoverPayload
-				ServerNegotiateRequestPayload payload = (ServerNegotiateRequestPayload) o;
+				Payload template = (Payload) o;
 				//create an array list for the client
-				return payload;
+				this.copyFrom(template);
 			}
+		} catch (SimplException e){
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
 		} catch (NoSuchAlgorithmException e){
 			System.err.println(e.getMessage());
 			e.printStackTrace();
-			return null;
+			return;
 		} catch (NoSuchPaddingException e){
 			System.err.println(e.getMessage());
 			e.printStackTrace();
-			return null;
+			return;
 		} catch (InvalidKeyException e){
 			System.err.println(e.getMessage());
 			e.printStackTrace();
-			return null;
+			return;
 		} catch (IllegalBlockSizeException e){
 			System.err.println(e.getMessage());
 			e.printStackTrace();
-			return null;
+			return;
 		} catch (BadPaddingException e){
 			System.err.println(e.getMessage());
 			e.printStackTrace();
-			return null;
+			return;
 		} catch (ClassNotFoundException e) {
 			System.err.println(e.getMessage());
 			e.printStackTrace();
-			return null;
+			return;
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			e.printStackTrace();
-			return null;
-		}	
+			return;
+		}
 	}
 }

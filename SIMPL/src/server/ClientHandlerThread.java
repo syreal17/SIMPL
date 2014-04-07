@@ -6,6 +6,10 @@ import java.security.*;
 import java.util.*;
 
 import protocol.*;
+import protocol.packet.DiscoverPacket;
+import protocol.packet.LoginPacket;
+import protocol.packet.Packet;
+import protocol.payload.AuthenticationPayload;
 
 /*
  * An actual FSM implementation, which might be interesting and extreme over-engineering:
@@ -42,7 +46,7 @@ public class ClientHandlerThread extends Thread {
 			this.clientSocket.setSoTimeout(common.Constants.SO_TIMEOUT);
 			this.clientIP = this.clientSocket.getInetAddress();
 			this.clientStream = this.clientSocket.getInputStream();
-			this.R_2 = new byte[protocol.LoginPacket.R_2_size];
+			this.R_2 = new byte[protocol.packet.LoginPacket.R_2_size];
 			this.clientUsername = null;
 			
 			while(true){

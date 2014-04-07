@@ -39,7 +39,7 @@ public class Constants {
 	public final static boolean TESTING = true;
 	
 	//CRYPTO
-	public final static boolean CRYPTO_OFF = true;
+	public final static boolean CRYPTO_OFF = false;
 	public final static String RNG_ALOGRITHM = "SHA1PRNG";
 	public final static String CHALLENGE_HASH_ALGORITHM = "MD5";
 	public final static String PASSWORD_HASH_ALGORITHM = "SHA-256"; 	//TODO: find out if this is too secure for brute force app

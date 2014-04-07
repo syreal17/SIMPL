@@ -1,4 +1,4 @@
-package protocol;
+package protocol.payload;
 
 import java.io.IOException;
 import java.io.Serializable;

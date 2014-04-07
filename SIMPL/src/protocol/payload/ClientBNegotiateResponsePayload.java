@@ -1,4 +1,4 @@
-package protocol;
+package protocol.payload;
 
 import java.io.*;
 import java.security.*;
@@ -71,4 +71,6 @@ public class ClientBNegotiateResponsePayload implements Serializable {
 			return null;
 		}
 	}
+	
+	//TODO: decrypt
 }

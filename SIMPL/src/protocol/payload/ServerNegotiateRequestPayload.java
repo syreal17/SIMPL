@@ -1,31 +1,34 @@
-package protocol;
+package protocol.payload;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Set;
+import java.io.*;
+import java.net.*;
+import java.security.*;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import common.Constants;
-import common.Utils;
 
-public class DiscoverPayload implements Serializable {
+public class ServerNegotiateRequestPayload implements Serializable {
+
+	private static final long serialVersionUID = -7149274176512251578L;
 	
-	private static final long serialVersionUID = 102688147909876831L;
-	ArrayList<String> usernames;
+	public String wantToUsername;
+	public InetAddress wantToIP;
+	public PublicKey clientA_DHContrib; 	//g^amodp
+	public byte[] N;						//nonce
 	
-	public DiscoverPayload(ArrayList<String> usernames){
-		this.usernames = usernames;
+	public ServerNegotiateRequestPayload(String wantToUsername, InetAddress wantToIP, PublicKey clientA_DHContrib, byte[] N){
+		this.wantToUsername = wantToUsername;
+		this.wantToIP = wantToIP;
+		this.clientA_DHContrib = clientA_DHContrib;
+		this.N = N;
 	}
 	
+	//COPY PASTA!!!!!!!!!!!!
 	public byte[] getSerialization(){
 		try{
 			return common.Utils.serialize(this);
@@ -35,12 +38,8 @@ public class DiscoverPayload implements Serializable {
 		}
 	}
 	
-	/**
-	 * Serializes then encrypts result and returns it. Only called by Client
-	 * @author Jaffe
-	 * @param pubk Public key of Server
-	 * @return the encrypted object in byte array form
-	 */
+	//COPY PASTA!!!!!!!!!!!!
+	//TODO: put in superclass
 	public byte[] encrypt(byte[] seshKey){
 		try{
 			if (Constants.CRYPTO_OFF)
@@ -49,11 +48,8 @@ public class DiscoverPayload implements Serializable {
 			}
 			else
 			{
-				//instantiate signature with chosen algorithm
 				Cipher cipher = Cipher.getInstance(Constants.SYMMETRIC_CRYPTO_MODE);
-				Utils.printByteArr(seshKey);
 				SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
-				//init signature with public key
 				cipher.init(Cipher.ENCRYPT_MODE, k);
 				//return encrypted bytes
 				return cipher.doFinal(this.getSerialization());
@@ -81,40 +77,29 @@ public class DiscoverPayload implements Serializable {
 		}
 	}
 	
-	/**
-	 * Decrypt encryptedData, then fill out fields of AuthenticationPayload object
-	 * @param privk Private key of the Server
-	 * @param encryptedData encrypted byte array of AuthenticationPayload
-	 * @return 
-	 * @return the decrypted serialized object
-	 */
-	public ArrayList<String> decrypt(byte[] seshKey, byte[] encryptedData){
+	//COPY PASTA!! Minor tweaks
+	public ServerNegotiateRequestPayload decrypt(byte[] seshKey, byte[] encryptedData){
 		try{
 			if (Constants.CRYPTO_OFF)
 			{
 				Object o = common.Utils.deserialize(encryptedData);
-				//cast the object as a DiscoverPayload
-				DiscoverPayload list = (DiscoverPayload) o;
-				//create an array list for the client
-				return list.usernames;
+				ServerNegotiateRequestPayload payload = (ServerNegotiateRequestPayload) o;
+				return payload;
 			}
 			else
 			{
-				//instantiate signature with chosen algorithm
 				Cipher cipher = Cipher.getInstance(Constants.SYMMETRIC_CRYPTO_MODE);
 				SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
-				//init signature with private key
 				cipher.init(Cipher.DECRYPT_MODE, k);
 				//write encrypted bytes to encryptedData since it was passed by reference
 				byte[] plaintext =  cipher.doFinal(encryptedData);
 				//deserialize the plaintext into an object
 				Object o = common.Utils.deserialize(plaintext);
 				//cast the object as a DiscoverPayload
-				DiscoverPayload list = (DiscoverPayload) o;
+				ServerNegotiateRequestPayload payload = (ServerNegotiateRequestPayload) o;
 				//create an array list for the client
-				return list.usernames;
+				return payload;
 			}
-		//ltj: for all of these exceptions, return null if an Exception was raised so that return value is more defined
 		} catch (NoSuchAlgorithmException e){
 			System.err.println(e.getMessage());
 			e.printStackTrace();
@@ -143,6 +128,6 @@ public class DiscoverPayload implements Serializable {
 			System.err.println(e.getMessage());
 			e.printStackTrace();
 			return null;
-		}
+		}	
 	}
 }

@@ -12,6 +12,10 @@ import java.util.*;
 import javax.crypto.SecretKey;
 
 import protocol.*;
+import protocol.packet.DiscoverPacket;
+import protocol.packet.LoginPacket;
+import protocol.packet.Packet;
+import protocol.payload.ChallengePayload;
 
 /*Resources:
  * _SINGLETON DESIGN PATTERN_

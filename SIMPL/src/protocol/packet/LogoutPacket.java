@@ -1,9 +1,10 @@
-package protocol;
+package protocol.packet;
 
 import java.util.EnumSet;
 
 
-public class LogoutPacket extends ClientServerSessionPacket {
+
+public class LogoutPacket extends Packet {
 
 	private static final long serialVersionUID = -5843876932465216286L;
 

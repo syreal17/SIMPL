@@ -1,4 +1,4 @@
-package protocol;
+package protocol.packet;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,10 +7,10 @@ import java.util.Set;
 
 import javax.crypto.SecretKey;
 
-import protocol.DiscoverPayload;
+import protocol.payload.DiscoverPayload;
 
 
-public class DiscoverPacket extends ClientServerSessionPacket {
+public class DiscoverPacket extends Packet {
 	
 	private static final long serialVersionUID = -393407001993431232L;
 	public DiscoverPayload discoveryList;
@@ -46,8 +46,9 @@ public class DiscoverPacket extends ClientServerSessionPacket {
 	}
 	
 	public ArrayList<String> decryptServerDiscoverReponse(byte[] usernames, byte[] seshKey){
-		//
-		return this.discoveryList.decrypt(seshKey, usernames);
+		//decrypt puts "list" into this.discoveryList.list
+		this.discoveryList.decrypt(seshKey, usernames);
+		return this.discoveryList.usernames;
 	}
 
 	/**

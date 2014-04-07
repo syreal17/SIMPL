@@ -1,12 +1,15 @@
-package protocol;
+package protocol.packet;
 
 import java.nio.ByteBuffer;
 import java.security.*;
 import java.util.*;
 
+import protocol.payload.AuthenticationPayload;
+import protocol.payload.ChallengePayload;
+
 import common.Constants;
 
-public class LoginPacket extends ClientServerPreSessionPacket {
+public class LoginPacket extends Packet {
 
 	private static final long serialVersionUID = -6680306190616418814L;
 	

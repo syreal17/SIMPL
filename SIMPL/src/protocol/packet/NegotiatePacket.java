@@ -1,12 +1,15 @@
-package protocol;
+package protocol.packet;
 
 import java.net.*;
 import java.security.*;
 import java.util.*;
 
-import javax.crypto.*;
+import protocol.payload.ClientANegotiateRequestPayload;
+import protocol.payload.ClientBNegotiateResponsePayload;
+import protocol.payload.ServerNegotiateRequestPayload;
+import protocol.payload.ServerNegotiateResponsePayload;
 
-public class NegotiatePacket extends ClientServerSessionPacket  {
+public class NegotiatePacket extends Packet  {
 
 
 	private static final long serialVersionUID = -2305135360829217137L;
