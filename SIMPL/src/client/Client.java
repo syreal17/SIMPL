@@ -45,11 +45,13 @@ public class Client {
 	private static String LOGIN_VERIFY_FAIL = "The \"server\" is evil! Punting!";
 	private static String LOGIN_CATCHEMALL = "If you are seeing this, I am wrong: Gotta catch-em-all!";
 	
-	public String username; 							//clients username stored here
+	public boolean running;						//continue listening or exit thread
+	public String username; 					//clients username stored here
 	
 	private Socket serverSocket; 				//socket used for communication to server
+	private InputStream serverStream;
 	public Socket buddySocket;
-	private InputStream simplStream;
+	public InputStream buddyStream;
 	private ArrayList<String> clients; 			//contains result of discover
 	private byte[] N; 							//the nonce that we've used and sent to the Server
 	public PublicKey serverPubK;
@@ -69,35 +71,44 @@ public class Client {
 	/**
 	 * analog to ClientHandlerThread.enterClientHandleLoop
 	 */
-	private void enterClientChatLoop(){
-		try 
-		(
-            BufferedReader in = new BufferedReader(new InputStreamReader(buddySocket.getInputStream()));
-        ) 
-		{
-			String buffer1 = "tmp";
-			String buffer2 = "tmp";
-			while (true)
-			{
-				if ((buffer2 = in.readLine()) != buffer1)
-				{
-					System.out.println(buffer2);
-					buffer1 = buffer2;
-				}
-			}
-        } 
-		catch (IOException e) 
-		{
-            e.printStackTrace();
-        }
+	private void enterListenLoop(){
+		//Going to try and do this without SocketTimeouts
+		//Might be possible since default Client thread does all the listening
+		//And UserInputThread does all the sending
+		//If I do decide to do timeouts, CmdLine must wrap a call to this method in a while loop
+		Object o;
+		
+		while( this.running ){
+			try{
+				byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
+				//wait for data from Server or possible Buddy indefinitely
+				int count = this.serverStream.read(recv);
+				//once we have it, truncate down to smallest array
+				byte[] packetBytes = new byte[count];
+				System.arraycopy(recv, 0, packetBytes, 0, count);
+				//make Packet out of bytes
+				o = common.Utils.deserialize(packetBytes);
+				Packet packet = (Packet) o;
+
+				//Send packet to the real meat of the demultiplexer.
+				this.handlePacket(packet);
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+				return;
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+				return;
+			}	
+		}
 	}
 	
 	/**
 	 * analog to CLientHandlerThread.handlePacket
 	 * @param buddyPacket
 	 */
-	private void handlePacket(Packet buddyPacket){
-		
+	private void handlePacket(Packet packet){
+		//if( )
 	}
 	
 	//TODO: this should probably be made like the ClientHandlerThread
@@ -113,7 +124,7 @@ public class Client {
 			
 			//create TCP connection
 			this.serverSocket = new Socket(serverName, port);
-			this.simplStream = this.serverSocket.getInputStream();
+			this.serverStream = this.serverSocket.getInputStream();
 			
 			//Build the initial packet and send it
 			LoginPacket loginRequest = new LoginPacket();
@@ -122,7 +133,7 @@ public class Client {
 			
 			//Get challenge packet
 			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
-			int count = this.simplStream.read(recv);
+			int count = this.serverStream.read(recv);
 			//truncating the unused part of the recv buffer
 			byte[] serverChallengeBytes = new byte[count];
 			System.arraycopy(recv, 0, serverChallengeBytes, 0, count);
@@ -167,7 +178,7 @@ public class Client {
 			
 			//Get the server response: ok or deny
 			Arrays.fill(recv, (byte)0);
-			count = this.simplStream.read(recv);
+			count = this.serverStream.read(recv);
 			byte[] serverResponseBytes = new byte[count];
 			//truncating the unused part of the recv buffer
 			System.arraycopy(recv, 0, serverResponseBytes, 0, count);
@@ -217,7 +228,7 @@ public class Client {
 		//TODO: check flags? or just rely on FSM?
 		//Get challenge packet
 		byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
-		int count = this.simplStream.read(recv);
+		int count = this.serverStream.read(recv);
 		//truncating the unused part of the recv buffer
 		byte[] serverDiscoverBytes = new byte[count];
 		System.arraycopy(recv, 0, serverDiscoverBytes, 0, count);
@@ -320,6 +331,14 @@ public class Client {
 	 */
 	public void do_logout(){
 		//TODO: implement
+		//TODO: send LogoutPacket
+		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+	}
+	
+	private void handle_logout_ack(){
+		//TODO: implement
+		//TODO: send the logout ack
+		//TODO: set this.running to false
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	

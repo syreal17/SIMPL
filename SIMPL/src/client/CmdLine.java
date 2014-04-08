@@ -104,7 +104,7 @@ public class CmdLine {
 	 * Fetches data structure from Client and prints in a readable way
 	 */
 	public static void who_command(){
-		
+	//TODO: make this do another Discover
 		if( CmdLine.isClientValid() ){
 			if( CmdLine.client.isClientsValid() ){
 				//print introductory message
@@ -243,6 +243,8 @@ public class CmdLine {
 		//enter ui loop
 		//TODO: ui thread stuff needs to go here
 		CmdLine.user_input_loop();
+		
+		//enter Client listen loop
 		
 		//only reason to exit ui loop is quitting SIMPL Client
 		System.exit(common.Constants.GENERIC_SUCCESS);
