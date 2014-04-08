@@ -12,6 +12,10 @@ public class ChatPacket extends Packet {
 	
 	public ChatPayload payload;
 	
+	public ChatPacket(){
+		this.payload = new ChatPayload(null);
+	}
+	
 	//prep the message by encrypting it and setting flags
 	public void prepareMessage(String msg, SecretKey seshKey)
 	{
