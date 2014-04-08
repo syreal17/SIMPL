@@ -64,7 +64,33 @@ public abstract class Packet implements Serializable {
 		}
 	}
 	
-	public boolean checkForFlags(EnumSet<Flag> flagsToCheckFor){
+	/**
+	 * Does the packet have only the following flags set?
+	 * @param flagsToCheckFor flags to check for sole existence
+	 * @return packet has only the flagsToCheckFor flags set
+	 */
+	public boolean checkForExactFlags(EnumSet<Flag> flagsToCheckFor){
+		//First make sure that this packet's flags contain all the required flags
+		if( this.flags.containsAll(flagsToCheckFor) ){
+			//Next, make sure it contains no extra flags
+			EnumSet<Flag> flagsToVerifyOff = EnumSet.complementOf(flagsToCheckFor);
+			for( Flag shouldBeOffFlag : flagsToVerifyOff ){
+				if( this.flags.contains( shouldBeOffFlag ) ){
+					return false;
+				}
+			}
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	/**
+	 * Does packet have at least the following flags set?
+	 * @param flagsToCheckFor
+	 * @return packet has at least the following flags set
+	 */
+	public boolean checkForAtLeastFlags(EnumSet<Flag> flagsToCheckFor){
 		return this.flags.containsAll(flagsToCheckFor);
 	}
 	

@@ -101,24 +101,24 @@ public class Client extends Thread {
 	 */
 	private void handlePacket(Packet packet){
 		//Login steps
-		if( packet.checkForFlags(LoginPacket.getServerLoginChallengeFlags()) )
+		if( packet.checkForExactFlags(LoginPacket.getServerLoginChallengeFlags()) )
 		{
 			this.handle_server_login_challenge(packet);
-		} else if( packet.checkForFlags(LoginPacket.getServerLoginOkFlags()) )
+		} else if( packet.checkForExactFlags(LoginPacket.getServerLoginOkFlags()) )
 		{
 			this.handle_server_login_ok();
-		} else if( packet.checkForFlags(LoginPacket.getServerLoginDenyFlags()) )
+		} else if( packet.checkForExactFlags(LoginPacket.getServerLoginDenyFlags()) )
 		{
 			this.handle_server_login_deny();
 		}
 		
 		//Discover step
-		else if( packet.checkForFlags(DiscoverPacket.getServerDiscoverResponseFlags()) ){
+		else if( packet.checkForExactFlags(DiscoverPacket.getServerDiscoverResponseFlags()) ){
 			this.handle_discover_response(packet);
 		}
 		
 		//Negotiate steps
-		else if( packet.checkForFlags(NegotiatePacket.getNegotiateRequestFlags()) )
+		else if( packet.checkForExactFlags(NegotiatePacket.getNegotiateRequestFlags()) )
 		{
 			try {
 				this.handle_negotiate_request(packet);
@@ -128,26 +128,26 @@ public class Client extends Thread {
 				e.printStackTrace();
 				return;
 			}
-		}else if( packet.checkForFlags(NegotiatePacket.getNegotiateOkResponseFlags()) )
+		}else if( packet.checkForExactFlags(NegotiatePacket.getNegotiateOkResponseFlags()) )
 		{
 			this.handle_negotiate_ok_response(packet);
-		} else if( packet.checkForFlags(NegotiatePacket.getNegotiateDenyResponseFlags()) )
+		} else if( packet.checkForExactFlags(NegotiatePacket.getNegotiateDenyResponseFlags()) )
 		{
 			this.handle_negotiate_deny_response();
-		} else if( packet.checkForFlags(NegotiatePacket.getNegotiateNonexistantResponseFlags()) )
+		} else if( packet.checkForExactFlags(NegotiatePacket.getNegotiateNonexistantResponseFlags()) )
 		{
 			this.handle_negotiate_nonexistant_response();
 		}
 		
 		//Chat step
-		else if( packet.checkForFlags(ChatPacket.getChatPacketFlags()) )
+		else if( packet.checkForExactFlags(ChatPacket.getChatPacketFlags()) )
 		{
 			this.handle_chat();
 		}
 		
 		//Leave steps
 		//NOTE: 3-way handshake currently ignored
-		if( packet.checkForFlags(LeavePacket.getClientA_FIN_Flags()) )
+		if( packet.checkForExactFlags(LeavePacket.getClientA_FIN_Flags()) )
 		{
 			this.handle_leave();
 		}

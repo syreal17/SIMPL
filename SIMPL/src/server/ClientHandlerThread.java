@@ -153,39 +153,39 @@ public class ClientHandlerThread extends Thread {
 	
 	private void handlePacket(Packet clientPacket){
 		//Login handle steps
-		if( clientPacket.checkForFlags(LoginPacket.getClientLoginRequestFlags()) )
+		if( clientPacket.checkForExactFlags(LoginPacket.getClientLoginRequestFlags()) )
 		{
 			this.handle_login_request();
-		} else if( clientPacket.checkForFlags(LoginPacket.getClientLoginChallengeResponseFlags()))
+		} else if( clientPacket.checkForExactFlags(LoginPacket.getClientLoginChallengeResponseFlags()))
 		{
 			this.handle_login_challenge_response(clientPacket);
 		}
 		
 		//Discover handle step
-		else if( clientPacket.checkForFlags(DiscoverPacket.getClientDiscoverRequestFlags()) )
+		else if( clientPacket.checkForExactFlags(DiscoverPacket.getClientDiscoverRequestFlags()) )
 		{
 			this.handle_discover();
 		} 
 		
 		//Negotiate handle steps
-		else if( clientPacket.checkForFlags(NegotiatePacket.getNegotiateRequestFlags()) )
+		else if( clientPacket.checkForExactFlags(NegotiatePacket.getNegotiateRequestFlags()) )
 		{
 			this.handle_negotiation_request(clientPacket);
-		} else if( clientPacket.checkForFlags(NegotiatePacket.getNegotiateOkResponseFlags()) )
+		} else if( clientPacket.checkForExactFlags(NegotiatePacket.getNegotiateOkResponseFlags()) )
 		{
 			this.handle_negotiation_response(clientPacket);
 		}
 		
 		//Leave handle step
-		else if( clientPacket.checkForFlags(LeavePacket.getClientA_ACK()) ){
+		else if( clientPacket.checkForExactFlags(LeavePacket.getClientA_ACK()) ){
 			this.handle_leave();
 		}
 		
 		//Logout handle steps
-		else if( clientPacket.checkForFlags(LogoutPacket.getClientLogoutFINFlags()) )
+		else if( clientPacket.checkForExactFlags(LogoutPacket.getClientLogoutFINFlags()) )
 		{
 			this.start_handle_logout();
-		} else if( clientPacket.checkForFlags(LogoutPacket.getClientLogoutACKFlags()) )
+		} else if( clientPacket.checkForExactFlags(LogoutPacket.getClientLogoutACKFlags()) )
 		{
 			this.do_logout();
 		}
@@ -285,9 +285,9 @@ public class ClientHandlerThread extends Thread {
 				this.do_negotiation_deny();
 				return;
 			}
-			
 			//if client was indeed free to chat, we now wait for B's ClientHandlerThread to forward the request to B.
 			//CHT_B calls CHT_A's do_negotiation_response when it receives B's response
+			return;
 		} catch (SimplException e){
 			this.do_negotiation_nonexistant();
 			return;
