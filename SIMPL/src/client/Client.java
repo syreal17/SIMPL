@@ -319,21 +319,48 @@ public class Client {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-	}
-	
-	/**
-	 * Continues with negotiation by responding B->A from B
-	 */
-	private void do_negotiate_response(){
-		
 	}
 	
 	/**
 	 * finishes negotiation by handling B->A at A
 	 */
 	private void handle_negotiate_response(){
-		
+		try {
+			//TODO: Find out if the Client is ever waiting for this??
+			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
+			int count = this.serverStream.read(recv);
+			//truncating the unused part of the recv buffer
+			byte[] serverDiscoverBytes = new byte[count];
+			System.arraycopy(recv, 0, serverDiscoverBytes, 0, count);
+			Object o = common.Utils.deserialize(serverDiscoverBytes);
+			NegotiatePacket responsePacket = (NegotiatePacket) o;
+			
+			ServerNegotiateResponsePayload serverResponsePayload = responsePacket.getServerResponsePayload(this.serverSeshKey);
+			//store the ip addr of 2
+			this.buddyIP = serverResponsePayload.talkToIP;
+			
+			//take out DH contribution of A and create shared key
+			PublicKey clientB_DHContrib = serverResponsePayload.clientB_DHContrib;
+			//take out N
+			byte[] N = serverResponsePayload.N;
+			//check N
+			if( !Arrays.equals(this.N, N) ){
+				throw new SimplException("Nonce check failed.");
+			}
+			
+			//manufacture the secret key
+			this.findSecretKey(clientB_DHContrib);
+		}
+		catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SimplException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	/**
