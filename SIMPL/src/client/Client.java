@@ -8,6 +8,7 @@ import java.io.*;
 import java.net.*;
 import java.security.*;
 import java.util.*;
+import java.util.concurrent.BrokenBarrierException;
 
 import javax.crypto.*;
 
@@ -37,8 +38,6 @@ import protocol.payload.*;
  *
  */
 public class Client extends Thread {
-//TODO: close streams?
-	
 	private static String LOGIN_SUCCESS_MSG = "Dat worked!";
 	private static String LOGIN_FAILURE_MSG = "Server doesn't like you.";
 	//private static String LOGIN_UNDEFINED_MSG = "Server's drunk. You should go home. It should too.";
@@ -46,7 +45,7 @@ public class Client extends Thread {
 	//private static String LOGIN_CATCHEMALL = "If you are seeing this, I am wrong: Gotta catch-em-all!";
 	
 	public boolean running;						//continue listening or exit thread
-	public boolean logged_in;
+	public Synchronizable<Boolean> logged_in;
 	public boolean chatting;
 	public String myUsername; 					//clients username stored here
 	public String passHash;
@@ -57,12 +56,12 @@ public class Client extends Thread {
 	public InputStream serverStream;
 	public Socket buddySocket;
 	public InputStream buddyStream;
-	private ArrayList<String> clients; 			//contains result of discover
+	public Synchronizable<ArrayList<String>> clients; 			//contains result of discover
 	private byte[] N; 							//the nonce that we've used and sent to the Server
 	public PublicKey serverPubK;
 	public byte[] serverSeshKey;
 	private KeyPair clientAgreementKeyPair;		//the PrivateKey used in the KeyAgreement
-	private SecretKey clientSeshKey;			//the result of the KeyAgreement, used as the session key between
+	private Synchronizable<SecretKey> clientSeshKey;			//the result of the KeyAgreement, used as the session key between
 												//two chatting clients
 	
 	//TODO: put TCP socket construction here? Makes semantic sense
@@ -89,7 +88,7 @@ public class Client extends Thread {
 		//AND the TCP connection should be created outside of this function!
 					
 		this.running = true;
-		this.logged_in = false;
+		this.logged_in = new Synchronizable<Boolean>(false);
 		
 		while( this.running ){
 			Packet packet = this.waitForPacket();
@@ -142,7 +141,7 @@ public class Client extends Thread {
 		}
 		
 		//Leave steps
-		//TODO: 3-way handshake currently ignored
+		//NOTE: 3-way handshake currently ignored
 		if( packet.checkForFlags(LeavePacket.getClientA_FIN_Flags()) )
 		{
 			this.handle_leave();
@@ -216,6 +215,9 @@ public class Client extends Thread {
 //		}
 //	}
 	
+	/**
+	 * Starts the login process
+	 */
 	public void do_login(){
 		//Build the initial packet and send it
 		LoginPacket loginRequest = new LoginPacket();
@@ -223,6 +225,10 @@ public class Client extends Thread {
 		loginRequest.go(this.serverSocket);
 	}
 	
+	/**
+	 * intermediate login step
+	 * @param packet
+	 */
 	private void handle_server_login_challenge(Packet packet){
 		try{
 			//Cast to correct type of packet
@@ -260,17 +266,42 @@ public class Client extends Thread {
 		}
 	}
 	
-	private void handle_server_login_ok(){
-		System.out.println(Client.LOGIN_SUCCESS_MSG);
-		//fairly sure that this is enough to signal a waiting thread, since it changes value
-		this.logged_in = true;
+	/**
+	 * touches this.logged_in, signaling UI loop
+	 */
+	private synchronized void handle_server_login_ok(){
+		try{
+			System.out.println(Client.LOGIN_SUCCESS_MSG);
+			//signal the UI loop by waiting at the Synchronizable
+			this.logged_in.set(true);
+		} catch (InterruptedException e){
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		} catch (BrokenBarrierException e){
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		}
 	}
 	
-	private void handle_server_login_deny(){
-		System.out.println(Client.LOGIN_FAILURE_MSG);
-		//TODO: verify that this is enough to signal a waiting thread, since it most likely 
-		//doesn't change the value of var
-		this.logged_in = false;
+	/**
+	 * touches this.logged_in, signaling UI loop
+	 */
+	private synchronized void handle_server_login_deny(){
+		try{
+			System.out.println(Client.LOGIN_FAILURE_MSG);
+			//signal the UI loop by waiting at the Synchronizable
+			this.logged_in.set(false);
+		} catch (InterruptedException e){
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		} catch (BrokenBarrierException e){
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		}
 	}
 	
 	/**
@@ -293,7 +324,7 @@ public class Client extends Thread {
 //	}
 	
 	/**
-	 * Should wait on this.clients, modified by handle_discover_response
+	 * Sends discover packet
 	 */
 	public void do_discover(){
 		//Build the initial packet and send it
@@ -302,11 +333,25 @@ public class Client extends Thread {
 		discoverRequest.go(this.serverSocket);
 	}
 	
-	private void handle_discover_response(Packet packet){
-		DiscoverPacket serverResponse = (DiscoverPacket) packet;
-		byte[] usernames = serverResponse.crypto_data;
-		//get array list out of packet
-		this.clients = serverResponse.decryptServerDiscoverReponse(usernames, this.serverSeshKey);
+	/**
+	 * touches this.clients, signaling UI thread
+	 * @param packet
+	 */
+	private synchronized void handle_discover_response(Packet packet){
+		try{
+			DiscoverPacket serverResponse = (DiscoverPacket) packet;
+			byte[] usernames = serverResponse.crypto_data;
+			//get array list out of packet
+			this.clients.set(serverResponse.decryptServerDiscoverReponse(usernames, this.serverSeshKey));
+		} catch (InterruptedException e){
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		} catch (BrokenBarrierException e){
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		}
 	}
 	
 	/**
@@ -355,9 +400,10 @@ public class Client extends Thread {
 	}
 	
 	/**
+	 * Touches this.clientSeshKey, signaling the UI thread
 	 * finishes negotiation by handling B->A at A
 	 */
-	private void handle_negotiate_ok_response(Packet packet){
+	private synchronized void handle_negotiate_ok_response(Packet packet){
 		try {
 			NegotiatePacket responsePacket = (NegotiatePacket) packet;
 			
@@ -375,19 +421,54 @@ public class Client extends Thread {
 			}
 			
 			//manufacture the secret key
-			this.findSecretKey(clientB_DHContrib);
+			this.clientSeshKey.set(this.findSecretKey(clientB_DHContrib));
 		} catch (SimplException e) {
-			// TODO Auto-generated catch block
+			System.err.println(e.getMessage());
 			e.printStackTrace();
+			return;
+		} catch (InterruptedException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		} catch (BrokenBarrierException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
 		}
 	}
 	
-	private void handle_negotiate_deny_response(){
-		System.out.println("Requested client is busy");
+	/**
+	 * touches this.clientSeshKey to signal UI loop
+	 */
+	private synchronized void handle_negotiate_deny_response(){
+		try {
+			this.clientSeshKey.set(null);
+		} catch (InterruptedException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		} catch (BrokenBarrierException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		}
 	}
 	
-	private void handle_negotiate_nonexistant_response(){
-		System.out.println("Requested client does not exist");
+	/**
+	 * touches this.clientSeshKey to signal UI loop
+	 */
+	private synchronized void handle_negotiate_nonexistant_response(){
+		try {
+			this.clientSeshKey.set(null);
+		} catch (InterruptedException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		} catch (BrokenBarrierException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		}
 	}
 	
 	/**
@@ -398,7 +479,7 @@ public class Client extends Thread {
 		//make a chat packet
 		ChatPacket chatPacket = new ChatPacket();
 		//prepare and encrypt the message
-		chatPacket.prepareMessage(message, clientSeshKey);
+		chatPacket.prepareMessage(message, this.clientSeshKey.get_bypass());
 		//send the message
 		chatPacket.go(this.buddySocket);
 	}
@@ -482,42 +563,25 @@ public class Client extends Thread {
 		}
 	}
 	
-	private void findSecretKey(PublicKey buddyPublicKey){
+	private SecretKey findSecretKey(PublicKey buddyPublicKey){
 		try
 		{
 			KeyAgreement ka = KeyAgreement.getInstance(common.Constants.KEY_AGREEMENT_ALGORITHM);
 			ka.init(clientAgreementKeyPair.getPrivate());
-			ka.doPhase(buddyPublicKey, true);
-			clientSeshKey = ka.generateSecret(common.Constants.SYMMETRIC_CRYPTO_MODE);	
+			ka.doPhase(buddyPublicKey, true);	
 			//forget KeyPair here
 			clientAgreementKeyPair = null;
+			return ka.generateSecret(common.Constants.SYMMETRIC_CRYPTO_MODE);
 		}
 		catch (NoSuchAlgorithmException e)
 		{
+			System.err.println(e.getMessage());
 			e.printStackTrace();
+			return null;
 		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
+			System.err.println(e.getMessage());
 			e.printStackTrace();
+			return null;
 		}
-	}
-	
-	/**
-	 * to avoid null-pointer exceptions
-	 * @return
-	 */
-	public boolean isClientsValid(){
-		if( this.clients != null){
-			return true;
-		} else {
-			return false;
-		}
-	}
-	
-	/**
-	 * clients getter
-	 * @return
-	 */
-	public ArrayList<String> getClients(){
-		return this.clients;
 	}
 }
