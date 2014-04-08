@@ -36,7 +36,7 @@ import protocol.payload.*;
  * @author syreal
  *
  */
-public class Client {
+public class Client extends Thread {
 //TODO: close streams?
 	
 	private static String LOGIN_SUCCESS_MSG = "Dat worked!";
@@ -46,6 +46,7 @@ public class Client {
 	private static String LOGIN_CATCHEMALL = "If you are seeing this, I am wrong: Gotta catch-em-all!";
 	
 	public boolean running;						//continue listening or exit thread
+	public boolean chatting;
 	public String myUsername; 					//clients username stored here
 	public String buddyUsername;				//buddy's username
 	public InetAddress buddyIP;
@@ -68,6 +69,11 @@ public class Client {
 		this.N = new byte[common.Constants.NONCE_SIZE_BYTES];
 		//remember the Server public key
 		this.serverPubK = serverPubK;
+	}
+	
+	@Override
+	public void run(){
+		this.startListenLoop();
 	}
 	
 	/**

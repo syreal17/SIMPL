@@ -4,13 +4,16 @@
 
 package client;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 
 /**
  * @author syreal
@@ -163,10 +166,75 @@ public class CmdLine {
 	 * sends the text as a message to it's connected chat buddy
 	 */
 	private static void user_input_loop(){
-		//TODO: implement
-		//TODO: parse out first word of user input string, 
-		//		if a command, do command, if not, try to send as message
-		new UserInputThread(client.myUsername);
+		try 
+		(
+            BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in))
+		)
+		{
+			String userInput;
+			/* Here we listen for user input, then take an appropriate action */
+			while ((userInput = stdIn.readLine()) != null) 
+			{
+				String[] words = userInput.split(" ");
+				switch (words[0])
+				{ 
+					case CmdLine.COMMAND_TOKEN_WHO:
+						CmdLine.who_command();
+						break;
+					case CmdLine.COMMAND_TOKEN_GREET:
+						if (words.length < 2) 
+						{
+							System.out.println("Please specify a username.");
+							break;
+						}
+						//check to see if the second token is a valid username
+						if (CmdLine.check_user(words[1]))
+						{
+							System.out.println("Connecting to client: " + words[1]);
+						}
+						else //otherwise indicate this it is not
+						{
+							System.out.println("User [" + words[1] + "] is not currently online.");
+							break;
+						}
+						String message;
+						if (words.length > 2) //if the client has an additional message to send
+						{
+							message = Arrays.copyOfRange(words, 2, words.length).toString();
+						}
+						else //otherwise send a default message
+						{
+							//TODO: check that CmdLine.client.buddyUsername actually initialized by here
+							message = "You have connected to client: " + CmdLine.client.buddyUsername;
+						}
+						//send the first message to the chat_command, who will ship it off
+						CmdLine.greet_command(message);
+						CmdLine.client.chatting = true;
+						break;
+					case CmdLine.COMMAND_TOKEN_LEAVE:
+						CmdLine.leave_command();
+						break;
+					case CmdLine.COMMAND_TOKEN_QUIT:
+						CmdLine.quit_command();
+						break;
+					case CmdLine.COMMAND_TOKEN_HELP:
+						CmdLine.help_command();
+						break;
+					//send message to other client
+					default:
+						//if currently chatting with another user
+						if (CmdLine.client.chatting)
+						{
+							CmdLine.chat_command(userInput);
+						}
+						break;
+				}	
+			}
+		} catch (IOException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		}
 	}
 	
 	public static boolean check_user(String username)
