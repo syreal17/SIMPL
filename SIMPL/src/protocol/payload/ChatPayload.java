@@ -54,13 +54,13 @@ public class ChatPayload extends Payload {
 		}
 	}
 	
-	public void decrypt(PrivateKey myKey)
+	public String decrypt(PrivateKey myKey)
 	{
 		/* Encrypt the message with the symmetric key */
 		try {
 			Cipher cipher = Cipher.getInstance(common.Constants.SYMMETRIC_CRYPTO_MODE);
 			cipher.init(Cipher.DECRYPT_MODE, myKey);
-			message = cipher.doFinal(message.getBytes()).toString();
+			return cipher.doFinal(message.getBytes()).toString();
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -77,6 +77,7 @@ public class ChatPayload extends Payload {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return message;
 	}
 
 }
