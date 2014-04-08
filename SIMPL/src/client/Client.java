@@ -274,7 +274,32 @@ public class Client {
 	 * Handles A->B at B
 	 */
 	private void handle_negotiate_request(){
-		//TODO: Find out if the Client is ever waiting for this??
+		try {
+			//TODO: Find out if the Client is ever waiting for this??
+			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
+			int count = this.simplStream.read(recv);
+			//truncating the unused part of the recv buffer
+			byte[] serverDiscoverBytes = new byte[count];
+			System.arraycopy(recv, 0, serverDiscoverBytes, 0, count);
+			Object o = common.Utils.deserialize(serverDiscoverBytes);
+			NegotiatePacket requestPacket = (NegotiatePacket) o;
+			
+			//take out 1 wants to talk, store username of 1
+			//if so, store the ip addr of 1
+			
+			//take out DH contribution of A and create shared key
+			//take out N
+			
+			//send back packet with DH contribution of B and N
+		}
+		catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 	
 	/**
