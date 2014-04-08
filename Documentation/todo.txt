@@ -4,6 +4,7 @@
 
 *Just as Server now handles Clients unexpectedly closing, so make the Client also handle that. The Server handling that starts in enterClientHandleLoop() where the SimplException is thrown
 
-*Figure out why logging in as syreal with password a, Ctrl-C, repeat ends in a Login Deny
+*Figure out why logging in as syreal with password a; then Ctrl-C; then repeat same login creds ends in a Login Deny
 
-
+*Test that the Client can recognize a bad signature.
+    -Easy way to test, give Client different public key

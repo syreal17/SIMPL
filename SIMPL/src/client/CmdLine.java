@@ -4,16 +4,12 @@
 
 package client;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.Socket;
+import java.io.*;
+import java.net.*;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Arrays;
+import java.security.spec.*;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * @author syreal
@@ -29,7 +25,6 @@ public class CmdLine {
 	private static final int ARG_SERVERPUBK_POS = 2;
 	
 	private static final String WHO_PRELUDE = "Connected users are:";
-	private static final String LOGIN_FAIL = "SIMPL Client failed to login! Quitting.";
 	private static final String DISCOVER_FAIL = "SIMPL Client failed to discover! Quitting.";
 	private static final String HELP_MSG = 	"/who\t\t\t: Print list of available usernames to chat with\n" +
 											"/chat <username> [message]\t: Start a chat with <username>\n" +
@@ -37,7 +32,6 @@ public class CmdLine {
 											"/quit\t\t\t: Logout from SIMPL Server and close Client\n" +
 											"/help\t\t\t: Print this dialog\n";
 	
-	//TODO: put in forward slash!
 	public static final String COMMAND_TOKEN_WHO = "/who";
 	public static final String COMMAND_TOKEN_GREET= "/chat";
 	public static final String COMMAND_TOKEN_LEAVE = "/leave";
@@ -45,18 +39,6 @@ public class CmdLine {
 	public static final String COMMAND_TOKEN_HELP = "/help";
 	private static Client client;	//the abstraction that this CmdLine interacts with. Should only be created once.
 	private static boolean running;
-	
-	/**
-	 * Reports on whether client has been initialized
-	 * @return
-	 */
-	private static boolean isClientValid(){
-		if( CmdLine.client != null ){
-			return true;
-		} else {
-			return false;
-		}
-	}
 	
 	/**
 	 * Get PublicKey object from filename provided by user
@@ -106,25 +88,56 @@ public class CmdLine {
 		return null;
 	}
 	
+	public static void login_command(){
+		//wait at Synchronizable, interpret result
+		try {
+			CmdLine.client.do_login();
+			boolean login_success = CmdLine.client.logged_in.get();
+			//print appropriate message
+			if( login_success ){
+				System.out.println("Welcome to the SIMPL server.");
+			} else {
+				System.out.println("Login failed.");
+			}
+		} catch (InterruptedException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		} catch (BrokenBarrierException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		}
+	}
+	
 	/**
 	 * Fetches data structure from Client and prints in a readable way
 	 */
 	public static void who_command(){
-	//refresh the client-side list of other connected users
-	CmdLine.client.do_discover();
-		if( CmdLine.isClientValid() ){
-			if( CmdLine.client.isClientsValid() ){
-				//print introductory message
-				System.out.println(CmdLine.WHO_PRELUDE);
-				
-				//print each client name in an implicit iterator foreach loop
-				for( String client : CmdLine.client.getClients() ){
-					System.out.println(client);
-				}
+		try{
+			//refresh the client-side list of other connected users
+			CmdLine.client.do_discover();
+			
+			//wait at Synchronizable
+			 ArrayList<String> connectedUsernames = CmdLine.client.clients.get();
+			
+			//print introductory message
+			System.out.println(CmdLine.WHO_PRELUDE);
+			
+			//print each client name in an implicit iterator foreach loop
+			for( String username : connectedUsernames ){
+				System.out.println(username);
 			}
+			return;
+		} catch (InterruptedException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		} catch (BrokenBarrierException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
 		}
-		
-		return;
 	}
 	
 	/**
@@ -284,7 +297,7 @@ public class CmdLine {
 			System.out.println("You don't need a computer to talk to yourself...");
 			return false;
 		}
-		for( String client : CmdLine.client.getClients() ){
+		for( String client : CmdLine.client.clients.get_bypass() ){
 			if (client.equals(username)) return true;
 		}
 		System.out.println("User [" + username + "] is not currently online.");
@@ -338,29 +351,12 @@ public class CmdLine {
 			md.update(password.getBytes());
 			CmdLine.client.passHash = md.digest().toString();
 			
+			//want to start Client thread (socket listening thread) before we send any initial packets via commands
+			//below
+			CmdLine.client.start();
+			
 			//try connecting
-			try{
-				CmdLine.client.do_login();
-			} catch (Exception e){
-				System.err.println(e.getMessage());
-				e.printStackTrace();
-				System.out.println(CmdLine.LOGIN_FAIL);
-				System.exit(common.Constants.GENERIC_FAILURE);
-			}
-
-/*This is now handled by the who_command below, although this code must not have exploded or waited indefinitely...MAKES
- * SENSE because we haven't spun off the client thread and gone into UI loop for extra fun as we do when we do a who
- * command from command line
- */
-			//try discover
-//			try{
-//				CmdLine.client.do_discover();
-//			} catch (Exception e){
-//				System.err.println(e.getMessage());
-//				e.printStackTrace();
-//				System.out.println(CmdLine.DISCOVER_FAIL);
-//				System.exit(common.Constants.GENERIC_FAILURE);
-//			}
+			CmdLine.login_command();
 			
 			//print available commands
 			CmdLine.help_command();
@@ -368,16 +364,9 @@ public class CmdLine {
 			//print clients list
 			CmdLine.who_command();
 			
-			/*What happens when we spin off thread right before UI loop?*/
-			CmdLine.client.start();
-			
 			//enter ui loop
 			//TODO: ui thread stuff needs to go here
 			CmdLine.user_input_loop();
-			
-			/*Seeing result of spinning off thread before entering ui loop*/
-			//enter Client listen loop. This should be an indefinite loop
-			/*CmdLine.client.startListenLoop();*/
 			
 			//only reason to exit ui loop is quitting SIMPL Client
 			System.exit(common.Constants.GENERIC_SUCCESS);
