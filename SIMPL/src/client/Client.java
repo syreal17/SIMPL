@@ -42,8 +42,8 @@ public class Client extends Thread {
 	private static String LOGIN_SUCCESS_MSG = "Dat worked!";
 	private static String LOGIN_FAILURE_MSG = "Server doesn't like you.";
 	private static String LOGIN_UNDEFINED_MSG = "Server's drunk. You should go home. It should too.";
-	private static String LOGIN_VERIFY_FAIL = "The \"server\" is evil! Punting!";
-	private static String LOGIN_CATCHEMALL = "If you are seeing this, I am wrong: Gotta catch-em-all!";
+	//private static String LOGIN_VERIFY_FAIL = "The \"server\" is evil! Punting!";
+	//private static String LOGIN_CATCHEMALL = "If you are seeing this, I am wrong: Gotta catch-em-all!";
 	
 	public boolean running;						//continue listening or exit thread
 	public boolean chatting;
@@ -415,12 +415,12 @@ public class Client extends Thread {
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
-	private void handle_logout_ack(){
-		//TODO: implement
-		//TODO: send the logout ack
-		//TODO: set this.running to false
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
-	}
+//	private void handle_logout_ack(){
+//		//TODO: implement
+//		//TODO: send the logout ack
+//		//TODO: set this.running to false
+//		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+//	}
 	
 	public Packet waitForPacket(){
 		try{
