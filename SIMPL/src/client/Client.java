@@ -64,6 +64,10 @@ public class Client extends Thread {
 		this.N = new byte[common.Constants.NONCE_SIZE_BYTES];
 		//remember the Server public key
 		this.serverPubK = serverPubK;
+		
+		//initilize Synchronizables - the first time they are set will be synchronized, so don't set them now.
+		this.clients = new Synchronizable<ArrayList<String>>();
+		this.clientSeshKey = new Synchronizable<SecretKey>();
 	}
 	
 	@Override

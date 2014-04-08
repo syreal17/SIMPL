@@ -24,6 +24,11 @@ public class Synchronizable<T> {
 	}
 	
 	/**
+	 * Build the object, but first setting will be synchronized
+	 */
+	public Synchronizable(){}
+	
+	/**
 	 * Created so that both the getter and setter calls wait at the same barrier
 	 * @throws InterruptedException
 	 * @throws BrokenBarrierException

@@ -119,8 +119,7 @@ public class CmdLine {
 			CmdLine.client.do_discover();
 			
 			//wait at Synchronizable
-			ArrayList<String> connectedUsernames;
-			connectedUsernames = CmdLine.client.clients.get();
+			 ArrayList<String> connectedUsernames = CmdLine.client.clients.get();
 			
 			//print introductory message
 			System.out.println(CmdLine.WHO_PRELUDE);
