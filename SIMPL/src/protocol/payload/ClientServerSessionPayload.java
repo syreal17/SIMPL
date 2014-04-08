@@ -80,9 +80,9 @@ public abstract class ClientServerSessionPayload extends Payload {
 				byte[] plaintext =  cipher.doFinal(encryptedData);
 				//deserialize the plaintext into an object
 				Object o = common.Utils.deserialize(plaintext);
-				//cast the object as a DiscoverPayload
+				//cast the object as a generic Payload
 				Payload template = (Payload) o;
-				//create an array list for the client
+				//copy all the unencrypted object fields to "this" object
 				this.copyFrom(template);
 			}
 		} catch (SimplException e){

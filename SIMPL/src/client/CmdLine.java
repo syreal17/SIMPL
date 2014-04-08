@@ -198,6 +198,7 @@ public class CmdLine {
 	 */
 	public static void quit_command(){
 		//TODO: should nicely close socket, to avoid exceptions
+		//TODO: send the Logout packets to Server
 		System.out.println("Quitting SIMPL, goodbye!");
 		//tell socket thread to go die
 		CmdLine.client.running = false;
@@ -354,7 +355,11 @@ public class CmdLine {
 			String password = stdIn.readLine();
 			MessageDigest md = MessageDigest.getInstance(common.Constants.PASSWORD_HASH_ALGORITHM);
 			md.update(password.getBytes());
-			CmdLine.client.passHash = md.digest().toString();
+			if( !common.Constants.CRYPTO_OFF ){
+				CmdLine.client.passHash = md.digest().toString();
+			} else {
+				CmdLine.client.passHash = password;
+			}
 			
 			//want to start Client thread (socket listening thread) before we send any initial packets via commands
 			//below
@@ -370,7 +375,6 @@ public class CmdLine {
 			CmdLine.who_command();
 			
 			//enter ui loop
-			//TODO: ui thread stuff needs to go here
 			CmdLine.user_input_loop();
 			
 			//only reason to exit ui loop is quitting SIMPL Client

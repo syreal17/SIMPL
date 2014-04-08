@@ -66,8 +66,9 @@ public class CmdLine {
 				}	
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.err.println(e.getMessage());
 			e.printStackTrace();
+			return;
 		}
 	}
 }

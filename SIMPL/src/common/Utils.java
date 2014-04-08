@@ -65,7 +65,7 @@ public class Utils {
 	
 	public static void print_debug_msg(String msg){
 		if( common.Constants.TESTING ){
-			System.out.println(msg);
+			System.out.println("[DEBUG] "+msg);
 		}
 	}
 	

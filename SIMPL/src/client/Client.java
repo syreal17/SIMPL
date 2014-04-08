@@ -157,70 +157,6 @@ public class Client extends Thread {
 	}
 	
 	/**
-	 * Login to the SIMPL Server
-	 * @param serverName the host name or ip string to connect to
-	 * @param port the port number that the server is listening for SIMPL on
-	 * @return message to print on CmdLine 
-	 */
-//	public void do_entire_login(){
-//		try{
-//			//Build the initial packet and send it
-//			LoginPacket loginRequest = new LoginPacket();
-//			loginRequest.readyClientLoginRequest();
-//			loginRequest.go(this.serverSocket);
-//			
-//			//Get challenge packet
-//			LoginPacket serverChallenge = (LoginPacket) this.waitForPacket();
-//			//get all the challengePayloadBytes
-//			byte[] signature = serverChallenge.signature;
-//			ChallengePayload cp = serverChallenge.challengePayload;
-//			
-//			if( !common.Constants.CRYPTO_OFF ) {
-//
-//				if (cp.verify(this.serverPubK, signature))
-//				{
-//					System.out.println("Signature success!");
-//				}
-//				else
-//				{
-//					System.out.println("Signature failure...");
-//				}
-//			}
-//			
-//			//Start constructing the response packet.
-//			LoginPacket challengeResponse = new LoginPacket();
-//			challengeResponse.R_1 = serverChallenge.R_1;
-//			challengeResponse.challengePayload = cp;
-//			//generating the nonce
-//			SecureRandom.getInstance(common.Constants.RNG_ALOGRITHM).nextBytes(this.N);
-//			//ready the Response for transmission and create the session key
-//			serverSeshKey = challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, this.myUsername, this.passHash.getBytes(), this.N);
-//			//transmit the response
-//			challengeResponse.go(this.serverSocket);
-//			
-//			//Get the server response: ok or deny
-//			Packet serverResponse = this.waitForPacket();
-//			
-//			//check the flags of the packet to see if we were accepted, or not, or worse
-//			if( serverResponse.flags.contains(Packet.Flag.Ok) && 
-//					!serverResponse.flags.contains(Packet.Flag.Deny))
-//			{
-//				System.out.println(Client.LOGIN_SUCCESS_MSG);
-//			} else if( !serverResponse.flags.contains(Packet.Flag.Ok) &&
-//					serverResponse.flags.contains(Packet.Flag.Deny))
-//			{
-//				System.out.println(Client.LOGIN_FAILURE_MSG);
-//			} else {
-//				System.out.println(Client.LOGIN_UNDEFINED_MSG);
-//			}
-//		} catch (NoSuchAlgorithmException e){
-//			System.err.println(e.getMessage());
-//			e.printStackTrace();
-//			return;
-//		}
-//	}
-	
-	/**
 	 * Starts the login process
 	 */
 	public void do_login(){
@@ -308,25 +244,6 @@ public class Client extends Thread {
 	}
 	
 	/**
-	 * Ask SIMPL Server for Login'd SIMPL Clients. Instantiates the clients ArrayList
-	 * @return success or failure
-	 */
-//	public void do_entire_discover(){
-//		//Build the initial packet and send it
-//		DiscoverPacket discoverRequest = new DiscoverPacket();
-//		discoverRequest.readyClientDiscoverRequest();
-//		discoverRequest.go(this.serverSocket);
-//
-//		System.out.println("Client: do_discover1");
-//		//Get challenge packet
-//		Packet serverResponse = this.waitForPacket();
-//		byte[] usernames = serverResponse.crypto_data;
-//		//get array list out of packet
-//		clients = discoverRequest.decryptServerDiscoverReponse(usernames, serverSeshKey);
-//		System.out.println("Client: do_discover2");
-//	}
-	
-	/**
 	 * Sends discover packet
 	 */
 	public void do_discover(){
@@ -363,6 +280,7 @@ public class Client extends Thread {
 	 * Initiates A->B from A
 	 */
 	public void do_negotiate_request(String clientB_Username) throws SimplException {
+		common.Utils.print_debug_msg("Entering do_negotiate_request");
 		//generate the DH Public/PrivateKeyPair
 		this.generateKeyPairForKeyAgreement();
 		//ensure it was successful
@@ -402,9 +320,11 @@ public class Client extends Thread {
 		//take out N
 		byte[] N = serverRequestPayload.N;
 		
-		//send back packet with DH contribution of B and N
-		requestPacket.readyClientBNegotiateResponse(serverSeshKey,clientAgreementKeyPair.getPublic(),N);
-		requestPacket.go(this.serverSocket);
+		//create new packet for response //turns out reusing the packet wasn't the issue, don't feel bad Jaffe
+		NegotiatePacket responsePacket = new NegotiatePacket();
+		//send new packet with DH contribution of B and N
+		responsePacket.readyClientBNegotiateResponse(this.serverSeshKey, this.clientAgreementKeyPair.getPublic(), N);
+		responsePacket.go(this.serverSocket);
 		
 		//manufacture the secret key
 		this.findSecretKey(clientA_DHContrib);
