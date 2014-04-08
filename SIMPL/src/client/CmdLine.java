@@ -7,12 +7,10 @@ package client;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.Socket;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-
-import common.Keymake;
 
 /**
  * @author syreal
@@ -180,73 +178,84 @@ public class CmdLine {
 	}
 	
 	public static void main(String[] Args){
-		common.Utils.reportCrypto();
-		
-		if( Args.length != CmdLine.ARG_NUM ){
-			System.out.println(common.Constants.INVALID_ARG_NUM);
-			System.out.println(CmdLine.USAGE_MSG);
-			System.exit(common.Constants.GENERIC_FAILURE);
-		}
-		
-		//parse server name and do validity check
-		String serverName = Args[CmdLine.ARG_SERVERNAME_POS];
-		if( !common.Utils.isValidIPAddr(serverName) ){
-			System.out.println(common.Constants.INVALID_SERVERNAME);
-			System.out.println(CmdLine.USAGE_MSG);
-			System.exit(common.Constants.GENERIC_FAILURE);
-		}
-		
-		//parse port number and do validity check
-		int portNum = Integer.valueOf(Args[CmdLine.ARG_PORTNUM_POS]);
-		if( !common.Utils.isValidPort(Args[CmdLine.ARG_PORTNUM_POS])){
-			System.out.println(common.Constants.INVALID_PORTNUM);
-			System.out.println(CmdLine.USAGE_MSG);
-			System.exit(common.Constants.GENERIC_FAILURE);
-		}
-		
-		//parse the path to server public key argument
-		PublicKey serverPubK = CmdLine.getPublicKeyFromFile(Args[CmdLine.ARG_SERVERPUBK_POS]);
-		
-		//create Client instance
-		CmdLine.client = new Client(serverPubK);
-		
-		//try connecting
 		try{
-			System.out.println(CmdLine.client.do_login(serverName, portNum));
-		} catch (Exception e){
+			common.Utils.reportCrypto();
+			
+			if( Args.length != CmdLine.ARG_NUM ){
+				System.out.println(common.Constants.INVALID_ARG_NUM);
+				System.out.println(CmdLine.USAGE_MSG);
+				System.exit(common.Constants.GENERIC_FAILURE);
+			}
+			
+			//parse server name and do validity check
+			String serverName = Args[CmdLine.ARG_SERVERNAME_POS];
+			if( !common.Utils.isValidIPAddr(serverName) ){
+				System.out.println(common.Constants.INVALID_SERVERNAME);
+				System.out.println(CmdLine.USAGE_MSG);
+				System.exit(common.Constants.GENERIC_FAILURE);
+			}
+			
+			//parse port number and do validity check
+			int portNum = Integer.valueOf(Args[CmdLine.ARG_PORTNUM_POS]);
+			if( !common.Utils.isValidPort(Args[CmdLine.ARG_PORTNUM_POS])){
+				System.out.println(common.Constants.INVALID_PORTNUM);
+				System.out.println(CmdLine.USAGE_MSG);
+				System.exit(common.Constants.GENERIC_FAILURE);
+			}
+			
+			//parse the path to server public key argument
+			PublicKey serverPubK = CmdLine.getPublicKeyFromFile(Args[CmdLine.ARG_SERVERPUBK_POS]);
+			
+			//create Client instance
+			CmdLine.client = new Client(serverPubK);
+			
+			//try connecting
+			try{
+				CmdLine.client.do_login();
+			} catch (Exception e){
+				e.printStackTrace();
+				System.out.println(CmdLine.LOGIN_FAIL);
+				System.exit(common.Constants.GENERIC_FAILURE);
+			}
+			
+			//try discover
+			try{
+				CmdLine.client.do_discover();
+			} catch (Exception e){
+				e.printStackTrace();
+				System.out.println(CmdLine.DISCOVER_FAIL);
+				System.exit(common.Constants.GENERIC_FAILURE);
+			}
+			
+			//ensure that discovery list is valid
+			if( !CmdLine.client.isClientsValid() ){
+				System.out.println(CmdLine.DISCOVER_FAIL);
+				System.exit(common.Constants.GENERIC_FAILURE);
+			}
+			
+			//print available commands
+			CmdLine.help_command();
+			
+			//print clients list
+			CmdLine.who_command();
+			
+			//enter ui loop
+			//TODO: ui thread stuff needs to go here
+			CmdLine.user_input_loop();
+			
+			//create TCP connection (probably shouldn't make the connection here)
+			CmdLine.client.serverSocket = new Socket(serverName, portNum);
+			CmdLine.client.serverStream = CmdLine.client.serverSocket.getInputStream();
+			
+			//enter Client listen loop. This should be an indefinite loop
+			CmdLine.client.startListenLoop(serverName, portNum);
+			
+			//only reason to exit ui loop is quitting SIMPL Client
+			System.exit(common.Constants.GENERIC_SUCCESS);
+		} catch (IOException e){
+			System.err.println(e.getMessage());
 			e.printStackTrace();
-			System.out.println(CmdLine.LOGIN_FAIL);
-			System.exit(common.Constants.GENERIC_FAILURE);
+			return;
 		}
-		
-		//try discover
-		try{
-			CmdLine.client.do_discover();
-		} catch (Exception e){
-			e.printStackTrace();
-			System.out.println(CmdLine.DISCOVER_FAIL);
-			System.exit(common.Constants.GENERIC_FAILURE);
-		}
-		
-		//ensure that discovery list is valid
-		if( !CmdLine.client.isClientsValid() ){
-			System.out.println(CmdLine.DISCOVER_FAIL);
-			System.exit(common.Constants.GENERIC_FAILURE);
-		}
-		
-		//print available commands
-		CmdLine.help_command();
-		
-		//print clients list
-		CmdLine.who_command();
-		
-		//enter ui loop
-		//TODO: ui thread stuff needs to go here
-		CmdLine.user_input_loop();
-		
-		//enter Client listen loop
-		
-		//only reason to exit ui loop is quitting SIMPL Client
-		System.exit(common.Constants.GENERIC_SUCCESS);
 	}
 }

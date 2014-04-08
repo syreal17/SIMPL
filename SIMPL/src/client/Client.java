@@ -48,8 +48,8 @@ public class Client {
 	public boolean running;						//continue listening or exit thread
 	public String username; 					//clients username stored here
 	
-	private Socket serverSocket; 				//socket used for communication to server
-	private InputStream serverStream;
+	public Socket serverSocket; 				//socket used for communication to server
+	public InputStream serverStream;
 	public Socket buddySocket;
 	public InputStream buddyStream;
 	private ArrayList<String> clients; 			//contains result of discover
@@ -71,13 +71,14 @@ public class Client {
 	/**
 	 * analog to ClientHandlerThread.enterClientHandleLoop
 	 */
-	private void enterListenLoop(){
+	public void startListenLoop(String serverName, int port){
 		//Going to try and do this without SocketTimeouts
 		//Might be possible since default Client thread does all the listening
 		//And UserInputThread does all the sending
 		//If I do decide to do timeouts, CmdLine must wrap a call to this method in a while loop
+		//AND the TCP connection should be created outside of this function!
 		Object o;
-		
+					
 		while( this.running ){
 			try{
 				byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
@@ -108,7 +109,17 @@ public class Client {
 	 * @param buddyPacket
 	 */
 	private void handlePacket(Packet packet){
-		//if( )
+		//Login steps
+		if( packet.checkForFlags(LoginPacket.getServerLoginChallengeFlags()) )
+		{
+			this.handle_server_login_challenge(packet);
+		} else if( packet.checkForFlags(LoginPacket.getServerLoginOkFlags()) )
+		{
+			this.handle_server_login_ok();
+		} else if( packet.checkForFlags(LoginPacket.getServerLoginDenyFlags()) )
+		{
+			this.handle_server_login_deny();
+		}
 	}
 	
 	//TODO: this should probably be made like the ClientHandlerThread
@@ -117,7 +128,7 @@ public class Client {
 	 * @param serverName the host name or ip string to connect to
 	 * @param port the port number that the server is listening for SIMPL on
 	 * @return message to print on CmdLine 
-	 */
+	 *//*
 	public String do_login(String serverName, int port){
 		try{
 			Object o;
@@ -209,6 +220,71 @@ public class Client {
 			e.printStackTrace();
 			return e.getMessage();
 		}
+	}*/
+	
+	public void do_login(){
+		//Build the initial packet and send it
+		LoginPacket loginRequest = new LoginPacket();
+		loginRequest.readyClientLoginRequest();
+		loginRequest.go(this.serverSocket);
+	}
+	
+	/**
+	 * Do challenge_response embedded currently
+	 * @param packet
+	 */
+	private void handle_server_login_challenge(Packet packet){
+		try{
+			//Cast to correct type of packet
+			LoginPacket serverChallenge = (LoginPacket) packet;
+			//get all the challengePayloadBytes
+			byte[] signature = serverChallenge.signature;
+			ChallengePayload cp = serverChallenge.challengePayload;
+			
+			if( common.Constants.CRYPTO_OFF ){
+				//TODO: switch logic so don't need empty if block
+			} else {
+				
+				if (cp.verify(this.serverPubK, signature))
+				{
+					System.out.println("Signature success!");
+				}
+				else
+				{
+					System.out.println("Signature failure...");
+				}
+			}
+			
+			//Start constructing the response packet.
+			LoginPacket challengeResponse = new LoginPacket();
+			challengeResponse.R_1 = serverChallenge.R_1;
+			challengeResponse.challengePayload = cp;
+			//TODO: actually get user input here
+			this.username = "syreal";
+			String password = "password";
+			//Hashing the password
+			MessageDigest md = MessageDigest.getInstance(common.Constants.PASSWORD_HASH_ALGORITHM);
+			md.update(password.getBytes());
+			byte[] pwHash = md.digest();
+			//generating the nonce
+			SecureRandom.getInstance(common.Constants.RNG_ALOGRITHM).nextBytes(this.N);
+			//ready the Response for transmission and create the session key
+			serverSeshKey = challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, username, pwHash, this.N);
+			//transmit the response
+			challengeResponse.go(this.serverSocket);
+		} catch (NoSuchAlgorithmException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		}
+	}
+	
+	private void handle_server_login_ok(){
+		System.out.println(Client.LOGIN_SUCCESS_MSG);
+	}
+	
+	private void handle_server_login_deny(){
+		System.out.println(Client.LOGIN_FAILURE_MSG);
 	}
 	
 	/**
