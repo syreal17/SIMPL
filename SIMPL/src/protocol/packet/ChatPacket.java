@@ -17,7 +17,7 @@ public class ChatPacket extends Packet {
 	}
 	
 	//prep the message by encrypting it and setting flags
-	public void prepareMessage(String msg, SecretKey seshKey)
+	public void prepareMessage(String msg, byte[] seshKey)
 	{
 		this.payload.message = msg;
 		payload.encrypt(seshKey);
@@ -25,7 +25,7 @@ public class ChatPacket extends Packet {
 	}
 	
 	//decrypt the message and return it as a String
-	public String retrieveMessage(SecretKey seshKey)
+	public String retrieveMessage(byte[] seshKey)
 	{
 		return payload.decrypt(seshKey);
 	}

@@ -150,7 +150,7 @@ public class CmdLine {
 		try{
 			CmdLine.client.do_negotiate_request(username);
 			//wait at Synchronizable
-			SecretKey clientSeshKey = CmdLine.client.clientSeshKey.get();
+			byte[] clientSeshKey = CmdLine.client.clientSeshKey.get();
 			if( clientSeshKey == null ){
 				//if clientSeshKey is null then the negotiate failed. We counter-intuitively and unforunately had
 				//to print error message in Client thread.

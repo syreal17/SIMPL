@@ -55,7 +55,7 @@ public class Client extends Thread {
 	public PublicKey serverPubK;
 	public byte[] serverSeshKey;
 	private KeyPair clientAgreementKeyPair;				//the PrivateKey used in the KeyAgreement
-	public Synchronizable<SecretKey> clientSeshKey;		//the result of the KeyAgreement, used as the session key 
+	public Synchronizable<byte[]> clientSeshKey;		//the result of the KeyAgreement, used as the session key 
 														//between two chatting clients
 	
 	//TODO: put TCP socket construction here? Makes semantic sense
@@ -67,7 +67,7 @@ public class Client extends Thread {
 		
 		//initilize Synchronizables - the first time they are set will be synchronized, so don't set them now.
 		this.clients = new Synchronizable<ArrayList<String>>();
-		this.clientSeshKey = new Synchronizable<SecretKey>();
+		this.clientSeshKey = new Synchronizable<byte[]>();
 	}
 	
 	@Override
@@ -500,7 +500,7 @@ public class Client extends Thread {
 		}
 	}
 	
-	private SecretKey findSecretKey(PublicKey buddyPublicKey){
+	private byte[] findSecretKey(PublicKey buddyPublicKey){
 		try
 		{
 			KeyAgreement ka = KeyAgreement.getInstance(common.Constants.KEY_AGREEMENT_ALGORITHM);
@@ -508,7 +508,8 @@ public class Client extends Thread {
 			ka.doPhase(buddyPublicKey, true);	
 			//forget KeyPair here
 			clientAgreementKeyPair = null;
-			return ka.generateSecret(common.Constants.SYMMETRIC_CRYPTO_MODE);
+			SecretKey fullKey = ka.generateSecret(common.Constants.SYMMETRIC_CRYPTO_MODE);
+			return Arrays.copyOf(fullKey.getEncoded(), 16); 
 		}
 		catch (NoSuchAlgorithmException e)
 		{

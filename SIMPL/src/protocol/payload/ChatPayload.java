@@ -3,6 +3,7 @@ package protocol.payload;
 import java.security.*;
 
 import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 
 import common.*;
 
@@ -23,12 +24,13 @@ public class ChatPayload extends Payload {
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
-	public void encrypt(SecretKey seshKey)
+	public void encrypt(byte[] seshKey)
 	{
 		/* Encrypt the message with the symmetric key */
 		try {
 			Cipher cipher = Cipher.getInstance(common.Constants.SYMMETRIC_CRYPTO_MODE);
-			cipher.init(Cipher.ENCRYPT_MODE, seshKey);
+			SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
+			cipher.init(Cipher.ENCRYPT_MODE, k);
 			message = cipher.doFinal(message.getBytes()).toString();
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
@@ -48,12 +50,13 @@ public class ChatPayload extends Payload {
 		}
 	}
 	
-	public String decrypt(SecretKey seshKey)
+	public String decrypt(byte[] seshKey)
 	{
 		/* Encrypt the message with the symmetric key */
 		try {
 			Cipher cipher = Cipher.getInstance(common.Constants.SYMMETRIC_CRYPTO_MODE);
-			cipher.init(Cipher.DECRYPT_MODE, seshKey);
+			SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
+			cipher.init(Cipher.DECRYPT_MODE, k);
 			return cipher.doFinal(message.getBytes()).toString();
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
