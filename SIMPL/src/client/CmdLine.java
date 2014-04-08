@@ -88,7 +88,7 @@ public class CmdLine {
 		return null;
 	}
 	
-	public static synchronized void login_command(){
+	public static void login_command(){
 		//wait at Synchronizable, interpret result
 		try {
 			CmdLine.client.do_login();
@@ -113,7 +113,7 @@ public class CmdLine {
 	/**
 	 * Fetches data structure from Client and prints in a readable way
 	 */
-	public static synchronized void who_command(){
+	public static void who_command(){
 		try{
 			//refresh the client-side list of other connected users
 			CmdLine.client.do_discover();

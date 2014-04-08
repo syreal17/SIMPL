@@ -263,7 +263,7 @@ public class Client extends Thread {
 	/**
 	 * touches this.logged_in, signaling UI loop
 	 */
-	private synchronized void handle_server_login_ok(){
+	private void handle_server_login_ok(){
 		try{
 			//signal the UI loop by waiting at the Synchronizable
 			this.logged_in.set(true);
@@ -281,7 +281,7 @@ public class Client extends Thread {
 	/**
 	 * touches this.logged_in, signaling UI loop
 	 */
-	private synchronized void handle_server_login_deny(){
+	private void handle_server_login_deny(){
 		try{
 			//signal the UI loop by waiting at the Synchronizable
 			this.logged_in.set(false);
@@ -329,7 +329,7 @@ public class Client extends Thread {
 	 * touches this.clients, signaling UI thread
 	 * @param packet
 	 */
-	private synchronized void handle_discover_response(Packet packet){
+	private void handle_discover_response(Packet packet){
 		try{
 			DiscoverPacket serverResponse = (DiscoverPacket) packet;
 			byte[] usernames = serverResponse.crypto_data;
@@ -395,7 +395,7 @@ public class Client extends Thread {
 	 * Touches this.clientSeshKey, signaling the UI thread
 	 * finishes negotiation by handling B->A at A
 	 */
-	private synchronized void handle_negotiate_ok_response(Packet packet){
+	private void handle_negotiate_ok_response(Packet packet){
 		try {
 			NegotiatePacket responsePacket = (NegotiatePacket) packet;
 			
@@ -432,7 +432,7 @@ public class Client extends Thread {
 	/**
 	 * touches this.clientSeshKey to signal UI loop
 	 */
-	private synchronized void handle_negotiate_deny_response(){
+	private void handle_negotiate_deny_response(){
 		try {
 			this.clientSeshKey.set(null);
 		} catch (InterruptedException e) {
@@ -449,7 +449,7 @@ public class Client extends Thread {
 	/**
 	 * touches this.clientSeshKey to signal UI loop
 	 */
-	private synchronized void handle_negotiate_nonexistant_response(){
+	private void handle_negotiate_nonexistant_response(){
 		try {
 			this.clientSeshKey.set(null);
 		} catch (InterruptedException e) {

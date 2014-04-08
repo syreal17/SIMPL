@@ -38,7 +38,7 @@ public class Synchronizable<T> {
 	 * @throws InterruptedException thread interruption
 	 * @throws BrokenBarrierException if socket dies, this will probably be thrown at UI loop
 	 */
-	public synchronized T get() throws InterruptedException, BrokenBarrierException{
+	public T get() throws InterruptedException, BrokenBarrierException{
 		//wait until value has been set before accessing it
 		this.getset_wait();
 		return this.value;
@@ -59,7 +59,7 @@ public class Synchronizable<T> {
 	 * @throws InterruptedException
 	 * @throws BrokenBarrierException
 	 */
-	public synchronized void set(T newValue) throws InterruptedException, BrokenBarrierException{
+	public void set(T newValue) throws InterruptedException, BrokenBarrierException{
 		//set value
 		this.value = newValue;
 		//then wait at barrier to signal that access is ok
