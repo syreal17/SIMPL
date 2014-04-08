@@ -1,1 +1,9 @@
 *Figure out why server prints exceptions when a client's password is wrong. This probably involves doing smarter things with exceptions than just printing their message and stack trace.
+    -I suspect that the Server barfs on a client attempting a wrong password because the client attempts to do a discover anyway, and the ClientHandlerThread has no SecretKey to do anything with the clients request.
+        #Easy fix: don't let client do discover unless they receive a LoginOk message
+
+*Just as Server now handles Clients unexpectedly closing, so make the Client also handle that. The Server handling that starts in enterClientHandleLoop() where the SimplException is thrown
+
+*Figure out why logging in as syreal with password a, Ctrl-C, repeat ends in a Login Deny
+
+

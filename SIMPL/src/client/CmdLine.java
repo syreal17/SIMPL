@@ -344,22 +344,20 @@ public class CmdLine {
 				System.out.println(CmdLine.LOGIN_FAIL);
 				System.exit(common.Constants.GENERIC_FAILURE);
 			}
-			
+
+/*This is now handled by the who_command below, although this code must not have exploded or waited indefinitely...MAKES
+ * SENSE because we haven't spun off the client thread and gone into UI loop for extra fun as we do when we do a who
+ * command from command line
+ */
 			//try discover
-			try{
-				CmdLine.client.do_discover();
-			} catch (Exception e){
-				System.err.println(e.getMessage());
-				e.printStackTrace();
-				System.out.println(CmdLine.DISCOVER_FAIL);
-				System.exit(common.Constants.GENERIC_FAILURE);
-			}
-			
-			//ensure that discovery list is valid
-			if( !CmdLine.client.isClientsValid() ){
-				System.out.println(CmdLine.DISCOVER_FAIL);
-				System.exit(common.Constants.GENERIC_FAILURE);
-			}
+//			try{
+//				CmdLine.client.do_discover();
+//			} catch (Exception e){
+//				System.err.println(e.getMessage());
+//				e.printStackTrace();
+//				System.out.println(CmdLine.DISCOVER_FAIL);
+//				System.exit(common.Constants.GENERIC_FAILURE);
+//			}
 			
 			//print available commands
 			CmdLine.help_command();
@@ -374,6 +372,7 @@ public class CmdLine {
 			//TODO: ui thread stuff needs to go here
 			CmdLine.user_input_loop();
 			
+			/*Seeing result of spinning off thread before entering ui loop*/
 			//enter Client listen loop. This should be an indefinite loop
 			/*CmdLine.client.startListenLoop();*/
 			
