@@ -29,11 +29,11 @@ public class CmdLine {
 	private static final int ARG_SERVERPUBK_POS = 2;
 	
 	private static final String WHO_PRELUDE = "Connected users are:";
-	private static final String HELP_MSG = 	"/who\t\t\t: Print list of available usernames to chat with\n" +
+	private static final String HELP_MSG = 	"/who\t\t\t\t: Print list of available usernames to chat with\n" +
 											"/chat <username> [message]\t: Start a chat with <username>\n" +
-											"/leave\t\t\t: Leave the current chat\n" +
-											"/quit\t\t\t: Logout from SIMPL Server and close Client\n" +
-											"/help\t\t\t: Print this dialog\n";
+											"/leave\t\t\t\t: Leave the current chat\n" +
+											"/quit\t\t\t\t: Logout from SIMPL Server and close Client\n" +
+											"/help\t\t\t\t: Print this dialog\n";
 	
 	public static final String COMMAND_TOKEN_WHO = "/who";
 	public static final String COMMAND_TOKEN_GREET= "/chat";
@@ -372,7 +372,12 @@ public class CmdLine {
 			CmdLine.help_command();
 			
 			//print clients list
-			CmdLine.who_command();
+			//only do who command if login was successful.
+			//TODO: fix Server barfing without this check to ensure Client good behavior
+			//		this is also in TESTING mode. That might have something to do with it
+			if( CmdLine.client.logged_in.get_bypass() ){
+				CmdLine.who_command();
+			}
 			
 			//enter ui loop
 			CmdLine.user_input_loop();

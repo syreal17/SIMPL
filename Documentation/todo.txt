@@ -12,3 +12,6 @@
 *[LOW IMPORTANCE]Currently, the client UI blocks the user from trying to chat with usernames that it didn't discover in the last who command. There's functionality on the Server to handle nonexistant users and it allows the client user to request chats with people they know are online, but haven't seen in the /who
 
 *[HIGH IMPORTANCE]Test with wireshark to make sure stuff is encrypted. Testing with wireshark on the same box would necessitate one listening on their public-facing IP addr, not localhost.
+
+*[HIGH IMPORTANCE]Ensure algorithms and key sizes conform to NIST pubs
+    -Don't forget key truncation down to 16 bytes (128 bits)

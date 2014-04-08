@@ -43,12 +43,12 @@ public class Constants {
 	public final static int MAX_EXPECTED_PACKET_SIZE = 65536;
 	
 	//TESTING
-	public final static boolean TESTING = false;
+	public final static boolean TESTING = true;
 	
 	//CRYPTO
 	public final static boolean CRYPTO_OFF = false;
 	public final static String KEY_AGREEMENT_ALGORITHM = "DH";
-	public final static int KEY_AGREEMENT_KEY_SIZE = 512;
+	public final static int KEY_AGREEMENT_KEY_SIZE = 1024;
 	public final static String RNG_ALOGRITHM = "SHA1PRNG";
 	public final static String CHALLENGE_HASH_ALGORITHM = "MD5";
 	public final static String PASSWORD_HASH_ALGORITHM = "SHA-256";
