@@ -57,8 +57,17 @@ public class ClientHandlerThread extends Thread {
 				this.enterClientHandleLoop();
 			}
 		} catch (IOException e) {
+			System.err.println(e.getMessage());
 			e.printStackTrace();
 			return;
+		} catch (SimplException e) {
+			//enterClientHandleLoop received a negative count from a socket.read, indicating that client unexpectedly
+			//closed connection.
+			
+			//End the thread
+			//changing running to false is probably unneeded, but seems like the right thing
+			this.running = false;
+			System.out.println("User '"+this.clientUsername+"' exited unexpectedly. Closing their server thread.");
 		}
 	}
 	
@@ -101,7 +110,7 @@ public class ClientHandlerThread extends Thread {
 	 * This is the packet handling "DEMULTIPLEXER".
 	 * What's not obvious is that the while(true) loop is often broken out of by a SocketTimeoutException
 	 */
-	private void enterClientHandleLoop(){
+	private void enterClientHandleLoop() throws SimplException {
 		Object o;
 		
 		//ltj: 	on second thought, this maybe shouldn't be in a loop, because then we are relying on 
@@ -113,6 +122,10 @@ public class ClientHandlerThread extends Thread {
 				byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
 				//wait for data from client for common.Constants.SO_TIMEOUT ms, then throw SocketTimeoutException
 				int count = this.clientStream.read(recv);
+				//check that client didn't close connection (and count is negative)
+				if( count <= 0 ){
+					throw new SimplException("Client unexpectedly closed connection");
+				}
 				//once we have it, truncate down to smallest array
 				byte[] clientPacketBytes = new byte[count];
 				System.arraycopy(recv, 0, clientPacketBytes, 0, count);
@@ -221,6 +234,7 @@ public class ClientHandlerThread extends Thread {
 				okResponse.readyServerLoginOk();
 				okResponse.go(clientSocket);
 				sessionKey = ap.keyMake();
+				this.clientUsername = ap.username;
 				return ap.username;
 			} else {
 				LoginPacket denyResponse = new LoginPacket();

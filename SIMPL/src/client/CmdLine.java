@@ -28,7 +28,7 @@ public class CmdLine {
 	private static final int ARG_PORTNUM_POS = 1;
 	private static final int ARG_SERVERPUBK_POS = 2;
 	
-	private static final String WHO_PRELUDE = "Available usernames to chat with are:";
+	private static final String WHO_PRELUDE = "Connected users are:";
 	private static final String LOGIN_FAIL = "SIMPL Client failed to login! Quitting.";
 	private static final String DISCOVER_FAIL = "SIMPL Client failed to discover! Quitting.";
 	private static final String HELP_MSG = 	"/who\t\t\t: Print list of available usernames to chat with\n" +
@@ -44,6 +44,7 @@ public class CmdLine {
 	public static final String COMMAND_TOKEN_QUIT = "/quit";
 	public static final String COMMAND_TOKEN_HELP = "/help";
 	private static Client client;	//the abstraction that this CmdLine interacts with. Should only be created once.
+	private static boolean running;
 	
 	/**
 	 * Reports on whether client has been initialized
@@ -89,14 +90,17 @@ public class CmdLine {
 					}
 				} 
 			} catch (NoSuchAlgorithmException e){
+				System.err.println(e.getMessage());
 				e.printStackTrace();
 				return null;
 			} catch (InvalidKeySpecException e){
+				System.err.println(e.getMessage());
 				e.printStackTrace();
 				return null;
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				System.err.println(e.getMessage());
 				e.printStackTrace();
+				return null;
 			}
 		}
 		return null;
@@ -106,7 +110,8 @@ public class CmdLine {
 	 * Fetches data structure from Client and prints in a readable way
 	 */
 	public static void who_command(){
-	//TODO: make this do another Discover
+	//refresh the client-side list of other connected users
+	CmdLine.client.do_discover();
 		if( CmdLine.isClientValid() ){
 			if( CmdLine.client.isClientsValid() ){
 				//print introductory message
@@ -165,15 +170,21 @@ public class CmdLine {
 	 * Leaves the current SIMPL chat, doesn't log the client out
 	 */
 	public static void leave_command(){
+		//TODO: implement
 		System.out.println("Leaving chat with buddy...");
-		return;
+		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
 	/**
 	 * Quits SIMPL, logs the client out
 	 */
 	public static void quit_command(){
+		//TODO: should nicely close socket, to avoid exceptions
 		System.out.println("Quitting SIMPL, goodbye!");
+		//tell socket thread to go die
+		CmdLine.client.running = false;
+		//tell ui loop to go die
+		CmdLine.running = false;
 		return;
 	}
 	
@@ -195,9 +206,12 @@ public class CmdLine {
             BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in))
 		)
 		{
+			//initialize the running variable
+			CmdLine.running = true;
+			
 			String userInput;
 			/* Here we listen for user input, then take an appropriate action */
-			while ((userInput = stdIn.readLine()) != null) 
+			while (((userInput = stdIn.readLine()) != null) && CmdLine.running) 
 			{
 				String[] words = userInput.split(" ");
 				switch (words[0])
@@ -264,6 +278,8 @@ public class CmdLine {
 		}
 	}
 	
+	//TODO: for situational awareness, the server also ensures that the username exists and might even responsd with a
+	//		nonexistant user message.
 	public static boolean check_user(String username)
 	{
 		for( String client : CmdLine.client.getClients() ){
