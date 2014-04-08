@@ -144,7 +144,7 @@ public class Client extends Thread {
 		//Chat step
 		else if( packet.checkForExactFlags(ChatPacket.getChatPacketFlags()) )
 		{
-			this.handle_chat();
+			this.handle_chat(packet);
 		}
 		
 		//Leave steps
@@ -460,9 +460,9 @@ public class Client extends Thread {
 	/**
 	 * Handle being the recipient of a Chat message, not the sender, as do_chat does.
 	 */
-	public void handle_chat(){
-		//TODO: implement
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+	public void handle_chat(Packet packet){
+		ChatPacket chatPacket = (ChatPacket) packet;
+		System.out.println(chatPacket.payload.decrypt(this.clientSeshKey.get_bypass()));
 	}
 	
 	/**
