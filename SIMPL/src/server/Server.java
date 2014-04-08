@@ -7,6 +7,7 @@ import java.security.spec.*;
 import java.util.*;
 import java.util.Map.Entry;
 
+import client.CmdLine;
 import protocol.payload.*;
 import common.*;
 
@@ -20,7 +21,7 @@ import common.*;
  * 		http://docs.oracle.com/javase/tutorial/essential/concurrency/runthread.html
  */
 
-public class Server {
+public class Server implements Runnable{
 	
 	public static final String UNEXPECTED_CLIENT_PACKET_MSG = "Client's drunk! Got unexpected packet.";
 	
@@ -37,6 +38,7 @@ public class Server {
 	//should the start_listener_loop continue? I've made a useless mutator to change this to false.
 	//Would need a separate thread to call the function. The main thread is spinning on listener loop
 	private boolean running;
+	Thread t;
 	
 	public Server(int port, String userDBPath, String privKPath) throws SimplException{
 		try {
@@ -52,6 +54,9 @@ public class Server {
 			
 			//call to either load the PrivateKey at privKPath or create it there
 			this.get_private_key(privKPath);
+			
+			t = new Thread(this, "Server");
+			t.start();
 			
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
@@ -107,6 +112,11 @@ public class Server {
 		return false;
 	}
 	
+	public void run(){
+		//listen
+		this.start_listener_loop();
+	}
+	
 	/**
 	 * Start the loop for the Server to accept multiple Client connections, and spin off ClientHandlerThreads
 	 */
@@ -132,7 +142,7 @@ public class Server {
 	 * This is really, quite non-functional now since the main thread spins in start_listener_loop without
 	 * possibility of this method getting called.
 	 */
-	public void stop(){
+	public void quit(){
 		try{
 			//TODO: good idea to save users here, but may want to do it somewhere that actually gets called
 			this.save_users();
