@@ -120,7 +120,14 @@ public class Client extends Thread {
 		//Negotiate steps
 		else if( packet.checkForFlags(NegotiatePacket.getNegotiateRequestFlags()) )
 		{
-			this.handle_negotiate_request(packet);
+			try {
+				this.handle_negotiate_request(packet);
+			} catch (SimplException e) {
+				//This happens because generating a KeyPair for DH agreement failed
+				System.err.println(e.getMessage());
+				e.printStackTrace();
+				return;
+			}
 		}else if( packet.checkForFlags(NegotiatePacket.getNegotiateOkResponseFlags()) )
 		{
 			this.handle_negotiate_ok_response(packet);
@@ -372,8 +379,16 @@ public class Client extends Thread {
 	
 	/**
 	 * Handles A->B at B
+	 * @throws SimplException 
 	 */
-	private void handle_negotiate_request(Packet packet){
+	private void handle_negotiate_request(Packet packet) throws SimplException {
+		//generate the DH Public/PrivateKeyPair
+		this.generateKeyPairForKeyAgreement();
+		//ensure it was successful
+		if( this.clientAgreementKeyPair == null ){
+			throw new SimplException("Client KeyAgreement KeyPair failed");
+		}
+		
 		NegotiatePacket requestPacket = (NegotiatePacket) packet;
 		
 		ServerNegotiateRequestPayload serverRequestPayload = requestPacket.getServerRequestPayload(this.serverSeshKey);
