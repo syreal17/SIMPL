@@ -38,11 +38,11 @@ public class CmdLine {
 											"/help\t\t\t: Print this dialog\n";
 	
 	//TODO: put in forward slash!
-	public static final String COMMAND_TOKEN_WHO = "who";
-	public static final String COMMAND_TOKEN_GREET= "chat";
-	public static final String COMMAND_TOKEN_LEAVE = "leave";
-	public static final String COMMAND_TOKEN_QUIT = "quit";
-	public static final String COMMAND_TOKEN_HELP = "help";
+	public static final String COMMAND_TOKEN_WHO = "/who";
+	public static final String COMMAND_TOKEN_GREET= "/chat";
+	public static final String COMMAND_TOKEN_LEAVE = "/leave";
+	public static final String COMMAND_TOKEN_QUIT = "/quit";
+	public static final String COMMAND_TOKEN_HELP = "/help";
 	private static Client client;	//the abstraction that this CmdLine interacts with. Should only be created once.
 	
 	/**
@@ -249,7 +249,10 @@ public class CmdLine {
 						//if currently chatting with another user
 						if (CmdLine.client.chatting)
 						{
+							common.Utils.print_debug_msg("Trying CmdLine.chat_command");
 							CmdLine.chat_command(userInput);
+						} else {
+							System.out.println("That's not a command and you're not chatting with any buddies!");
 						}
 						break;
 				}	

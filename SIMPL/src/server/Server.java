@@ -193,6 +193,7 @@ public class Server {
 	 */
 	private void load_users(){
 		if( common.Constants.TESTING ){
+			/* Jaffe: this isn't needed since this part of the server works!
 			String entry1 = "goliath";
 			String entry2 = "agamemnon";
 			String entry3 = "charbydis";
@@ -202,7 +203,7 @@ public class Server {
 			userDB.put(entry2, entry2.getBytes());
 			userDB.put(entry3, entry3.getBytes());
 			userDB.put(entry4, entry4.getBytes());
-			userDB.put(entry5, entry5.getBytes());
+			userDB.put(entry5, entry5.getBytes());*/
 		} else {
 			//TODO: implement
 			//punting on this right now because it's not critical

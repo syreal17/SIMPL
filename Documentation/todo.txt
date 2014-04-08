@@ -1,1 +1,1 @@
-*Test that signature check can fail
+*Figure out why server prints exceptions when a client's password is wrong. This probably involves doing smarter things with exceptions than just printing their message and stack trace.

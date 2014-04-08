@@ -42,7 +42,7 @@ public class Constants {
 	public final static int MAX_EXPECTED_PACKET_SIZE = 65536;
 	
 	//TESTING
-	public final static boolean TESTING = false;
+	public final static boolean TESTING = true;
 	
 	//CRYPTO
 	public final static boolean CRYPTO_OFF = false;
