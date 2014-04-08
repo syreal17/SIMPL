@@ -146,6 +146,7 @@ public class Server implements Runnable{
 			//TODO: good idea to save users here, but may want to do it somewhere that actually gets called
 			this.save_users();
 			this.running = false;
+			System.exit(1);
 		} catch (SimplException e){
 			System.err.println(e.getMessage());
 			e.printStackTrace();
@@ -217,9 +218,12 @@ public class Server implements Runnable{
 			try{
 				File userDBFile = new File(this.userDBPath);
 				if( userDBFile.canRead() ){	
-					byte[] dbBytes = null;
+					
 					FileInputStream fis = new FileInputStream(userDBFile);
-					fis.read(dbBytes);
+					byte[] dbBytes = new byte[fis.available()];
+					while (fis.read(dbBytes) > 0) {
+
+					}
 					fis.close();
 					Object o = common.Utils.deserialize(dbBytes);
 					ArrayList<UserDBEntry> serializableDB = (ArrayList<UserDBEntry>) o;
