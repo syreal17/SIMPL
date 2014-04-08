@@ -28,7 +28,7 @@ public class Synchronizable<T> {
 	 * @throws InterruptedException
 	 * @throws BrokenBarrierException
 	 */
-	private synchronized void getset_wait() throws InterruptedException, BrokenBarrierException{
+	private void getset_wait() throws InterruptedException, BrokenBarrierException{
 		this.barrier.await();
 	}
 	
