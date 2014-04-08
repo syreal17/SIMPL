@@ -1,5 +1,7 @@
 package server;
 
+import common.SimplException;
+
 public class CmdLine {
 	
 	public static final String USAGE_MSG = "Usage: java server.CmdLine <port> <path to user db> " +
@@ -14,7 +16,7 @@ public class CmdLine {
 	public static Server server;
 	
 	
-	public static void main(String[] Args){
+	public static void main(String[] Args) throws SimplException{
 		common.Utils.reportCrypto();
 
 		if( Args.length != CmdLine.ARG_NUM ){

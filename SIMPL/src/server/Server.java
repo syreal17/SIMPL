@@ -5,9 +5,9 @@ import java.net.*;
 import java.security.*;
 import java.security.spec.*;
 import java.util.*;
+import java.util.Map.Entry;
 
 import protocol.payload.*;
-
 import common.*;
 
 /*
@@ -38,7 +38,7 @@ public class Server {
 	//Would need a separate thread to call the function. The main thread is spinning on listener loop
 	private boolean running;
 	
-	public Server(int port, String userDBPath, String privKPath){
+	public Server(int port, String userDBPath, String privKPath) throws SimplException{
 		try {
 			this.listenerSocket = new ServerSocket(port);
 			
@@ -199,26 +199,36 @@ public class Server {
 	 * Load all the users that the server remembers
 	 * @param filepath points to the CSV file that contains all user records
 	 * @return success or not
+	 * @throws SimplException 
 	 */
-	private void load_users(){
+	private void load_users() throws SimplException{
 		if( common.Constants.TESTING ){
-			/* Jaffe: this isn't needed since this part of the server works!
-			String entry1 = "goliath";
-			String entry2 = "agamemnon";
-			String entry3 = "charbydis";
-			String entry4 = "enchilada";
-			String entry5 = "kimjongun";
-			userDB.put(entry1, entry1.getBytes());
-			userDB.put(entry2, entry2.getBytes());
-			userDB.put(entry3, entry3.getBytes());
-			userDB.put(entry4, entry4.getBytes());
-			userDB.put(entry5, entry5.getBytes());*/
+
 		} else {
-			//TODO: implement
-			//punting on this right now because it's not critical
-			//run-time adding users to userDB *IS* critical
-			
-			//PASS!!
+			try{
+				File userDBFile = new File(this.userDBPath);
+				if( userDBFile.canRead() ){	
+					byte[] dbBytes = null;
+					FileInputStream fis = new FileInputStream(userDBFile);
+					fis.read(dbBytes);
+					fis.close();
+					Object o = common.Utils.deserialize(dbBytes);
+					ArrayList<UserDBEntry> serializableDB = (ArrayList<UserDBEntry>) o;
+					for (UserDBEntry entry : serializableDB)
+					{
+						this.userDB.put(entry.getUsername(), entry.getPwHash());
+					}
+				} else {
+					throw new SimplException(common.Constants.FILE_UNREADABLE_MSG);
+				}
+			} catch (IOException e){
+				System.err.println(e.getMessage());
+				e.printStackTrace();
+				return;
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -231,6 +241,10 @@ public class Server {
 			File userDBFile = new File(this.userDBPath);
 			if( userDBFile.canWrite() ){
 				ArrayList<UserDBEntry> serializableDB = new ArrayList<UserDBEntry>();
+				for (Entry<String, byte[]> entry : this.userDB.entrySet())
+				{
+					serializableDB.add(new UserDBEntry(entry));
+				}
 				byte[] dbBytes = common.Utils.serialize(serializableDB);
 				FileOutputStream fos = new FileOutputStream(userDBFile);
 				fos.write(dbBytes);

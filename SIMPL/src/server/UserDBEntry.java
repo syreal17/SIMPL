@@ -1,6 +1,7 @@
 package server;
 
 import java.io.Serializable;
+import java.util.Map.Entry;
 
 public class UserDBEntry implements Serializable {
 
@@ -9,9 +10,9 @@ public class UserDBEntry implements Serializable {
 	private String username;
 	private byte[] pwHash;
 	
-	public UserDBEntry(String username, byte[] pwHash){
-		this.username = username;
-		this.pwHash = pwHash;
+	public UserDBEntry(Entry<String, byte[]> entry){
+		this.username = entry.getKey();
+		this.pwHash = entry.getValue();
 	}
 	
 	public String getUsername(){
