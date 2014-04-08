@@ -240,7 +240,7 @@ public class CmdLine {
 	public static boolean check_user(String username)
 	{
 		for( String client : CmdLine.client.getClients() ){
-			if (client == username) return true;
+			if (client.equals(username)) return true;
 		}
 		return false;
 	}
