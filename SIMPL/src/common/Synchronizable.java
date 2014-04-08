@@ -24,6 +24,15 @@ public class Synchronizable<T> {
 	}
 	
 	/**
+	 * Created so that both the getter and setter calls wait at the same barrier
+	 * @throws InterruptedException
+	 * @throws BrokenBarrierException
+	 */
+	private synchronized void getset_wait() throws InterruptedException, BrokenBarrierException{
+		this.barrier.await();
+	}
+	
+	/**
 	 * Waits until other thread has set the value and is waiting at barrier
 	 * @return the value
 	 * @throws InterruptedException thread interruption
@@ -31,7 +40,7 @@ public class Synchronizable<T> {
 	 */
 	public synchronized T get() throws InterruptedException, BrokenBarrierException{
 		//wait until value has been set before accessing it
-		this.barrier.await();
+		this.getset_wait();
 		return this.value;
 	}
 	
@@ -54,6 +63,6 @@ public class Synchronizable<T> {
 		//set value
 		this.value = newValue;
 		//then wait at barrier to signal that access is ok
-		this.barrier.await();
+		this.getset_wait();
 	}
 }

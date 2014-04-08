@@ -38,12 +38,6 @@ import protocol.payload.*;
  *
  */
 public class Client extends Thread {
-	private static String LOGIN_SUCCESS_MSG = "Dat worked!";
-	private static String LOGIN_FAILURE_MSG = "Server doesn't like you.";
-	//private static String LOGIN_UNDEFINED_MSG = "Server's drunk. You should go home. It should too.";
-	//private static String LOGIN_VERIFY_FAIL = "The \"server\" is evil! Punting!";
-	//private static String LOGIN_CATCHEMALL = "If you are seeing this, I am wrong: Gotta catch-em-all!";
-	
 	public boolean running;						//continue listening or exit thread
 	public Synchronizable<Boolean> logged_in;
 	public boolean chatting;
@@ -271,7 +265,6 @@ public class Client extends Thread {
 	 */
 	private synchronized void handle_server_login_ok(){
 		try{
-			System.out.println(Client.LOGIN_SUCCESS_MSG);
 			//signal the UI loop by waiting at the Synchronizable
 			this.logged_in.set(true);
 		} catch (InterruptedException e){
@@ -290,7 +283,6 @@ public class Client extends Thread {
 	 */
 	private synchronized void handle_server_login_deny(){
 		try{
-			System.out.println(Client.LOGIN_FAILURE_MSG);
 			//signal the UI loop by waiting at the Synchronizable
 			this.logged_in.set(false);
 		} catch (InterruptedException e){
