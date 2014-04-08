@@ -327,21 +327,6 @@ public class Client extends Thread {
 		requestPacket.readyClientANegotiateRequest(this.serverSeshKey, clientB_Username, 
 				this.clientAgreementKeyPair.getPublic(), this.N);
 		requestPacket.go(this.serverSocket);
-		
-		/* trying to combine this with handle negotiate response ftw */
-		Packet packet = this.waitForPacket();
-		NegotiatePacket responsePacket = (NegotiatePacket) packet;
-		
-		if( responsePacket.checkForFlags(NegotiatePacket.getNegotiateOkResponseFlags()) ){
-			this.handle_negotiate_ok_response(responsePacket);
-		} else if( responsePacket.checkForFlags(NegotiatePacket.getNegotiateDenyResponseFlags()) )
-		{
-			this.handle_negotiate_deny_response();
-		} else if( responsePacket.checkForFlags(NegotiatePacket.getNegotiateNonexistantResponseFlags()) )
-		{
-			this.handle_negotiate_nonexistant_response();
-		}
-		/* --------------------------------------------------------- */
 	}
 	
 	/**
