@@ -1,10 +1,8 @@
 package protocol.packet;
 
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.util.EnumSet;
+import java.security.*;
+import java.util.*;
 
-import protocol.packet.Packet.Flag;
 import protocol.payload.*;
 
 public class ChatPacket extends Packet {

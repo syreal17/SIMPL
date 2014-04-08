@@ -313,12 +313,15 @@ public class CmdLine {
 			//print clients list
 			CmdLine.who_command();
 			
+			/*What happens when we spin off thread right before UI loop?*/
+			CmdLine.client.start();
+			
 			//enter ui loop
 			//TODO: ui thread stuff needs to go here
 			CmdLine.user_input_loop();
 			
 			//enter Client listen loop. This should be an indefinite loop
-			CmdLine.client.startListenLoop();
+			/*CmdLine.client.startListenLoop();*/
 			
 			//only reason to exit ui loop is quitting SIMPL Client
 			System.exit(common.Constants.GENERIC_SUCCESS);
