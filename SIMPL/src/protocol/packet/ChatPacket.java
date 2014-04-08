@@ -1,7 +1,8 @@
 package protocol.packet;
 
-import java.security.*;
 import java.util.*;
+
+import javax.crypto.*;
 
 import protocol.payload.*;
 
@@ -12,17 +13,17 @@ public class ChatPacket extends Packet {
 	public ChatPayload payload;
 	
 	//prep the message by encrypting it and setting flags
-	public void prepareMessage(String msg, PublicKey buddyKey)
+	public void prepareMessage(String msg, SecretKey seshKey)
 	{
 		this.payload.message = msg;
-		payload.encrypt(buddyKey);
+		payload.encrypt(seshKey);
 		this.setChatPacketFlags();
 	}
 	
 	//decrypt the message and return it as a String
-	public String retrieveMessage(PrivateKey myKey)
+	public String retrieveMessage(SecretKey seshKey)
 	{
-		return payload.decrypt(myKey);
+		return payload.decrypt(seshKey);
 	}
 	
 	/**

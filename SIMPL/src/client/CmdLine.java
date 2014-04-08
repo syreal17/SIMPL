@@ -281,6 +281,27 @@ public class CmdLine {
 			CmdLine.client.serverSocket = new Socket(serverName, portNum);
 			CmdLine.client.serverStream = CmdLine.client.serverSocket.getInputStream();
 			
+			try 
+			(
+	            BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in))
+			)
+			{
+				/* Here we listen for user input, then take an appropriate action */
+				System.out.println("Welcome to SIMPL! Please enter your username:");
+				client.myUsername = stdIn.readLine();
+				System.out.println("Tubular! Now enter your password:");
+				String password = stdIn.readLine();
+				MessageDigest md = MessageDigest.getInstance(common.Constants.PASSWORD_HASH_ALGORITHM);
+				md.update(password.getBytes());
+				client.passHash = md.digest().toString();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			//try connecting
 			try{
 				CmdLine.client.do_login();

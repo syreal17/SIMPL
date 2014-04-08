@@ -9,6 +9,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
 import common.*;
 
@@ -29,12 +30,12 @@ public class ChatPayload extends Payload {
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
-	public void encrypt(PublicKey buddyKey)
+	public void encrypt(SecretKey seshKey)
 	{
 		/* Encrypt the message with the symmetric key */
 		try {
 			Cipher cipher = Cipher.getInstance(common.Constants.SYMMETRIC_CRYPTO_MODE);
-			cipher.init(Cipher.ENCRYPT_MODE, buddyKey);
+			cipher.init(Cipher.ENCRYPT_MODE, seshKey);
 			message = cipher.doFinal(message.getBytes()).toString();
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
@@ -54,12 +55,12 @@ public class ChatPayload extends Payload {
 		}
 	}
 	
-	public String decrypt(PrivateKey myKey)
+	public String decrypt(SecretKey seshKey)
 	{
 		/* Encrypt the message with the symmetric key */
 		try {
 			Cipher cipher = Cipher.getInstance(common.Constants.SYMMETRIC_CRYPTO_MODE);
-			cipher.init(Cipher.DECRYPT_MODE, myKey);
+			cipher.init(Cipher.DECRYPT_MODE, seshKey);
 			return cipher.doFinal(message.getBytes()).toString();
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
