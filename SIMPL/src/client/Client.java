@@ -80,6 +80,8 @@ public class Client {
 		//If I do decide to do timeouts, CmdLine must wrap a call to this method in a while loop
 		//AND the TCP connection should be created outside of this function!
 					
+		this.running = true;
+		
 		while( this.running ){
 			Packet packet = this.waitForPacket();
 			//Send packet to the real meat of the demultiplexer.
@@ -92,7 +94,31 @@ public class Client {
 	 * @param buddyPacket
 	 */
 	private void handlePacket(Packet packet){
+		//We're not handling any login or discover packets here now, because we are seeing if you can
+		//send a packet on a read-blocking socket
 		
+		//Negotiate steps
+		if( packet.checkForFlags(NegotiatePacket.getNegotiateRequestFlags()) ){
+			this.handle_negotiate_request(packet);
+		} else if( packet.checkForFlags(NegotiatePacket.getNegotiateOkResponseFlags()) )
+		{
+			this.handle_negotiate_ok_response(packet);
+		} else if( packet.checkForFlags(NegotiatePacket.getNegotiateDenyResponseFlags()) )
+		{
+			this.handle_negotiate_deny_response();
+		} else if( packet.checkForFlags(NegotiatePacket.getNegotiateNonexistantResponseFlags()) )
+		{
+			this.handle_negotiate_nonexistant_response();
+		}
+		
+		//Chat step
+		//else if( packet.checkForFlags(ChatPacket.))
+		
+		//Leave steps
+		//TODO: 3-way handshake currently ignored
+		if( packet.checkForFlags(LeavePacket.getClientA_FIN_Flags()) ){
+			this.handle_leave();
+		}
 	}
 	
 	/**
@@ -283,57 +309,34 @@ public class Client {
 	/**
 	 * Handles A->B at B
 	 */
-	private void handle_negotiate_request(){
-		try {
-			//TODO: Find out if the Client is ever waiting for this??
-			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
-			int count = this.serverStream.read(recv);
-			//truncating the unused part of the recv buffer
-			byte[] serverDiscoverBytes = new byte[count];
-			System.arraycopy(recv, 0, serverDiscoverBytes, 0, count);
-			Object o = common.Utils.deserialize(serverDiscoverBytes);
-			NegotiatePacket requestPacket = (NegotiatePacket) o;
-			
-			ServerNegotiateRequestPayload serverRequestPayload = requestPacket.getServerRequestPayload(this.serverSeshKey);
-			//take out 1 wants to talk, store username of 1
-			this.buddyUsername = serverRequestPayload.wantToUsername;
-			//store the ip addr of 1
-			this.buddyIP = serverRequestPayload.wantToIP;
-			
-			//take out DH contribution of A and create shared key
-			PublicKey clientA_DHContrib = serverRequestPayload.clientA_DHContrib;
-			//take out N
-			byte[] N = serverRequestPayload.N;
-			
-			//send back packet with DH contribution of B and N
-			requestPacket.readyClientBNegotiateResponse(serverSeshKey,clientAgreementKeyPair.getPublic(),N);
-			requestPacket.go(this.serverSocket);
-			
-			//manufacture the secret key
-			this.findSecretKey(clientA_DHContrib);
-		}
-		catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	private void handle_negotiate_request(Packet packet){
+		NegotiatePacket requestPacket = (NegotiatePacket) packet;
+		
+		ServerNegotiateRequestPayload serverRequestPayload = requestPacket.getServerRequestPayload(this.serverSeshKey);
+		//take out 1 wants to talk, store username of 1
+		this.buddyUsername = serverRequestPayload.wantToUsername;
+		//store the ip addr of 1
+		this.buddyIP = serverRequestPayload.wantToIP;
+		
+		//take out DH contribution of A and create shared key
+		PublicKey clientA_DHContrib = serverRequestPayload.clientA_DHContrib;
+		//take out N
+		byte[] N = serverRequestPayload.N;
+		
+		//send back packet with DH contribution of B and N
+		requestPacket.readyClientBNegotiateResponse(serverSeshKey,clientAgreementKeyPair.getPublic(),N);
+		requestPacket.go(this.serverSocket);
+		
+		//manufacture the secret key
+		this.findSecretKey(clientA_DHContrib);
 	}
 	
 	/**
 	 * finishes negotiation by handling B->A at A
 	 */
-	private void handle_negotiate_response(){
+	private void handle_negotiate_ok_response(Packet packet){
 		try {
-			//TODO: Find out if the Client is ever waiting for this??
-			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
-			int count = this.serverStream.read(recv);
-			//truncating the unused part of the recv buffer
-			byte[] serverDiscoverBytes = new byte[count];
-			System.arraycopy(recv, 0, serverDiscoverBytes, 0, count);
-			Object o = common.Utils.deserialize(serverDiscoverBytes);
-			NegotiatePacket responsePacket = (NegotiatePacket) o;
+			NegotiatePacket responsePacket = (NegotiatePacket) packet;
 			
 			ServerNegotiateResponsePayload serverResponsePayload = responsePacket.getServerResponsePayload(this.serverSeshKey);
 			//store the ip addr of 2
@@ -350,17 +353,18 @@ public class Client {
 			
 			//manufacture the secret key
 			this.findSecretKey(clientB_DHContrib);
-		}
-		catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (SimplException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	private void handle_negotiate_deny_response(){
+		System.out.println("Requested client is busy");
+	}
+	
+	private void handle_negotiate_nonexistant_response(){
+		System.out.println("Requested client does not exist");
 	}
 	
 	/**
