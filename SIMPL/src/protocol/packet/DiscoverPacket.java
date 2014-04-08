@@ -22,7 +22,7 @@ public class DiscoverPacket extends Packet {
 		this.setClientDiscoverRequestFlags();
 	}
 
-	public void readyServerDiscoverResponse(Set<String> usernames, byte[] seshKey){
+	public void readyServerDiscoverResponse(ArrayList<String> usernames, byte[] seshKey){
 		//reset the packet
 		this.clearAllFields();
 		
@@ -30,10 +30,7 @@ public class DiscoverPacket extends Packet {
 		this.setServerDiscoverResponseFlags();
 		
 		//initialize the discovery list
-		ArrayList<String> strings = new ArrayList<String>();
-		//populate the array list
-		for( String s : usernames ) strings.add(s);
-		this.discoveryList = new DiscoverPayload(strings);
+		this.discoveryList = new DiscoverPayload(usernames);
 		
 		//encrypt the discovery list
 		byte[] encrypted_data = this.discoveryList.encrypt(seshKey);
