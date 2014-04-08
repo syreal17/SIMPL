@@ -124,7 +124,23 @@ public class CmdLine {
 	/**
 	 * Starts a chat with another SIMPL client
 	 */
-	public static void greet_command(String msg){
+	public static void greet_command(String username, String msg){
+		try{
+			CmdLine.client.do_negotiate_request(username);
+		} catch (Exception e){
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			System.out.println(CmdLine.DISCOVER_FAIL);
+			System.exit(common.Constants.GENERIC_FAILURE);
+		}
+		try{
+			CmdLine.client.do_chat(msg);
+		} catch (Exception e){
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			System.out.println(CmdLine.DISCOVER_FAIL);
+			System.exit(common.Constants.GENERIC_FAILURE);
+		}
 		System.out.println("Greeting this mafaka...");
 		return;
 	}
@@ -133,7 +149,14 @@ public class CmdLine {
 	 * Sends chat message to the connected client
 	 */
 	public static void chat_command(String msg){
-		System.out.println("Chat this mafaka...");
+		try{
+			CmdLine.client.do_chat(msg);
+		} catch (Exception e){
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			System.out.println(CmdLine.DISCOVER_FAIL);
+			System.exit(common.Constants.GENERIC_FAILURE);
+		}
 		return;
 	}
 	
@@ -208,7 +231,7 @@ public class CmdLine {
 							message = "You have connected to client: " + CmdLine.client.buddyUsername;
 						}
 						//send the first message to the chat_command, who will ship it off
-						CmdLine.greet_command(message);
+						CmdLine.greet_command(words[1], message);
 						CmdLine.client.chatting = true;
 						break;
 					case CmdLine.COMMAND_TOKEN_LEAVE:
