@@ -111,6 +111,15 @@ public class Server implements Runnable{
 		return false;
 	}
 	
+	public ArrayList<String> listClientsOnline(){
+		ArrayList<String> clientList = new ArrayList<String>();
+		
+		for( ClientHandlerThread cht : this.threads ){
+			clientList.add(cht.clientUsername);
+		}
+		return clientList;
+	}
+	
 	public void run(){
 		//listen
 		this.start_listener_loop();

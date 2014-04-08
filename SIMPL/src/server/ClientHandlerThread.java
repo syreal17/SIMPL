@@ -257,7 +257,7 @@ public class ClientHandlerThread extends Thread {
 	private void handle_discover(){
 		//Build the initial packet and send it
 		DiscoverPacket discoverResponse = new DiscoverPacket();
-		discoverResponse.readyServerDiscoverResponse(this.server.userDB.keySet(), this.sessionKey);
+		discoverResponse.readyServerDiscoverResponse(this.server.listClientsOnline(), this.sessionKey);
 		//send the usernames to the client
 		discoverResponse.go(this.clientSocket);
 	}
