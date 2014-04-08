@@ -378,8 +378,12 @@ public class Client extends Thread {
 	 * @return success or failure
 	 */
 	public void do_chat(String message){
-		//TODO: implement
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		//make a chat packet
+		ChatPacket chatPacket = new ChatPacket();
+		//prepare and encrypt the message
+		chatPacket.prepareMessage(message, clientSeshKey);
+		//send the message
+		chatPacket.go(this.buddySocket);
 	}
 	
 	/**
