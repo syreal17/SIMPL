@@ -209,10 +209,15 @@ public class CmdLine {
 			//create Client instance
 			CmdLine.client = new Client(serverPubK);
 			
+			//create TCP connection (probably shouldn't make the connection here)
+			CmdLine.client.serverSocket = new Socket(serverName, portNum);
+			CmdLine.client.serverStream = CmdLine.client.serverSocket.getInputStream();
+			
 			//try connecting
 			try{
 				CmdLine.client.do_login();
 			} catch (Exception e){
+				System.err.println(e.getMessage());
 				e.printStackTrace();
 				System.out.println(CmdLine.LOGIN_FAIL);
 				System.exit(common.Constants.GENERIC_FAILURE);
@@ -222,6 +227,7 @@ public class CmdLine {
 			try{
 				CmdLine.client.do_discover();
 			} catch (Exception e){
+				System.err.println(e.getMessage());
 				e.printStackTrace();
 				System.out.println(CmdLine.DISCOVER_FAIL);
 				System.exit(common.Constants.GENERIC_FAILURE);
@@ -243,12 +249,8 @@ public class CmdLine {
 			//TODO: ui thread stuff needs to go here
 			CmdLine.user_input_loop();
 			
-			//create TCP connection (probably shouldn't make the connection here)
-			CmdLine.client.serverSocket = new Socket(serverName, portNum);
-			CmdLine.client.serverStream = CmdLine.client.serverSocket.getInputStream();
-			
 			//enter Client listen loop. This should be an indefinite loop
-			CmdLine.client.startListenLoop(serverName, portNum);
+			CmdLine.client.startListenLoop();
 			
 			//only reason to exit ui loop is quitting SIMPL Client
 			System.exit(common.Constants.GENERIC_SUCCESS);

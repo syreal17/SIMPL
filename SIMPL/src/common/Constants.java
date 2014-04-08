@@ -45,7 +45,7 @@ public class Constants {
 	public final static boolean TESTING = true;
 	
 	//CRYPTO
-	public final static boolean CRYPTO_OFF = false;
+	public final static boolean CRYPTO_OFF = true;
 	public final static String KEY_AGREEMENT_ALGORITHM = "DH";
 	public final static int KEY_AGREEMENT_KEY_SIZE = 512;
 	public final static String RNG_ALOGRITHM = "SHA1PRNG";

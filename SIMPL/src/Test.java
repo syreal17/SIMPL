@@ -1,29 +1,20 @@
-/**
- * Listens on the socket for packets
- */
-
-package client;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.Socket;
 import java.util.Arrays;
 
-public class UserInputThread implements Runnable {
+import client.CmdLine;
 
-	Socket buddySocket;
-	String username;
-	boolean chatting;
+
+public class Test {
 	
-	UserInputThread(String username)
-	{
-		this.username = username;
-		this.chatting = false;
-	}
-	
-	@Override
-	public void run() {
+	public static String username = "syreal";
+	public static boolean chatting = true;
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
 		try 
 		(
             BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in))
@@ -37,7 +28,7 @@ public class UserInputThread implements Runnable {
 				switch (words[0])
 				{ 
 					case client.CmdLine.COMMAND_TOKEN_WHO:
-						CmdLine.who_command();
+						System.out.println("CmdLine.who_command();");
 						break;
 					case client.CmdLine.COMMAND_TOKEN_GREET:
 						if (words.length < 2) 
@@ -62,27 +53,27 @@ public class UserInputThread implements Runnable {
 						}
 						else //otherwise send a default message
 						{
-							message = "You have connected to client: " + this.username;
+							message = "You have connected to client: " + Test.username;
 						}
 						//send the first message to the chat_command, who will ship it off
-						CmdLine.greet_command(message);
-						this.chatting = true;
+						System.out.println("CmdLine.greet_command("+message+");");
+						//this.chatting = true;
 						break;
 					case client.CmdLine.COMMAND_TOKEN_LEAVE:
-						CmdLine.leave_command();
+						System.out.println("CmdLine.leave_command();");
 						break;
 					case client.CmdLine.COMMAND_TOKEN_QUIT:
-						CmdLine.quit_command();
+						System.out.println("CmdLine.quit_command();");
 						break;
 					case client.CmdLine.COMMAND_TOKEN_HELP:
-						CmdLine.help_command();
+						System.out.println("CmdLine.help_command();");
 						break;
 					//send message to other client
 					default:
 						//if currently chatting with another user
-						if (this.chatting)
+						if (Test.chatting)
 						{
-							CmdLine.chat_command(userInput);
+							System.out.println("CmdLine.chat_command(userInput);");
 						}
 						break;
 				}	
@@ -91,6 +82,7 @@ public class UserInputThread implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
 	}
 
 }
