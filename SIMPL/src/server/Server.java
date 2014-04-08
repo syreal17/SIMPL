@@ -207,7 +207,8 @@ public class Server {
 			//TODO: implement
 			//punting on this right now because it's not critical
 			//run-time adding users to userDB *IS* critical
-			throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+			
+			//PASS!!
 		}
 	}
 	
