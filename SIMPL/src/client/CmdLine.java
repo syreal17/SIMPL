@@ -130,7 +130,7 @@ public class CmdLine {
 	/**
 	 * Starts a chat with another SIMPL client
 	 */
-	public static void greet_command(String username, String msg){
+	public static void chat_command(String username, String msg){
 		try{
 			CmdLine.client.do_negotiate_request(username);
 		} catch (Exception e){
@@ -246,7 +246,7 @@ public class CmdLine {
 							message = "You have connected to client: " + CmdLine.client.buddyUsername;
 						}
 						//send the first message to the chat_command, who will ship it off
-						CmdLine.greet_command(words[1], message);
+						CmdLine.chat_command(words[1], message);
 						CmdLine.client.chatting = true;
 						break;
 					case CmdLine.COMMAND_TOKEN_LEAVE:
