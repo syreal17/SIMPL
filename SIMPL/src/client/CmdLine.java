@@ -168,7 +168,7 @@ public class CmdLine {
 		//TODO: implement
 		//TODO: parse out first word of user input string, 
 		//		if a command, do command, if not, try to send as message
-		new UserInputThread(client.username);
+		new UserInputThread(client.myUsername);
 	}
 	
 	public static boolean check_user(String username)

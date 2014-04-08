@@ -46,7 +46,9 @@ public class Client {
 	private static String LOGIN_CATCHEMALL = "If you are seeing this, I am wrong: Gotta catch-em-all!";
 	
 	public boolean running;						//continue listening or exit thread
-	public String username; 					//clients username stored here
+	public String myUsername; 					//clients username stored here
+	public String buddyUsername;				//buddy's username
+	public InetAddress buddyIP;
 	
 	private Socket serverSocket; 				//socket used for communication to server
 	private InputStream serverStream;
@@ -163,7 +165,7 @@ public class Client {
 			challengeResponse.R_1 = serverChallenge.R_1;
 			challengeResponse.challengePayload = cp;
 			//TODO: actually get user input here
-			this.username = "syreal";
+			this.myUsername = "syreal";
 			String password = "password";
 			//Hashing the password
 			MessageDigest md = MessageDigest.getInstance(common.Constants.PASSWORD_HASH_ALGORITHM);
@@ -172,7 +174,7 @@ public class Client {
 			//generating the nonce
 			SecureRandom.getInstance(common.Constants.RNG_ALOGRITHM).nextBytes(this.N);
 			//ready the Response for transmission and create the session key
-			serverSeshKey = challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, username, pwHash, this.N);
+			serverSeshKey = challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, this.myUsername, pwHash, this.N);
 			//transmit the response
 			challengeResponse.go(this.serverSocket);
 			
@@ -277,20 +279,30 @@ public class Client {
 		try {
 			//TODO: Find out if the Client is ever waiting for this??
 			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
-			int count = this.simplStream.read(recv);
+			int count = this.serverStream.read(recv);
 			//truncating the unused part of the recv buffer
 			byte[] serverDiscoverBytes = new byte[count];
 			System.arraycopy(recv, 0, serverDiscoverBytes, 0, count);
 			Object o = common.Utils.deserialize(serverDiscoverBytes);
 			NegotiatePacket requestPacket = (NegotiatePacket) o;
 			
+			ServerNegotiateRequestPayload serverRequestPayload = requestPacket.getServerRequestPayload(this.serverSeshKey);
 			//take out 1 wants to talk, store username of 1
-			//if so, store the ip addr of 1
+			this.buddyUsername = serverRequestPayload.wantToUsername;
+			//store the ip addr of 1
+			this.buddyIP = serverRequestPayload.wantToIP;
 			
 			//take out DH contribution of A and create shared key
+			PublicKey clientA_DHContrib = serverRequestPayload.clientA_DHContrib;
 			//take out N
+			byte[] N = serverRequestPayload.N;
 			
 			//send back packet with DH contribution of B and N
+			requestPacket.readyClientBNegotiateResponse(serverSeshKey,clientAgreementKeyPair.getPublic(),N);
+			requestPacket.go(this.serverSocket);
+			
+			//manufacture the secret key
+			this.findSecretKey(clientA_DHContrib);
 		}
 		catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -383,7 +395,22 @@ public class Client {
 	}
 	
 	private void findSecretKey(PublicKey buddyPublicKey){
-		//TODO: forget KeyPair here
+		try
+		{
+			KeyAgreement ka = KeyAgreement.getInstance(common.Constants.KEY_AGREEMENT_ALGORITHM);
+			ka.init(clientAgreementKeyPair.getPrivate());
+			ka.doPhase(buddyPublicKey, true);
+			clientSeshKey = ka.generateSecret(common.Constants.SYMMETRIC_CRYPTO_MODE);	
+			//forget KeyPair here
+			clientAgreementKeyPair = null;
+		}
+		catch (NoSuchAlgorithmException e)
+		{
+			e.printStackTrace();
+		} catch (InvalidKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	/**
