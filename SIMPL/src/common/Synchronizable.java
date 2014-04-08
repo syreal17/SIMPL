@@ -77,4 +77,8 @@ public class Synchronizable<T> {
 		//then wait at barrier to signal that access is ok
 		this.getset_wait();
 	}
+	
+	public void set_bypass(T newValue){
+		this.value = newValue;
+	}
 }

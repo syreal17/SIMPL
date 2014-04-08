@@ -50,7 +50,7 @@ public class Client extends Thread {
 	public InputStream serverStream;
 	public ServerSocket buddyListenSocket;
 	public Socket buddySocket;
-	public InputStream buddyStream;
+	public Synchronizable<InputStream> buddyStream;
 	public Synchronizable<ArrayList<String>> clients; 	//contains result of discover
 	private byte[] N; 									//the nonce that we've used and sent to the Server
 	public PublicKey serverPubK;
@@ -69,6 +69,7 @@ public class Client extends Thread {
 		//initilize Synchronizables - the first time they are set will be synchronized, so don't set them now.
 		this.clients = new Synchronizable<ArrayList<String>>();
 		this.clientSeshKey = new Synchronizable<byte[]>();
+		this.buddyStream = new Synchronizable<InputStream>();
 	}
 	
 	@Override
@@ -339,9 +340,13 @@ public class Client extends Thread {
 			int chatPortOffset = N[0] + common.Constants.BUDDY_PORT_OFFSET_BASE;
 			//Must build a ServerSocket first to accept the connection
 			this.buddyListenSocket = new ServerSocket(this.serverSocket.getPort()+chatPortOffset);
-			//wait for the connection from the buddy
+			//blocking wait on the connection from the buddy
+			//TODO: chat negotiations really should be deniable from the perspective buddy.
+			//		it's kinda easy to DOS "perspective buddies" like this
 			this.buddySocket = this.buddyListenSocket.accept();
-			this.buddyStream = this.buddySocket.getInputStream();
+			//bypass the Synchronizable, since that is for the chat initiator, since the buddy blocks on the above
+			//accept
+			this.buddyStream.set_bypass(this.buddySocket.getInputStream());
 		} catch (IOException e){
 			System.err.println(e.getMessage());
 			e.printStackTrace();
@@ -354,6 +359,7 @@ public class Client extends Thread {
 	 * finishes negotiation by handling B->A at A
 	 */
 	private void handle_negotiate_ok_response(Packet packet){
+	//TODO: there's maybe some way to avoid using TWO Synchronizables here, but hey, just hoping this works
 		try {
 			NegotiatePacket responsePacket = (NegotiatePacket) packet;
 			
@@ -379,7 +385,8 @@ public class Client extends Thread {
 			int chatPortOffset = N[0] + common.Constants.BUDDY_PORT_OFFSET_BASE;
 			//build the buddySocket, should connect since ClientB should be waiting on accept()
 			this.buddySocket = new Socket(this.buddyIP, this.serverSocket.getPort()+chatPortOffset);
-			this.buddyStream = this.buddySocket.getInputStream();
+			//set the buddyStream Synchronizable, signaling UI thread it's safe to send messages
+			this.buddyStream.set(this.buddySocket.getInputStream());
 		} catch (SimplException e) {
 			System.err.println(e.getMessage());
 			e.printStackTrace();

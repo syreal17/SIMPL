@@ -154,9 +154,13 @@ public class CmdLine {
 				//to print error message in Client thread.
 				return;
 			}
-			//otherwise, say what you need to say this is just initial message.
+			//wait at Synchronizable for Client thread to construct buddySocket
+			//checking "buddyStream" is counter-intuitive when we're waiting for Socket, sorry
+			CmdLine.client.buddyStream.get();
+			
+			//otherwise, say what you need to say; this is just initial message.
 			//initial message is good because that's the only way buddy knows your negotiate process is done
-			//buddy can calculate key right away
+			//buddy can calculate key right away.
 			CmdLine.client.do_chat(msg);
 		} catch (InterruptedException e) {
 			System.err.println(e.getMessage());

@@ -15,3 +15,5 @@
 
 *[HIGH IMPORTANCE]Ensure algorithms and key sizes conform to NIST pubs
     -Don't forget key truncation down to 16 bytes (128 bits)
+
+*[MEDIUM IMPORTANCE]chat negotiations really should be deniable from the perspective buddy. it's kinda easy to DOS "perspective buddies" like this
