@@ -41,11 +41,12 @@ public class Client extends Thread {
 	
 	private static String LOGIN_SUCCESS_MSG = "Dat worked!";
 	private static String LOGIN_FAILURE_MSG = "Server doesn't like you.";
-	private static String LOGIN_UNDEFINED_MSG = "Server's drunk. You should go home. It should too.";
+	//private static String LOGIN_UNDEFINED_MSG = "Server's drunk. You should go home. It should too.";
 	//private static String LOGIN_VERIFY_FAIL = "The \"server\" is evil! Punting!";
 	//private static String LOGIN_CATCHEMALL = "If you are seeing this, I am wrong: Gotta catch-em-all!";
 	
 	public boolean running;						//continue listening or exit thread
+	public boolean logged_in;
 	public boolean chatting;
 	public String myUsername; 					//clients username stored here
 	public String passHash;
@@ -64,7 +65,7 @@ public class Client extends Thread {
 	private SecretKey clientSeshKey;			//the result of the KeyAgreement, used as the session key between
 												//two chatting clients
 	
-	//Constructor currently sets nothing up. Defers to other class methods
+	//TODO: put TCP socket construction here? Makes semantic sense
 	public Client(PublicKey serverPubK){
 		//set the size for N
 		this.N = new byte[common.Constants.NONCE_SIZE_BYTES];
@@ -88,6 +89,7 @@ public class Client extends Thread {
 		//AND the TCP connection should be created outside of this function!
 					
 		this.running = true;
+		this.logged_in = false;
 		
 		while( this.running ){
 			Packet packet = this.waitForPacket();
@@ -101,13 +103,28 @@ public class Client extends Thread {
 	 * @param buddyPacket
 	 */
 	private void handlePacket(Packet packet){
-		//We're not handling any login or discover packets here now, because we are seeing if you can
-		//send a packet on a read-blocking socket
+		//Login steps
+		if( packet.checkForFlags(LoginPacket.getServerLoginChallengeFlags()) )
+		{
+			this.handle_server_login_challenge(packet);
+		} else if( packet.checkForFlags(LoginPacket.getServerLoginOkFlags()) )
+		{
+			this.handle_server_login_ok();
+		} else if( packet.checkForFlags(LoginPacket.getServerLoginDenyFlags()) )
+		{
+			this.handle_server_login_deny();
+		}
+		
+		//Discover step
+		else if( packet.checkForFlags(DiscoverPacket.getServerDiscoverResponseFlags()) ){
+			this.handle_discover_response(packet);
+		}
 		
 		//Negotiate steps
-		if( packet.checkForFlags(NegotiatePacket.getNegotiateRequestFlags()) ){
+		else if( packet.checkForFlags(NegotiatePacket.getNegotiateRequestFlags()) )
+		{
 			this.handle_negotiate_request(packet);
-		}/*Handling all these in do_negotiate_request else if( packet.checkForFlags(NegotiatePacket.getNegotiateOkResponseFlags()) )
+		}else if( packet.checkForFlags(NegotiatePacket.getNegotiateOkResponseFlags()) )
 		{
 			this.handle_negotiate_ok_response(packet);
 		} else if( packet.checkForFlags(NegotiatePacket.getNegotiateDenyResponseFlags()) )
@@ -116,16 +133,23 @@ public class Client extends Thread {
 		} else if( packet.checkForFlags(NegotiatePacket.getNegotiateNonexistantResponseFlags()) )
 		{
 			this.handle_negotiate_nonexistant_response();
-		}*/
+		}
 		
 		//Chat step
-		//else if( packet.checkForFlags(ChatPacket.))
+		else if( packet.checkForFlags(ChatPacket.getChatPacketFlags()) )
+		{
+			this.handle_chat();
+		}
 		
 		//Leave steps
 		//TODO: 3-way handshake currently ignored
-		if( packet.checkForFlags(LeavePacket.getClientA_FIN_Flags()) ){
+		if( packet.checkForFlags(LeavePacket.getClientA_FIN_Flags()) )
+		{
 			this.handle_leave();
 		}
+		
+		//Logout step
+		//TODO: need to handle receiving the server fin/ack since Server counts on ack to actually logout the Client
 	}
 	
 	/**
@@ -134,65 +158,65 @@ public class Client extends Thread {
 	 * @param port the port number that the server is listening for SIMPL on
 	 * @return message to print on CmdLine 
 	 */
-	public void do_login(){
-		try{
-			//Build the initial packet and send it
-			LoginPacket loginRequest = new LoginPacket();
-			loginRequest.readyClientLoginRequest();
-			loginRequest.go(this.serverSocket);
-			
-			//Get challenge packet
-			LoginPacket serverChallenge = (LoginPacket) this.waitForPacket();
-			//get all the challengePayloadBytes
-			byte[] signature = serverChallenge.signature;
-			ChallengePayload cp = serverChallenge.challengePayload;
-			
-			if( !common.Constants.CRYPTO_OFF ) {
-
-				if (cp.verify(this.serverPubK, signature))
-				{
-					System.out.println("Signature success!");
-				}
-				else
-				{
-					System.out.println("Signature failure...");
-				}
-			}
-			
-			//Start constructing the response packet.
-			LoginPacket challengeResponse = new LoginPacket();
-			challengeResponse.R_1 = serverChallenge.R_1;
-			challengeResponse.challengePayload = cp;
-			//generating the nonce
-			SecureRandom.getInstance(common.Constants.RNG_ALOGRITHM).nextBytes(this.N);
-			//ready the Response for transmission and create the session key
-			serverSeshKey = challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, this.myUsername, this.passHash.getBytes(), this.N);
-			//transmit the response
-			challengeResponse.go(this.serverSocket);
-			
-			//Get the server response: ok or deny
-			Packet serverResponse = this.waitForPacket();
-			
-			//check the flags of the packet to see if we were accepted, or not, or worse
-			if( serverResponse.flags.contains(Packet.Flag.Ok) && 
-					!serverResponse.flags.contains(Packet.Flag.Deny))
-			{
-				System.out.println(Client.LOGIN_SUCCESS_MSG);
-			} else if( !serverResponse.flags.contains(Packet.Flag.Ok) &&
-					serverResponse.flags.contains(Packet.Flag.Deny))
-			{
-				System.out.println(Client.LOGIN_FAILURE_MSG);
-			} else {
-				System.out.println(Client.LOGIN_UNDEFINED_MSG);
-			}
-		} catch (NoSuchAlgorithmException e){
-			System.err.println(e.getMessage());
-			e.printStackTrace();
-			return;
-		}
-	}
+//	public void do_entire_login(){
+//		try{
+//			//Build the initial packet and send it
+//			LoginPacket loginRequest = new LoginPacket();
+//			loginRequest.readyClientLoginRequest();
+//			loginRequest.go(this.serverSocket);
+//			
+//			//Get challenge packet
+//			LoginPacket serverChallenge = (LoginPacket) this.waitForPacket();
+//			//get all the challengePayloadBytes
+//			byte[] signature = serverChallenge.signature;
+//			ChallengePayload cp = serverChallenge.challengePayload;
+//			
+//			if( !common.Constants.CRYPTO_OFF ) {
+//
+//				if (cp.verify(this.serverPubK, signature))
+//				{
+//					System.out.println("Signature success!");
+//				}
+//				else
+//				{
+//					System.out.println("Signature failure...");
+//				}
+//			}
+//			
+//			//Start constructing the response packet.
+//			LoginPacket challengeResponse = new LoginPacket();
+//			challengeResponse.R_1 = serverChallenge.R_1;
+//			challengeResponse.challengePayload = cp;
+//			//generating the nonce
+//			SecureRandom.getInstance(common.Constants.RNG_ALOGRITHM).nextBytes(this.N);
+//			//ready the Response for transmission and create the session key
+//			serverSeshKey = challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, this.myUsername, this.passHash.getBytes(), this.N);
+//			//transmit the response
+//			challengeResponse.go(this.serverSocket);
+//			
+//			//Get the server response: ok or deny
+//			Packet serverResponse = this.waitForPacket();
+//			
+//			//check the flags of the packet to see if we were accepted, or not, or worse
+//			if( serverResponse.flags.contains(Packet.Flag.Ok) && 
+//					!serverResponse.flags.contains(Packet.Flag.Deny))
+//			{
+//				System.out.println(Client.LOGIN_SUCCESS_MSG);
+//			} else if( !serverResponse.flags.contains(Packet.Flag.Ok) &&
+//					serverResponse.flags.contains(Packet.Flag.Deny))
+//			{
+//				System.out.println(Client.LOGIN_FAILURE_MSG);
+//			} else {
+//				System.out.println(Client.LOGIN_UNDEFINED_MSG);
+//			}
+//		} catch (NoSuchAlgorithmException e){
+//			System.err.println(e.getMessage());
+//			e.printStackTrace();
+//			return;
+//		}
+//	}
 	
-	/*public void do_login(){
+	public void do_login(){
 		//Build the initial packet and send it
 		LoginPacket loginRequest = new LoginPacket();
 		loginRequest.readyClientLoginRequest();
@@ -207,17 +231,14 @@ public class Client extends Thread {
 			byte[] signature = serverChallenge.signature;
 			ChallengePayload cp = serverChallenge.challengePayload;
 			
-			if( common.Constants.CRYPTO_OFF ){
-				//TODO: switch logic so don't need empty if block
-			} else {
-				
+			if( !common.Constants.CRYPTO_OFF ){
 				if (cp.verify(this.serverPubK, signature))
 				{
-					System.out.println("Signature success!");
+					System.out.println("SIMPL Server identity authenticated");
 				}
 				else
 				{
-					System.out.println("Signature failure...");
+					System.out.println("SIMPL Server identity rejected! RUUUUN!!");
 				}
 			}
 			
@@ -225,17 +246,11 @@ public class Client extends Thread {
 			LoginPacket challengeResponse = new LoginPacket();
 			challengeResponse.R_1 = serverChallenge.R_1;
 			challengeResponse.challengePayload = cp;
-			//TODO: actually get user input here
-			this.myUsername = "syreal";
-			String password = "password";
-			//Hashing the password
-			MessageDigest md = MessageDigest.getInstance(common.Constants.PASSWORD_HASH_ALGORITHM);
-			md.update(password.getBytes());
-			byte[] pwHash = md.digest();
 			//generating the nonce
 			SecureRandom.getInstance(common.Constants.RNG_ALOGRITHM).nextBytes(this.N);
 			//ready the Response for transmission and create the session key
-			serverSeshKey = challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, myUsername, pwHash, this.N);
+			serverSeshKey = challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, this.myUsername, 
+					this.passHash.getBytes(), this.N);
 			//transmit the response
 			challengeResponse.go(this.serverSocket);
 		} catch (NoSuchAlgorithmException e) {
@@ -247,32 +262,40 @@ public class Client extends Thread {
 	
 	private void handle_server_login_ok(){
 		System.out.println(Client.LOGIN_SUCCESS_MSG);
+		//fairly sure that this is enough to signal a waiting thread, since it changes value
+		this.logged_in = true;
 	}
 	
 	private void handle_server_login_deny(){
 		System.out.println(Client.LOGIN_FAILURE_MSG);
-	}*/
+		//TODO: verify that this is enough to signal a waiting thread, since it most likely 
+		//doesn't change the value of var
+		this.logged_in = false;
+	}
 	
 	/**
 	 * Ask SIMPL Server for Login'd SIMPL Clients. Instantiates the clients ArrayList
 	 * @return success or failure
 	 */
-	public void do_discover(){
-		//Build the initial packet and send it
-		DiscoverPacket discoverRequest = new DiscoverPacket();
-		discoverRequest.readyClientDiscoverRequest();
-		discoverRequest.go(this.serverSocket);
-
-		System.out.println("Client: do_discover1");
-		//Get challenge packet
-		Packet serverResponse = this.waitForPacket();
-		byte[] usernames = serverResponse.crypto_data;
-		//get array list out of packet
-		clients = discoverRequest.decryptServerDiscoverReponse(usernames, serverSeshKey);
-		System.out.println("Client: do_discover2");
-	}
+//	public void do_entire_discover(){
+//		//Build the initial packet and send it
+//		DiscoverPacket discoverRequest = new DiscoverPacket();
+//		discoverRequest.readyClientDiscoverRequest();
+//		discoverRequest.go(this.serverSocket);
+//
+//		System.out.println("Client: do_discover1");
+//		//Get challenge packet
+//		Packet serverResponse = this.waitForPacket();
+//		byte[] usernames = serverResponse.crypto_data;
+//		//get array list out of packet
+//		clients = discoverRequest.decryptServerDiscoverReponse(usernames, serverSeshKey);
+//		System.out.println("Client: do_discover2");
+//	}
 	
-	/*public void do_discover(){
+	/**
+	 * Should wait on this.clients, modified by handle_discover_response
+	 */
+	public void do_discover(){
 		//Build the initial packet and send it
 		DiscoverPacket discoverRequest = new DiscoverPacket();
 		discoverRequest.readyClientDiscoverRequest();
@@ -284,7 +307,7 @@ public class Client extends Thread {
 		byte[] usernames = serverResponse.crypto_data;
 		//get array list out of packet
 		this.clients = serverResponse.decryptServerDiscoverReponse(usernames, this.serverSeshKey);
-	}*/
+	}
 	
 	/**
 	 * This is the only public method of all Client.*negotiate* methods, because this is the only one
