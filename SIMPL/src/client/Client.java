@@ -38,25 +38,25 @@ import protocol.payload.*;
  *
  */
 public class Client extends Thread {
-	public boolean running;						//continue listening or exit thread
+	public boolean running;								//continue listening or exit thread
 	public Synchronizable<Boolean> logged_in;
 	public boolean chatting;
-	public String myUsername; 					//clients username stored here
+	public String myUsername; 							//clients username stored here
 	public String passHash;
-	public String buddyUsername;				//buddy's username
+	public String buddyUsername;						//buddy's username
 	public InetAddress buddyIP;
 	
-	public Socket serverSocket; 				//socket used for communication to server
+	public Socket serverSocket; 						//socket used for communication to server
 	public InputStream serverStream;
 	public Socket buddySocket;
 	public InputStream buddyStream;
-	public Synchronizable<ArrayList<String>> clients; 			//contains result of discover
-	private byte[] N; 							//the nonce that we've used and sent to the Server
+	public Synchronizable<ArrayList<String>> clients; 	//contains result of discover
+	private byte[] N; 									//the nonce that we've used and sent to the Server
 	public PublicKey serverPubK;
 	public byte[] serverSeshKey;
-	private KeyPair clientAgreementKeyPair;		//the PrivateKey used in the KeyAgreement
-	private Synchronizable<SecretKey> clientSeshKey;			//the result of the KeyAgreement, used as the session key between
-												//two chatting clients
+	private KeyPair clientAgreementKeyPair;				//the PrivateKey used in the KeyAgreement
+	public Synchronizable<SecretKey> clientSeshKey;		//the result of the KeyAgreement, used as the session key 
+														//between two chatting clients
 	
 	//TODO: put TCP socket construction here? Makes semantic sense
 	public Client(PublicKey serverPubK){
@@ -438,6 +438,8 @@ public class Client extends Thread {
 	 */
 	private void handle_negotiate_deny_response(){
 		try {
+			//since both deny and nonexistant set to null, we print a explanatory message here
+			System.out.println("Requested buddy was busy");
 			this.clientSeshKey.set(null);
 		} catch (InterruptedException e) {
 			System.err.println(e.getMessage());
@@ -455,6 +457,8 @@ public class Client extends Thread {
 	 */
 	private void handle_negotiate_nonexistant_response(){
 		try {
+			//since both deny and nonexistant set to null, we print a explanatory message here
+			System.out.println("Requested buddy doesn't exist");
 			this.clientSeshKey.set(null);
 		} catch (InterruptedException e) {
 			System.err.println(e.getMessage());

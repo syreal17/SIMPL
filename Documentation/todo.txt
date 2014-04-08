@@ -1,10 +1,12 @@
-*Figure out why server prints exceptions when a client's password is wrong. This probably involves doing smarter things with exceptions than just printing their message and stack trace.
+*[SOLVED?]Figure out why server prints exceptions when a client's password is wrong. This probably involves doing smarter things with exceptions than just printing their message and stack trace.
     -I suspect that the Server barfs on a client attempting a wrong password because the client attempts to do a discover anyway, and the ClientHandlerThread has no SecretKey to do anything with the clients request.
-        #Easy fix: don't let client do discover unless they receive a LoginOk message
+        #Easy fix: don't let client do discover unless they receive a LoginOk message 
 
-*Just as Server now handles Clients unexpectedly closing, so make the Client also handle that. The Server handling that starts in enterClientHandleLoop() where the SimplException is thrown
+*[LOW IMPORTANCE]Just as Server now handles Clients unexpectedly closing, so make the Client also handle that. The Server handling that starts in enterClientHandleLoop() where the SimplException is thrown
 
-*Figure out why logging in as syreal with password a; then Ctrl-C; then repeat same login creds ends in a Login Deny
+*[SOLVED?]Figure out why logging in as syreal with password a; then Ctrl-C; then repeat same login creds ends in a Login Deny
 
-*Test that the Client can recognize a bad signature.
-    -Easy way to test, give Client different public key
+*[HIGH IMPORTANCE]Test that the Client can recognize a bad signature.
+    -Easy way to test, give Client different public key 
+
+*[LOW IMPORTANCE]Currently, the client UI blocks the user from trying to chat with usernames that it didn't discover in the last who command. There's functionality on the Server to handle nonexistant users and it allows the client user to request chats with people they know are online, but haven't seen in the /who

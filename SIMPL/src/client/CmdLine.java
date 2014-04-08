@@ -11,6 +11,10 @@ import java.security.spec.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+import javax.crypto.*;
+
+import common.SimplException;
+
 /**
  * @author syreal
  *
@@ -25,7 +29,6 @@ public class CmdLine {
 	private static final int ARG_SERVERPUBK_POS = 2;
 	
 	private static final String WHO_PRELUDE = "Connected users are:";
-	private static final String DISCOVER_FAIL = "SIMPL Client failed to discover! Quitting.";
 	private static final String HELP_MSG = 	"/who\t\t\t: Print list of available usernames to chat with\n" +
 											"/chat <username> [message]\t: Start a chat with <username>\n" +
 											"/leave\t\t\t: Leave the current chat\n" +
@@ -89,9 +92,9 @@ public class CmdLine {
 	}
 	
 	public static void login_command(){
-		//wait at Synchronizable, interpret result
 		try {
 			CmdLine.client.do_login();
+			//wait at Synchronizable
 			boolean login_success = CmdLine.client.logged_in.get();
 			//print appropriate message
 			if( login_success ){
@@ -146,21 +149,30 @@ public class CmdLine {
 	public static void chat_command(String username, String msg){
 		try{
 			CmdLine.client.do_negotiate_request(username);
-		} catch (Exception e){
-			System.err.println(e.getMessage());
-			e.printStackTrace();
-			System.out.println(CmdLine.DISCOVER_FAIL);
-			System.exit(common.Constants.GENERIC_FAILURE);
-		}
-		try{
+			//wait at Synchronizable
+			SecretKey clientSeshKey = CmdLine.client.clientSeshKey.get();
+			if( clientSeshKey == null ){
+				//if clientSeshKey is null then the negotiate failed. We counter-intuitively and unforunately had
+				//to print error message in Client thread.
+				return;
+			}
+			//otherwise, say what you need to say this is just initial message.
+			//initial message is good because that's the only way buddy knows your negotiate process is done
+			//buddy can calculate key right away
 			CmdLine.client.do_chat(msg);
-		} catch (Exception e){
+		} catch (InterruptedException e) {
 			System.err.println(e.getMessage());
 			e.printStackTrace();
-			System.out.println(CmdLine.DISCOVER_FAIL);
-			System.exit(common.Constants.GENERIC_FAILURE);
+			return;
+		} catch (BrokenBarrierException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		} catch (SimplException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
 		}
-		System.out.println("Greeting this mafaka...");
 		return;
 	}
 	
@@ -168,14 +180,7 @@ public class CmdLine {
 	 * Sends chat message to the connected client
 	 */
 	public static void chat_command(String msg){
-		try{
-			CmdLine.client.do_chat(msg);
-		} catch (Exception e){
-			System.err.println(e.getMessage());
-			e.printStackTrace();
-			System.out.println(CmdLine.DISCOVER_FAIL);
-			System.exit(common.Constants.GENERIC_FAILURE);
-		}
+		CmdLine.client.do_chat(msg);
 		return;
 	}
 	
