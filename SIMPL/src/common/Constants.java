@@ -23,6 +23,7 @@ public class Constants {
 	public final static int SO_SERVER_TIMEOUT = 200; //ms
 	//amount of time the Client Socket.read will wait on Server until processing outgoing packets ??
 	public final static int SO_CLIENT_TIMEOUT = 100; //ms (More responsive than the Server)
+	public final static int BUDDY_PORT_OFFSET_BASE = 256;
 	
 	
 	//EXCEPTIONS, ERRORS

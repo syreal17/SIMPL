@@ -48,6 +48,7 @@ public class Client extends Thread {
 	
 	public Socket serverSocket; 						//socket used for communication to server
 	public InputStream serverStream;
+	public ServerSocket buddyListenSocket;
 	public Socket buddySocket;
 	public InputStream buddyStream;
 	public Synchronizable<ArrayList<String>> clients; 	//contains result of discover
@@ -300,35 +301,52 @@ public class Client extends Thread {
 	 * @throws SimplException 
 	 */
 	private void handle_negotiate_request(Packet packet) throws SimplException {
-		//generate the DH Public/PrivateKeyPair
-		this.generateKeyPairForKeyAgreement();
-		//ensure it was successful
-		if( this.clientAgreementKeyPair == null ){
-			throw new SimplException("Client KeyAgreement KeyPair failed");
+		try{
+			//generate the DH Public/PrivateKeyPair
+			this.generateKeyPairForKeyAgreement();
+			//ensure it was successful
+			if( this.clientAgreementKeyPair == null ){
+				throw new SimplException("Client KeyAgreement KeyPair failed");
+			}
+			
+			NegotiatePacket requestPacket = (NegotiatePacket) packet;
+			
+			ServerNegotiateRequestPayload serverRequestPayload = requestPacket.getServerRequestPayload(this.serverSeshKey);
+			//take out 1 wants to talk, store username of 1
+			this.buddyUsername = serverRequestPayload.wantToUsername;
+			//store the ip addr of 1
+			this.buddyIP = serverRequestPayload.wantToIP;
+			
+			//take out DH contribution of A and create shared key
+			PublicKey clientA_DHContrib = serverRequestPayload.clientA_DHContrib;
+			//take out N
+			byte[] N = serverRequestPayload.N;
+			
+			//create new packet for response //turns out reusing the packet wasn't the issue, don't feel bad Jaffe
+			NegotiatePacket responsePacket = new NegotiatePacket();
+			//send new packet with DH contribution of B and N
+			responsePacket.readyClientBNegotiateResponse(this.serverSeshKey, this.clientAgreementKeyPair.getPublic(), N);
+			responsePacket.go(this.serverSocket);
+			common.Utils.print_debug_msg("Sent Negotiate response!");
+			
+			//manufacture the secret key
+			this.findSecretKey(clientA_DHContrib);
+			
+			//build the buddySocket
+			//use the least significant byte of the nonce as an offset from the server port to be the chat port
+			//perhaps not the safest solution, but workable, I think. Adding 256 because we don't want the offset
+			//to ever be negative
+			int chatPortOffset = N[0] + common.Constants.BUDDY_PORT_OFFSET_BASE;
+			//Must build a ServerSocket first to accept the connection
+			this.buddyListenSocket = new ServerSocket(this.serverSocket.getPort()+chatPortOffset);
+			//wait for the connection from the buddy
+			this.buddySocket = this.buddyListenSocket.accept();
+			this.buddyStream = this.buddySocket.getInputStream();
+		} catch (IOException e){
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
 		}
-		
-		NegotiatePacket requestPacket = (NegotiatePacket) packet;
-		
-		ServerNegotiateRequestPayload serverRequestPayload = requestPacket.getServerRequestPayload(this.serverSeshKey);
-		//take out 1 wants to talk, store username of 1
-		this.buddyUsername = serverRequestPayload.wantToUsername;
-		//store the ip addr of 1
-		this.buddyIP = serverRequestPayload.wantToIP;
-		
-		//take out DH contribution of A and create shared key
-		PublicKey clientA_DHContrib = serverRequestPayload.clientA_DHContrib;
-		//take out N
-		byte[] N = serverRequestPayload.N;
-		
-		//create new packet for response //turns out reusing the packet wasn't the issue, don't feel bad Jaffe
-		NegotiatePacket responsePacket = new NegotiatePacket();
-		//send new packet with DH contribution of B and N
-		responsePacket.readyClientBNegotiateResponse(this.serverSeshKey, this.clientAgreementKeyPair.getPublic(), N);
-		responsePacket.go(this.serverSocket);
-		common.Utils.print_debug_msg("Sent Negotiate response!");
-		
-		//manufacture the secret key
-		this.findSecretKey(clientA_DHContrib);
 	}
 	
 	/**
@@ -352,9 +370,21 @@ public class Client extends Thread {
 				throw new SimplException("Nonce check failed.");
 			}
 			
-			//manufacture the secret key
+			//signal at Synchronizable, manufacture the secret key
+			//TODO: might change the Synchronizable to the socket that do_chat needs, or just add another
 			this.clientSeshKey.set(this.findSecretKey(clientB_DHContrib));
+			//use the least significant byte of the nonce as an offset from the server port to be the chat port
+			//perhaps not the safest solution, but workable, I think. Adding 256 because we don't want the offset
+			//to ever be negative
+			int chatPortOffset = N[0] + common.Constants.BUDDY_PORT_OFFSET_BASE;
+			//build the buddySocket, should connect since ClientB should be waiting on accept()
+			this.buddySocket = new Socket(this.buddyIP, this.serverSocket.getPort()+chatPortOffset);
+			this.buddyStream = this.buddySocket.getInputStream();
 		} catch (SimplException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+			return;
+		} catch (IOException e){
 			System.err.println(e.getMessage());
 			e.printStackTrace();
 			return;

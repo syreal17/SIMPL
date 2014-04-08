@@ -11,8 +11,6 @@ import java.security.spec.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-import javax.crypto.*;
-
 import common.SimplException;
 
 /**

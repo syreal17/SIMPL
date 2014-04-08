@@ -2,8 +2,6 @@ package protocol.packet;
 
 import java.util.*;
 
-import javax.crypto.*;
-
 import protocol.payload.*;
 
 public class ChatPacket extends Packet {
