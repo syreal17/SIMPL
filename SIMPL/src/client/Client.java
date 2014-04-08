@@ -451,7 +451,8 @@ public class Client extends Thread {
 			Packet packet = (Packet) o;
 			return packet;
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("Server has unexpectedly disconnected...");
+			System.exit(1);
 			return null;
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();

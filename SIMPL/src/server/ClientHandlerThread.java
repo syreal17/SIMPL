@@ -141,7 +141,8 @@ public class ClientHandlerThread extends Thread {
 				//this is how we check for negotiation requests
 				return;
 			} catch (IOException e) {
-				e.printStackTrace();
+				System.out.println("User '"+this.clientUsername+"' exited unexpectedly. Closing their server thread.");
+				this.running = false;
 				return;
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();

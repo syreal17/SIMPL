@@ -93,9 +93,18 @@ public class Server {
 			if( cht.clientUsername.equals(username)){
 				return cht;
 			}
-		}
-		
+		}	
 		return null;
+	}
+	
+	private boolean isClientOnline(String username){
+		//search all threads for the thread that is talking to "username"
+		for( ClientHandlerThread cht : this.threads ){
+			if( cht.clientUsername.equals(username)){
+				return true;
+			}
+		}	
+		return false;
 	}
 	
 	/**
@@ -250,7 +259,8 @@ public class Server {
 			if( this.userDB.containsKey(username) ){
 				//if the userDB already has the username, we want to check to make sure hashes match
 				byte[] storedHash = this.userDB.get(username);
-				return Arrays.equals(suppliedPwHash, storedHash);
+				if (this.isClientOnline(username)) return false;
+				else return Arrays.equals(suppliedPwHash, storedHash);
 			} else {
 				//if username doesn't exist, add it to the DB
 				this.userDB.put(username, suppliedPwHash);

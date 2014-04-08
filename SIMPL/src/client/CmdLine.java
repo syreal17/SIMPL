@@ -230,11 +230,8 @@ public class CmdLine {
 						{
 							System.out.println("Connecting to client: " + words[1]);
 						}
-						else //otherwise indicate this it is not
-						{
-							System.out.println("User [" + words[1] + "] is not currently online.");
-							break;
-						}
+						else break;
+
 						String message;
 						if (words.length > 2) //if the client has an additional message to send
 						{
@@ -282,9 +279,15 @@ public class CmdLine {
 	//		nonexistant user message.
 	public static boolean check_user(String username)
 	{
+		if (client.myUsername.equals(username))
+		{
+			System.out.println("You don't need a computer to talk to yourself...");
+			return false;
+		}
 		for( String client : CmdLine.client.getClients() ){
 			if (client.equals(username)) return true;
 		}
+		System.out.println("User [" + username + "] is not currently online.");
 		return false;
 	}
 	
