@@ -325,6 +325,7 @@ public class Client extends Thread {
 		//send new packet with DH contribution of B and N
 		responsePacket.readyClientBNegotiateResponse(this.serverSeshKey, this.clientAgreementKeyPair.getPublic(), N);
 		responsePacket.go(this.serverSocket);
+		common.Utils.print_debug_msg("Sent Negotiate response!");
 		
 		//manufacture the secret key
 		this.findSecretKey(clientA_DHContrib);
