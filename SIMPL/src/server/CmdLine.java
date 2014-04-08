@@ -1,5 +1,9 @@
 package server;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 import common.SimplException;
 
 public class CmdLine {
@@ -41,7 +45,29 @@ public class CmdLine {
 		String serverPrivKPath = Args[CmdLine.ARG_SERVERPRIVK_POS];
 		
 		//create Server instance and start it
-		CmdLine.server = new Server(portNum, userDBFilename, serverPrivKPath);
-		CmdLine.server.start_listener_loop();
+		server = new Server(portNum, userDBFilename, serverPrivKPath);
+		try 
+		(
+            BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in))
+		)
+		{
+			String userInput;
+			/* Here we listen for user input, then take an appropriate action */
+			while ((userInput = stdIn.readLine()) != null) 
+			{
+				String[] words = userInput.split(" ");
+				switch (words[0])
+				{ 
+					case "/quit":
+						server.quit();
+						break;
+					default:
+						break;
+				}	
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
