@@ -37,6 +37,7 @@ public class CmdLine {
 											"/quit\t\t\t: Logout from SIMPL Server and close Client\n" +
 											"/help\t\t\t: Print this dialog\n";
 	
+	//TODO: put in forward slash!
 	public static final String COMMAND_TOKEN_WHO = "who";
 	public static final String COMMAND_TOKEN_GREET= "chat";
 	public static final String COMMAND_TOKEN_LEAVE = "leave";
