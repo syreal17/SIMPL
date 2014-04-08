@@ -48,6 +48,7 @@ public class Client extends Thread {
 	public boolean running;						//continue listening or exit thread
 	public boolean chatting;
 	public String myUsername; 					//clients username stored here
+	public String passHash;
 	public String buddyUsername;				//buddy's username
 	public InetAddress buddyIP;
 	
@@ -162,17 +163,10 @@ public class Client extends Thread {
 			LoginPacket challengeResponse = new LoginPacket();
 			challengeResponse.R_1 = serverChallenge.R_1;
 			challengeResponse.challengePayload = cp;
-			//TODO: actually get user input here
-			this.myUsername = "syreal";
-			String password = "password";
-			//Hashing the password
-			MessageDigest md = MessageDigest.getInstance(common.Constants.PASSWORD_HASH_ALGORITHM);
-			md.update(password.getBytes());
-			byte[] pwHash = md.digest();
 			//generating the nonce
 			SecureRandom.getInstance(common.Constants.RNG_ALOGRITHM).nextBytes(this.N);
 			//ready the Response for transmission and create the session key
-			serverSeshKey = challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, this.myUsername, pwHash, this.N);
+			serverSeshKey = challengeResponse.readyClientLoginChallengeResponse(this.serverPubK, this.myUsername, this.passHash.getBytes(), this.N);
 			//transmit the response
 			challengeResponse.go(this.serverSocket);
 			
