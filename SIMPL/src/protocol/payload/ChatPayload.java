@@ -31,7 +31,8 @@ public class ChatPayload extends Payload {
 			Cipher cipher = Cipher.getInstance(common.Constants.SYMMETRIC_CRYPTO_MODE);
 			SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
 			cipher.init(Cipher.ENCRYPT_MODE, k);
-			message = cipher.doFinal(message.getBytes()).toString();
+			byte[] ciphertext = cipher.doFinal(message.getBytes());
+			message = new String(ciphertext);
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -57,7 +58,9 @@ public class ChatPayload extends Payload {
 			Cipher cipher = Cipher.getInstance(common.Constants.SYMMETRIC_CRYPTO_MODE);
 			SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
 			cipher.init(Cipher.DECRYPT_MODE, k);
-			return cipher.doFinal(message.getBytes()).toString();
+			byte[] plainBytes = cipher.doFinal(message.getBytes());
+			String plainText = new String(plainBytes);
+			return plainText;
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
