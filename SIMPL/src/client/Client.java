@@ -175,8 +175,15 @@ public class Client extends Thread {
 	}
 	
 	private void handleBuddyPacket(Packet packet){
-		ChatPacket chatPacket = (ChatPacket) packet;
-		System.out.println(chatPacket.payload.decrypt(this.clientSeshKey.get_bypass()));
+		//Chat step
+		if( packet.checkForExactFlags(ChatPacket.getChatPacketFlags()) ){
+			this.handle_chat(packet);
+		}
+		
+		//Leave step
+		else if( packet.checkForExactFlags(LeavePacket.getClientA_FIN_Flags()) ){
+			this.handle_leave();
+		}
 	}
 	
 	/**
