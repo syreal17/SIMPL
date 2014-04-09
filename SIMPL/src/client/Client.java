@@ -367,7 +367,7 @@ public class Client extends Thread {
 			//to ever be negative
 			int chatPortOffset = N[0] + common.Constants.BUDDY_PORT_OFFSET_BASE;
 			//Must build a ServerSocket first to accept the connection
-			this.buddyListenSocket = new ServerSocket(this.serverSocket.getPort()+chatPortOffset);
+			this.buddyListenSocket = new ServerSocket(common.Constants.DONT_USE_PORT);
 			//blocking wait on the connection from the buddy
 			//TODO: chat negotiations really should be deniable from the perspective buddy.
 			//		it's kinda easy to DOS "perspective buddies" like this
@@ -419,7 +419,8 @@ public class Client extends Thread {
 			//to ever be negative
 			int chatPortOffset = N[0] + common.Constants.BUDDY_PORT_OFFSET_BASE;
 			//build the buddySocket, should connect since ClientB should be waiting on accept()
-			this.buddySocket = new Socket(this.buddyIP, this.serverSocket.getPort()+chatPortOffset);
+			//this.buddySocket = new Socket(this.buddyIP, this.serverSocket.getPort()+chatPortOffset);
+			this.buddySocket = new Socket(this.buddyIP, common.Constants.DONT_USE_PORT);
 			//set the buddyStream Synchronizable, signaling UI thread it's safe to send messages
 			this.buddyStream.set(this.buddySocket.getInputStream());
 		} catch (SimplException e) {

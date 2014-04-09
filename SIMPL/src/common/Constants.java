@@ -60,4 +60,7 @@ public class Constants {
 	public final static int RSA_BITS = 4096;
 	public final static String SYMMETRIC_CRYPTO_MODE = "AES";///ECB/PKCS5Padding
 	public final static int NONCE_SIZE_BYTES = 16;
+	
+	//TOTAL FUDGE
+	public final static int DONT_USE_PORT = 9009;
 }
