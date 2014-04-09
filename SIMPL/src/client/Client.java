@@ -364,7 +364,8 @@ public class Client extends Thread {
 			common.Utils.print_debug_msg("Sent Negotiate response!");
 			
 			//manufacture the secret key
-			this.clientSeshKey.set(this.findSecretKey(clientA_DHContrib));
+			//is there a good reason this is using SyncSet??
+			this.clientSeshKey.set_bypass(this.findSecretKey(clientA_DHContrib));
 			
 			//build the buddySocket
 			//use the least significant byte of the nonce as an offset from the server port to be the chat port
@@ -385,13 +386,13 @@ public class Client extends Thread {
 			System.err.println(e.getMessage());
 			e.printStackTrace();
 			return;
-		} catch (InterruptedException e) {
+		}/* catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (BrokenBarrierException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 	}
 	
 	/**
