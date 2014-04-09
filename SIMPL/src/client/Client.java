@@ -167,7 +167,7 @@ public class Client extends Thread {
 		//NOTE: 3-way handshake currently ignored
 		if( packet.checkForExactFlags(LeavePacket.getClientA_FIN_Flags()) )
 		{
-			this.handle_leave();
+			this.handle_leaveA();
 		}
 		
 		//Logout step
@@ -182,7 +182,12 @@ public class Client extends Thread {
 		
 		//Leave step
 		else if( packet.checkForExactFlags(LeavePacket.getClientA_FIN_Flags()) ){
-			this.handle_leave();
+			this.handle_leaveA();
+		}
+		
+		//Leave ACK step
+		else if( packet.checkForExactFlags(LeavePacket.getClientB_FINACK_Flags()) ){
+			this.handle_leaveB();
 		}
 	}
 	
@@ -505,17 +510,34 @@ public class Client extends Thread {
 	 * @return
 	 */
 	public void do_leave(){
-		//TODO: implement
-		//TODO: this.chatting = false
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		//make a chat packet
+		LeavePacket leavePacket = new LeavePacket();
+		//prepare and encrypt the message
+		leavePacket.readyClientA_FIN();
+		//send the message
+		leavePacket.go(this.buddySocket);
 	}
 	
 	/**
 	 * Handle being the recipient of a Leave message, not the sender, as d0_leave does.
 	 */
-	public void handle_leave(){
-		//TODO: implement
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+	public void handle_leaveA(){
+		//make a chat packet
+		LeavePacket leavePacket = new LeavePacket();
+		//prepare and encrypt the message
+		leavePacket.readyClientB_FINACK();
+		//send the message
+		leavePacket.go(this.buddySocket);
+		//leave chat with buddy
+		this.chatting = false;
+	}
+	
+	/**
+	 * Handle being the recipient of a Leave message, not the sender, as d0_leave does.
+	 */
+	public void handle_leaveB(){
+		//leave chat with buddy
+		this.chatting = false;
 	}
 	
 	/**
