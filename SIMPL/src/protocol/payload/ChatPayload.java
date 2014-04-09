@@ -1,5 +1,6 @@
 package protocol.payload;
 
+import java.io.IOException;
 import java.security.*;
 
 import javax.crypto.*;
@@ -12,10 +13,13 @@ public class ChatPayload extends Payload {
 
 	private static final long serialVersionUID = -4032008079394447168L;
 	
-	public String message;
+	public byte[] message;
 	
 	public ChatPayload(String message){
-		this.message = message;
+		if (message != null)
+			this.message = message.getBytes();
+		else
+			this.message = null;
 	}
 
 	@Override
@@ -31,8 +35,7 @@ public class ChatPayload extends Payload {
 			Cipher cipher = Cipher.getInstance(common.Constants.SYMMETRIC_CRYPTO_MODE);
 			SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
 			cipher.init(Cipher.ENCRYPT_MODE, k);
-			byte[] ciphertext = cipher.doFinal(message.getBytes());
-			message = new String(ciphertext);
+			this.message = cipher.doFinal(this.message);
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -58,9 +61,11 @@ public class ChatPayload extends Payload {
 			Cipher cipher = Cipher.getInstance(common.Constants.SYMMETRIC_CRYPTO_MODE);
 			SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
 			cipher.init(Cipher.DECRYPT_MODE, k);
-			byte[] plainBytes = cipher.doFinal(message.getBytes());
-			String plainText = new String(plainBytes);
-			return plainText;
+			byte[] plainBytes = cipher.doFinal(this.message);
+			//make a string
+			String msg = new String(plainBytes);
+			//and finally we return dat shit as a string
+			return msg;
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -77,7 +82,7 @@ public class ChatPayload extends Payload {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return message;
+		return null;
 	}
 
 }

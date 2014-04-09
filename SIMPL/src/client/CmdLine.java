@@ -253,7 +253,7 @@ public class CmdLine {
 						}
 						else break;
 
-						String message;
+						String message = new String();
 						if (words.length > 2) //if the client has an additional message to send
 						{
 							message = Arrays.copyOfRange(words, 2, words.length).toString();

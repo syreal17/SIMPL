@@ -17,7 +17,7 @@ public class ChatPacket extends Packet {
 	//prep the message by encrypting it and setting flags
 	public void prepareMessage(String msg, byte[] seshKey)
 	{
-		this.payload.message = msg;
+		this.payload.message = msg.getBytes();
 		payload.encrypt(seshKey);
 		this.setChatPacketFlags();
 	}
