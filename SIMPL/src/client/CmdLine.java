@@ -11,6 +11,8 @@ import java.security.spec.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+import javax.crypto.SecretKey;
+
 import common.SimplException;
 
 /**
@@ -148,7 +150,7 @@ public class CmdLine {
 		try{
 			CmdLine.client.do_negotiate_request(username);
 			//wait at Synchronizable
-			byte[] clientSeshKey = CmdLine.client.clientSeshKey.get();
+			SecretKey clientSeshKey = CmdLine.client.clientSeshKey.get();
 			if( clientSeshKey == null ){
 				//if clientSeshKey is null then the negotiate failed. We counter-intuitively and unforunately had
 				//to print error message in Client thread.

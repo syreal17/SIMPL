@@ -24,13 +24,13 @@ public class ChatPayload extends Payload {
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
-	public void encrypt(byte[] seshKey)
+	public void encrypt(SecretKey seshKey)
 	{
 		/* Encrypt the message with the symmetric key */
 		try {
 			Cipher cipher = Cipher.getInstance(common.Constants.SYMMETRIC_CRYPTO_MODE);
-			SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
-			cipher.init(Cipher.ENCRYPT_MODE, k);
+			//SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
+			cipher.init(Cipher.ENCRYPT_MODE, seshKey);
 			byte[] ciphertext = cipher.doFinal(message.getBytes());
 			message = new String(ciphertext);
 		} catch (NoSuchAlgorithmException e) {
@@ -51,13 +51,13 @@ public class ChatPayload extends Payload {
 		}
 	}
 	
-	public String decrypt(byte[] seshKey)
+	public String decrypt(SecretKey seshKey)
 	{
 		/* Encrypt the message with the symmetric key */
 		try {
 			Cipher cipher = Cipher.getInstance(common.Constants.SYMMETRIC_CRYPTO_MODE);
-			SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
-			cipher.init(Cipher.DECRYPT_MODE, k);
+			//SecretKeySpec k = new SecretKeySpec(seshKey, Constants.SYMMETRIC_CRYPTO_MODE);
+			cipher.init(Cipher.DECRYPT_MODE, seshKey);
 			byte[] plainBytes = cipher.doFinal(message.getBytes());
 			String plainText = new String(plainBytes);
 			return plainText;
