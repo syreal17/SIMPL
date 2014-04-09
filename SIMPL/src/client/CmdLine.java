@@ -312,6 +312,23 @@ public class CmdLine {
 		return false;
 	}
 	
+	public static boolean check_password(String password)
+	{
+		if (!common.Constants.TESTING)
+		{
+			if (password.matches("\\p{Lower}") &&
+				password.matches("\\p{Upper}") &&	
+				password.matches("\\p{Digit}") &&
+				password.matches("\\p{Punct}") &&
+				password.length() >= 20)
+			{
+				return false;
+			}
+			else return true;
+		}
+		else return false;
+	}
+	
 	public static void main(String[] Args){
 		try{
 			common.Utils.reportCrypto();
@@ -356,7 +373,16 @@ public class CmdLine {
 			System.out.println("Welcome to SIMPL! Please enter your username:");
 			CmdLine.client.myUsername = stdIn.readLine();
 			System.out.println("Tubular! Now enter your password:");
-			String password = stdIn.readLine();
+			String password;
+			while (check_password(password = stdIn.readLine()))
+			{
+				System.out.println("Please enter a password with the following traits:"
+						+ "\n\t1) one or more alphabetic lowercase characters [a-z]"
+						+ "\n\t2) one or more alphabetic uppercase characters [A-Z]"
+						+ "\n\t3) one or more numerical digits [0-9]"
+						+ "\n\t4) one or more symbolic characters [!\"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~]"
+						+ "\n\t5) 20 or more characters in length");
+			}
 			MessageDigest md = MessageDigest.getInstance(common.Constants.PASSWORD_HASH_ALGORITHM);
 			md.update(password.getBytes());
 			if( !common.Constants.CRYPTO_OFF ){

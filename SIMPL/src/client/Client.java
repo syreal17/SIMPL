@@ -175,7 +175,8 @@ public class Client extends Thread {
 	}
 	
 	private void handleBuddyPacket(Packet packet){
-		
+		ChatPacket chatPacket = (ChatPacket) packet;
+		System.out.println(chatPacket.payload.decrypt(this.clientSeshKey.get_bypass()));
 	}
 	
 	/**
@@ -351,7 +352,7 @@ public class Client extends Thread {
 			common.Utils.print_debug_msg("Sent Negotiate response!");
 			
 			//manufacture the secret key
-			this.findSecretKey(clientA_DHContrib);
+			this.clientSeshKey.set(this.findSecretKey(clientA_DHContrib));
 			
 			//build the buddySocket
 			//use the least significant byte of the nonce as an offset from the server port to be the chat port
@@ -372,6 +373,12 @@ public class Client extends Thread {
 			System.err.println(e.getMessage());
 			e.printStackTrace();
 			return;
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (BrokenBarrierException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	
