@@ -10,6 +10,7 @@ public class Constants {
 	public final static String SERVER_PUBK_NAME = "simpl.server.pub";
 	
 	//erm..PROGRAMMING
+	public final static int THREAD_WAIT = 1000; //ms
 	public final static int GENERIC_SUCCESS = 0;
 	public final static int GENERIC_FAILURE = -1;
 	public final static int BYTE_MIN = -128;

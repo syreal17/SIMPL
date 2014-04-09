@@ -424,6 +424,8 @@ public class Client extends Thread {
 			//perhaps not the safest solution, but workable, I think. Adding 256 because we don't want the offset
 			//to ever be negative
 			int chatPortOffset = N[0] + common.Constants.BUDDY_PORT_OFFSET_BASE;
+			//HACK: sleep thread for a second to be safe
+			Thread.sleep(common.Constants.THREAD_WAIT);
 			//build the buddySocket, should connect since ClientB should be waiting on accept()
 			//this.buddySocket = new Socket(this.buddyIP, this.serverSocket.getPort()+chatPortOffset);
 			this.buddySocket = new Socket(this.buddyIP, common.Constants.DONT_USE_PORT);
