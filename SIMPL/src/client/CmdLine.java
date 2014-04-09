@@ -344,8 +344,10 @@ public class CmdLine {
 			//create Client instance
 			CmdLine.client = new Client(serverPubK);
 			
+			//TODO: try moving to constructor
 			//create TCP connection (probably shouldn't make the connection here)
 			CmdLine.client.serverSocket = new Socket(serverName, portNum);
+			CmdLine.client.serverSocket.setSoTimeout(common.Constants.SO_CLIENT_TIMEOUT_FOR_SERVER);
 			CmdLine.client.serverStream = CmdLine.client.serverSocket.getInputStream();
 			
 			//Get username and password

@@ -91,9 +91,24 @@ public class Client extends Thread {
 		this.logged_in = new Synchronizable<Boolean>(false);
 		
 		while( this.running ){
-			Packet packet = this.waitForPacket();
-			//Send packet to the real meat of the demultiplexer.
-			this.handlePacket(packet);	
+			//this waitForPacket will not block indefinitely because Timeout is set for serverSocket
+			Packet serverPacket = this.waitForPacket(this.serverStream);
+			//if server had packet for us, let us handle it
+			if( serverPacket != null ){
+				//Send serverPacket to the real meat of the demultiplexer.
+				this.handleServerPacket(serverPacket);
+			} else {
+				//using an else because if the Server is sending packets right now, might as well go check the socket
+				//again before possibly indefinitely blocking on buddySocket
+				//if we have a working buddy socket
+				if( this.buddySocket != null ){
+					//this waitForPacket does indefinitely block, because if we have a live buddySocket, then
+					//Chat messages preempt server messages (and we won't be sending server messages, and it
+					//won't be sending us messages)
+					Packet buddyPacket = this.waitForPacket(this.buddyStream.get_bypass());
+					this.handleBuddyPacket(buddyPacket);
+				}
+			}
 		}
 	}
 	
@@ -101,7 +116,7 @@ public class Client extends Thread {
 	 * analog to CLientHandlerThread.handlePacket
 	 * @param buddyPacket
 	 */
-	private void handlePacket(Packet packet){
+	private void handleServerPacket(Packet packet){
 		//Login steps
 		if( packet.checkForExactFlags(LoginPacket.getServerLoginChallengeFlags()) )
 		{
@@ -141,6 +156,7 @@ public class Client extends Thread {
 			this.handle_negotiate_nonexistant_response();
 		}
 		
+		//TODO: remove from server packet handling code. Server is never going to send a Chat message to client
 		//Chat step
 		else if( packet.checkForExactFlags(ChatPacket.getChatPacketFlags()) )
 		{
@@ -156,6 +172,10 @@ public class Client extends Thread {
 		
 		//Logout step
 		//TODO: need to handle receiving the server fin/ack since Server counts on ack to actually logout the Client
+	}
+	
+	private void handleBuddyPacket(Packet packet){
+		
 	}
 	
 	/**
@@ -347,6 +367,7 @@ public class Client extends Thread {
 			//bypass the Synchronizable, since that is for the chat initiator, since the buddy blocks on the above
 			//accept
 			this.buddyStream.set_bypass(this.buddySocket.getInputStream());
+			this.chatting = true;
 		} catch (IOException e){
 			System.err.println(e.getMessage());
 			e.printStackTrace();
@@ -471,6 +492,7 @@ public class Client extends Thread {
 	 */
 	public void do_leave(){
 		//TODO: implement
+		//TODO: this.chatting = false
 		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 	}
 	
@@ -499,12 +521,12 @@ public class Client extends Thread {
 //		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
 //	}
 	
-	public Packet waitForPacket(){
+	public Packet waitForPacket(InputStream stream){
 		try{
 			Object o;
 			byte[] recv = new byte[common.Constants.MAX_EXPECTED_PACKET_SIZE];
 			//wait for data from Server or possible Buddy indefinitely
-			int count = this.serverStream.read(recv);
+			int count = stream.read(recv);
 			//once we have it, truncate down to smallest array
 			byte[] packetBytes = new byte[count];
 			System.arraycopy(recv, 0, packetBytes, 0, count);
@@ -512,6 +534,9 @@ public class Client extends Thread {
 			o = common.Utils.deserialize(packetBytes);
 			Packet packet = (Packet) o;
 			return packet;
+		} catch (SocketTimeoutException e){
+			//this isn't unexpected, just return null and let them deal with it
+			return null;
 		} catch (IOException e) {
 			System.out.println("Server has unexpectedly disconnected...");
 			System.exit(1);

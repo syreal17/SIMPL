@@ -21,8 +21,8 @@ public class Constants {
 	//amount of time the Server Socket.read will block until trying again.
 	//This is to facilitate the ClientHandlerThreads checking if they have been requested
 	public final static int SO_SERVER_TIMEOUT = 200; //ms
-	//amount of time the Client Socket.read will wait on Server until processing outgoing packets ??
-	public final static int SO_CLIENT_TIMEOUT = 100; //ms (More responsive than the Server)
+	//amount of time the Client will wait on the serverSocket before checking buddySocket
+	public final static int SO_CLIENT_TIMEOUT_FOR_SERVER = 100; //ms
 	public final static int BUDDY_PORT_OFFSET_BASE = 256;
 	
 	
