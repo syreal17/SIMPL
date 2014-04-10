@@ -192,7 +192,7 @@ public class CmdLine {
 	public static void leave_command(){
 		//TODO: implement
 		System.out.println("Leaving chat with buddy...");
-		throw new UnsupportedOperationException(common.Constants.USO_EXCPT_MSG);
+		client.do_leave();
 	}
 	
 	/**
@@ -256,12 +256,15 @@ public class CmdLine {
 						String message = new String();
 						if (words.length > 2) //if the client has an additional message to send
 						{
-							message = Arrays.copyOfRange(words, 2, words.length).toString();
+							String[] submessage = Arrays.copyOfRange(words, 2, words.length);
+							for (String word : submessage){
+								message = message.concat(word + " ");
+							}
 						}
 						else //otherwise send a default message
 						{
 							//TODO: check that CmdLine.client.buddyUsername actually initialized by here
-							message = "You have connected to client: " + CmdLine.client.buddyUsername;
+							message = "You have connected to client: " + CmdLine.client.myUsername;
 						}
 						//send the first message to the chat_command, who will ship it off
 						CmdLine.chat_command(words[1], message);
@@ -314,7 +317,7 @@ public class CmdLine {
 	
 	public static boolean check_password(String password)
 	{
-		if (!common.Constants.TESTING)
+		if (false)//!common.Constants.TESTING)
 		{
 			if (password.matches("\\p{Lower}") &&
 				password.matches("\\p{Upper}") &&	

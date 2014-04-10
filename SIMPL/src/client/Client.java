@@ -506,7 +506,7 @@ public class Client extends Thread {
 	 */
 	public void handle_chat(Packet packet){
 		ChatPacket chatPacket = (ChatPacket) packet;
-		System.out.println(chatPacket.payload.decrypt(this.clientSeshKey.get_bypass()));
+		System.out.println(this.buddyUsername + ": " + chatPacket.payload.decrypt(this.clientSeshKey.get_bypass()));
 	}
 	
 	/**
