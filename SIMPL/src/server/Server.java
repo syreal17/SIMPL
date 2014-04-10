@@ -221,37 +221,37 @@ public class Server implements Runnable{
 	 * @throws SimplException 
 	 */
 	private void load_users() throws SimplException{
-		if( common.Constants.TESTING ){
-
-		} else {
-			try{
-				File userDBFile = new File(this.userDBPath);
-				if( userDBFile.canRead() ){	
-					
-					FileInputStream fis = new FileInputStream(userDBFile);
-					byte[] dbBytes = new byte[fis.available()];
-					while (fis.read(dbBytes) > 0) {
-
-					}
-					fis.close();
-					Object o = common.Utils.deserialize(dbBytes);
-					ArrayList<UserDBEntry> serializableDB = (ArrayList<UserDBEntry>) o;
-					for (UserDBEntry entry : serializableDB)
-					{
-						this.userDB.put(entry.getUsername(), entry.getPwHash());
-					}
-				} else {
-					throw new SimplException(common.Constants.FILE_UNREADABLE_MSG);
-				}
-			} catch (IOException e){
-				System.err.println(e.getMessage());
-				e.printStackTrace();
-				return;
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+//		if( common.Constants.TESTING ){
+//
+//		} else {
+//			try{
+//				File userDBFile = new File(this.userDBPath);
+//				if( userDBFile.canRead() ){	
+//					
+//					FileInputStream fis = new FileInputStream(userDBFile);
+//					byte[] dbBytes = new byte[fis.available()];
+//					while (fis.read(dbBytes) > 0) {
+//
+//					}
+//					fis.close();
+//					Object o = common.Utils.deserialize(dbBytes);
+//					ArrayList<UserDBEntry> serializableDB = (ArrayList<UserDBEntry>) o;
+//					for (UserDBEntry entry : serializableDB)
+//					{
+//						this.userDB.put(entry.getUsername(), entry.getPwHash());
+//					}
+//				} else {
+//					throw new SimplException(common.Constants.FILE_UNREADABLE_MSG);
+//				}
+//			} catch (IOException e){
+//				System.err.println(e.getMessage());
+//				e.printStackTrace();
+//				return;
+//			} catch (ClassNotFoundException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
 	}
 	
 	/**
